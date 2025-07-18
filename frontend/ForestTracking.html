@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Forest Tracking DApp</title>
+  <!-- Carico prima la libreria web3 -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</head>
+<body>
+  <h1>🌲 ForestTracking Smart Contract</h1>
+
+  <button onclick="connect()">🔌 Connetti MetaMask</button>
+  <p id="account"></p>
+
+  <h2>📥 Aggiungi un albero</h2>
+  <input placeholder="EPC" id="treeEpc" />
+  <input placeholder="Timestamp (numero)" id="treeTime" />
+  <input placeholder="Tipo albero" id="treeType" />
+  <input placeholder="Coordinate" id="coords" />
+  <input placeholder="Osservazioni" id="treeObs" />
+  <button onclick="addTree()">➕ Registra albero</button>
+
+  <h2>📥 Aggiungi un WoodLog</h2>
+  <input placeholder="EPC" id="logEpc" />
+  <input placeholder="Timestamp (numero)" id="logTime" />
+  <input placeholder="EPC albero" id="logTreeEpc" />
+  <input placeholder="Sezione (numero)" id="logSection" />
+  <input placeholder="Osservazioni" id="logObs" />
+  <button onclick="addWoodLog()">➕ Registra tronco</button>
+
+  <h2>📥 Aggiungi un SawnTimber</h2>
+  <input placeholder="EPC" id="timberEpc" />
+  <input placeholder="Timestamp (numero)" id="timberTime" />
+  <input placeholder="EPC WoodLog" id="timberLogEpc" />
+  <input placeholder="Osservazioni" id="timberObs" />
+  <button onclick="addSawnTimber()">➕ Registra tavola</button>
+
+  <h2>🔎 Cerca Albero</h2>
+  <input placeholder="EPC" id="getTreeEpc" />
+  <button onclick="getTree()">📄 Visualizza</button>
+  <pre id="treeResult"></pre>
+
+  <h2>🔎 Cerca WoodLog</h2>
+  <input placeholder="EPC" id="getLogEpc" />
+  <button onclick="getWoodLog()">📄 Visualizza</button>
+  <pre id="logResult"></pre>
+
+  <h2>🔎 Cerca SawnTimber</h2>
+  <input placeholder="EPC" id="getTimberEpc" />
+  <button onclick="getSawnTimber()">📄 Visualizza</button>
+  <pre id="timberResult"></pre>
+
+<script>
+  let web3;
+  let contract;
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // <--- Inserisci l'indirizzo giusto qui
+
+  const abi = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "epcHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "SawnTimberAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "epcHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "TreeAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "epcHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "WoodLogAdded",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "epc",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "woodLogEpc",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "observations",
+          "type": "string"
+        }
+      ],
+      "name": "addSawnTimber",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "epc",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "treeType",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "coordinates",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "observations",
+          "type": "string"
+        }
+      ],
+      "name": "addTree",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "epc",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "treeEpc",
+          "type": "string"
+        },
+        {
+          "internalType": "uint8",
+          "name": "logSectionNumber",
+          "type": "uint8"
+        },
+        {
+          "internalType": "string",
+          "name": "observations",
+          "type": "string"
+        }
+      ],
+      "name": "addWoodLog",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "epc",
+          "type": "string"
+        }
+      ],
+      "name": "getSawnTimber",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "woodLogEpcHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "observationsHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "epc",
+          "type": "string"
+        }
+      ],
+      "name": "getTree",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "treeTypeHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "coordHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "observationsHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "epc",
+          "type": "string"
+        }
+      ],
+      "name": "getWoodLog",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "treeEpcHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint8",
+          "name": "logSectionNumber",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "observationsHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "sawnTimbers",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "epcHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "woodLogEpcHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "observationsHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "exists",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "trees",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "epcHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "treeTypeHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "coordHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "observationsHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "exists",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "woodLogs",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "epcHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstReading",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "treeEpcHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint8",
+          "name": "logSectionNumber",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "observationsHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "exists",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];// incolla ABI
+
+  async function connect() {
+    if (window.ethereum) {
+      try {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });  // nuova sintassi
+        const accounts = await web3.eth.getAccounts();
+        document.getElementById("account").innerText = "Account: " + accounts[0];
+        contract = new web3.eth.Contract(abi, contractAddress);
+        console.log("Connesso a MetaMask con account:", accounts[0]);
+      } catch (error) {
+        console.error("Errore durante la connessione:", error);
+        alert("Errore durante la connessione a MetaMask. Controlla la console.");
+      }
+    } else {
+      alert("Installa MetaMask");
+    }
+  }
+
+  async function addTree() {
+    try {
+      console.log("addTree() chiamata");
+      const epc = document.getElementById("treeEpc").value;
+      const ts = parseInt(document.getElementById("treeTime").value);
+      const type = document.getElementById("treeType").value;
+      const coords = document.getElementById("coords").value;
+      const obs = document.getElementById("treeObs").value;
+
+      if (!epc || isNaN(ts) || !type) {
+        alert("Inserisci EPC, Timestamp valido e Tipo albero obbligatori");
+        return;
+      }
+
+      console.log({epc, ts, type, coords, obs});
+
+      const accounts = await web3.eth.getAccounts();
+      console.log("Account usato:", accounts[0]);
+
+      await contract.methods.addTree(epc, ts, type, coords, obs).send({ from: accounts[0] });
+
+      alert("Albero registrato con successo!");
+    } catch (error) {
+      console.error("Errore in addTree:", error);
+      alert("Errore durante la registrazione: controlla console");
+    }
+  }
+
+  async function addWoodLog() {
+    try {
+      console.log("addWoodLog() chiamata");
+      const epc = document.getElementById("logEpc").value;
+      const ts = parseInt(document.getElementById("logTime").value);
+      const treeEpc = document.getElementById("logTreeEpc").value;
+      const section = parseInt(document.getElementById("logSection").value);
+      const obs = document.getElementById("logObs").value;
+
+      if (!epc || isNaN(ts) || !treeEpc || isNaN(section)) {
+        alert("Inserisci tutti i campi obbligatori con valori validi");
+        return;
+      }
+
+      const accounts = await web3.eth.getAccounts();
+      await contract.methods.addWoodLog(epc, ts, treeEpc, section, obs).send({ from: accounts[0] });
+
+      alert("Tronco registrato con successo!");
+    } catch (error) {
+      console.error("Errore in addWoodLog:", error);
+      alert("Errore durante la registrazione: controlla console");
+    }
+  }
+
+  async function addSawnTimber() {
+    try {
+      console.log("addSawnTimber() chiamata");
+      const epc = document.getElementById("timberEpc").value;
+      const ts = parseInt(document.getElementById("timberTime").value);
+      const logEpc = document.getElementById("timberLogEpc").value;
+      const obs = document.getElementById("timberObs").value;
+
+      if (!epc || isNaN(ts) || !logEpc) {
+        alert("Inserisci EPC, Timestamp e EPC WoodLog obbligatori");
+        return;
+      }
+
+      const accounts = await web3.eth.getAccounts();
+      await contract.methods.addSawnTimber(epc, ts, logEpc, obs).send({ from: accounts[0] });
+
+      alert("Tavola registrata con successo!");
+    } catch (error) {
+      console.error("Errore in addSawnTimber:", error);
+      alert("Errore durante la registrazione: controlla console");
+    }
+  }
+
+  async function getTree() {
+    try {
+      const epc = document.getElementById("getTreeEpc").value;
+      if (!epc) {
+        alert("Inserisci EPC da cercare");
+        return;
+      }
+      const result = await contract.methods.getTree(epc).call();
+      document.getElementById("treeResult").innerText = JSON.stringify(result, null, 2);
+    } catch (error) {
+      console.error("Errore in getTree:", error);
+      alert("Errore durante la ricerca: controlla console");
+    }
+  }
+
+  async function getWoodLog() {
+    try {
+      const epc = document.getElementById("getLogEpc").value;
+      if (!epc) {
+        alert("Inserisci EPC da cercare");
+        return;
+      }
+      const result = await contract.methods.getWoodLog(epc).call();
+      document.getElementById("logResult").innerText = JSON.stringify(result, null, 2);
+    } catch (error) {
+      console.error("Errore in getWoodLog:", error);
+      alert("Errore durante la ricerca: controlla console");
+    }
+  }
+
+  async function getSawnTimber() {
+    try {
+      const epc = document.getElementById("getTimberEpc").value;
+      if (!epc) {
+        alert("Inserisci EPC da cercare");
+        return;
+      }
+      const result = await contract.methods.getSawnTimber(epc).call();
+      document.getElementById("timberResult").innerText = JSON.stringify(result, null, 2);
+    } catch (error) {
+      console.error("Errore in getSawnTimber:", error);
+      alert("Errore durante la ricerca: controlla console");
+    }
+  }
+</script>
+</body>
+</html>
