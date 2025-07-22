@@ -1,8 +1,6 @@
 import hre from "hardhat";
 
 async function main() {
-  await hre.run('compile');
-
   const ForestTracking = await hre.ethers.getContractFactory("ForestTracking");
 
   // In ethers v6 deploy() restituisce il contratto deployato, non serve .deployed()
