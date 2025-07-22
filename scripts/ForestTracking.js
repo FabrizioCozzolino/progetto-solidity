@@ -1,18 +1,21 @@
-import hre from "hardhat";
+const hre = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   const ForestTracking = await hre.ethers.getContractFactory("ForestTracking");
-
-  // In ethers v6 deploy() restituisce il contratto deployato, non serve .deployed()
   const forestTracking = await ForestTracking.deploy();
-
-  // Attendi il mining della transazione di deploy
   await forestTracking.waitForDeployment();
 
-  console.log("✅ ForestTracking deployato a:", forestTracking.target);
+  const address = forestTracking.target;
+  console.log("ForestTracking deployed at:", address);
+
+  // Salva l'indirizzo in un file
+  const outputPath = path.join(__dirname, "../deployed.json");
+  fs.writeFileSync(outputPath, JSON.stringify({ ForestTracking: address }, null, 2));
 }
 
 main().catch((error) => {
-  console.error("❌ Errore nel deploy:", error);
-  process.exitCode = 1;
+  console.error(error);
+  process.exit(1);
 });
