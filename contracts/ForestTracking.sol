@@ -2,18 +2,30 @@
 pragma solidity ^0.8.20;
 
 contract ForestTracking {
-    // Merkle root per batch di alberi
+    // Proprietario del contratto (owner)
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Solo proprietario puo' modificare");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // Merkle root del batch di alberi
     bytes32 public merkleRoot;
 
     event MerkleRootUpdated(bytes32 newRoot);
 
-    // Solo owner può aggiornare il Merkle root
+    // Aggiorna la Merkle root (solo owner)
     function setMerkleRoot(bytes32 _root) external onlyOwner {
         merkleRoot = _root;
         emit MerkleRootUpdated(_root);
     }
 
-    // Verifica Merkle proof per un albero (foglia = hash dei dati dell'albero)
+    // Verifica la Merkle proof di una foglia (hash dei dati albero)
     function verifyTreeProof(bytes32 leaf, bytes32[] calldata proof) public view returns (bool) {
         bytes32 computedHash = leaf;
         for (uint256 i = 0; i < proof.length; i++) {
@@ -26,16 +38,6 @@ contract ForestTracking {
         }
         return computedHash == merkleRoot;
     }
-    address public owner;
-
-    constructor() {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Solo proprietario puo' modificare");
-        _;
-    }
 
     struct Tree {
         bytes32 epcHash;
@@ -46,11 +48,14 @@ contract ForestTracking {
         bool exists;
     }
 
-    mapping(bytes32 => Tree) public trees;
+    mapping(bytes32 => Tree) private trees;
+    bytes32[] private registeredEPCs;
 
     event TreeAdded(bytes32 epcHash);
+    event TreeRemoved(bytes32 epcHash);
     event TreesBatchAdded(uint256 count);
 
+    // Aggiunge un singolo albero
     function addTree(
         string calldata epc,
         uint256 firstReading,
@@ -70,10 +75,10 @@ contract ForestTracking {
             exists: true
         });
 
+        registeredEPCs.push(epcHash);
         emit TreeAdded(epcHash);
     }
 
-    // STRUCT PER BATCH
     struct TreeInput {
         string epc;
         uint256 firstReading;
@@ -82,6 +87,7 @@ contract ForestTracking {
         string observations;
     }
 
+    // Aggiunge batch di alberi
     function addTreesBatch(TreeInput[] calldata batch) external onlyOwner {
         uint256 count = 0;
         for (uint256 i = 0; i < batch.length; i++) {
@@ -95,6 +101,7 @@ contract ForestTracking {
                     observationsHash: keccak256(bytes(batch[i].observations)),
                     exists: true
                 });
+                registeredEPCs.push(epcHash);
                 emit TreeAdded(epcHash);
                 count++;
             }
@@ -102,6 +109,7 @@ contract ForestTracking {
         emit TreesBatchAdded(count);
     }
 
+    // Restituisce dati albero dato epc
     function getTree(string calldata epc) external view returns (
         uint256 firstReading,
         bytes32 treeTypeHash,
@@ -113,5 +121,30 @@ contract ForestTracking {
 
         Tree memory t = trees[epcHash];
         return (t.firstReading, t.treeTypeHash, t.coordHash, t.observationsHash);
+    }
+
+    // Controlla se un albero è registrato (utile per frontend)
+    function isTreeRegistered(string calldata epc) external view returns (bool) {
+        bytes32 epcHash = keccak256(bytes(epc));
+        return trees[epcHash].exists;
+    }
+
+    // Rimuove un albero (solo owner)
+    function removeTree(string calldata epc) external onlyOwner {
+        bytes32 epcHash = keccak256(bytes(epc));
+        require(trees[epcHash].exists, "Tree non esistente");
+        delete trees[epcHash];
+        emit TreeRemoved(epcHash);
+        // Nota: registeredEPCs non viene modificato per semplicità
+    }
+
+    // Restituisce hash dell'epc
+    function getTreeHash(string calldata epc) external pure returns (bytes32) {
+        return keccak256(bytes(epc));
+    }
+
+    // Ritorna il numero totale di alberi registrati (anche se alcuni rimossi)
+    function totalTrees() external view returns (uint256) {
+        return registeredEPCs.length;
     }
 }
