@@ -16,7 +16,7 @@ if (!CONTRACT_ADDRESS) {
 }
 
 const API_URL = "https://pollicino.topview.it:9443/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzUxNzMyLCJpYXQiOjE3NTMzNDgxMzIsImp0aSI6IjY2YTIzNmFlNjY2YTRkN2ZhMDA0YzQ5NzJjODA3NzJiIiwidXNlcl9pZCI6MTEwfQ.hhtuCeyZBN6a2fJh0kF6vyNp6r8olhrfFz33FEN0We4";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzU2ODU4LCJpYXQiOjE3NTMzNTMyNTgsImp0aSI6IjExZTg1YTExZWIxMzRjZGE4MzM2M2YwZDNmYjY2ODVkIiwidXNlcl9pZCI6MTEwfQ.bnJUkG0ecQe_TEOfqHxRgPxno12WUB_Sue7QS3eusys";
 
 function leafHash(tree) {
   return keccak256(

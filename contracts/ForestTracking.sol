@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
 contract ForestTracking {
     address public owner;
 
@@ -276,5 +278,18 @@ contract ForestTracking {
 
     function totalSawnTimbers() external view returns (uint256) {
         return registeredSawnTimberEPCs.length;
+    }
+
+    // ✅ Nuove versioni con 3 argomenti
+    function verifyTreeProofWithRoot(bytes32 leaf, bytes32[] calldata proof, bytes32 root) external pure returns (bool) {
+        return MerkleProof.verifyCalldata(proof, root, leaf);
+    }
+
+    function verifyWoodLogProofWithRoot(bytes32 leaf, bytes32[] calldata proof, bytes32 root) external pure returns (bool) {
+        return MerkleProof.verifyCalldata(proof, root, leaf);
+    }
+
+    function verifySawnTimberProofWithRoot(bytes32 leaf, bytes32[] calldata proof, bytes32 root) external pure returns (bool) {
+        return MerkleProof.verifyCalldata(proof, root, leaf);
     }
 }
