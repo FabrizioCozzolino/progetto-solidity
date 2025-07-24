@@ -1,0 +1,621 @@
+{
+  "trees": [
+    {
+      "epc": "E2806891200050082855DC8D",
+      "firstReading": 1736859577,
+      "treeType": "Fir",
+      "coordinates": "43.7325755,11.5563542",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E4B7",
+      "firstReading": 1737106952,
+      "treeType": "Fir",
+      "coordinates": "43.729815,11.5546719",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D8E7",
+      "firstReading": 1736937045,
+      "treeType": "Fir",
+      "coordinates": "43.7294669,11.5548985",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E4B8",
+      "firstReading": 1737109054,
+      "treeType": "Fir",
+      "coordinates": "43.7295805,11.5549812",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D8E8",
+      "firstReading": 1736851442,
+      "treeType": "Fir",
+      "coordinates": "43.729666,11.5551697",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855F8C7",
+      "firstReading": 1736928964,
+      "treeType": "Fir",
+      "coordinates": "43.7297963,11.5552178",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082854FD45",
+      "firstReading": 1737364704,
+      "treeType": "Fir",
+      "coordinates": "43.7341141,11.5512714",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120005008285600C7",
+      "firstReading": 1737363996,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855B8AB",
+      "firstReading": 1737532741,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E918",
+      "firstReading": 1737110046,
+      "treeType": "Fir",
+      "coordinates": "43.7297483,11.55486",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120005008285604BB",
+      "firstReading": 1737370222,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855F0E6",
+      "firstReading": 1736947981,
+      "treeType": "Fir",
+      "coordinates": "43.7288195,11.5369812",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D4EB",
+      "firstReading": 1737532378,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855DCDD",
+      "firstReading": 1736946972,
+      "treeType": "Fir",
+      "coordinates": "43.7288195,11.5369812",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E8D0",
+      "firstReading": 1737537538,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E11C",
+      "firstReading": 1740999124,
+      "treeType": "Fir",
+      "coordinates": "43.7296583,11.5551017",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E91B",
+      "firstReading": 1736928154,
+      "treeType": "Fir",
+      "coordinates": "43.7296782,11.5551341",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D899",
+      "firstReading": 1737111689,
+      "treeType": "Fir",
+      "coordinates": "43.7297483,11.55486",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855F097",
+      "firstReading": 1736850631,
+      "treeType": "Fir",
+      "coordinates": "43.734306,11.5551797",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D8EE",
+      "firstReading": 1737368766,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D89F",
+      "firstReading": 1737359202,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D503",
+      "firstReading": 1737365953,
+      "treeType": "Fir",
+      "coordinates": "43.7341141,11.5512714",
+      "observations": ""
+    },
+    {
+      "epc": "E28068912000400828550060",
+      "firstReading": 1736850794,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855DCD9",
+      "firstReading": 1740996253,
+      "treeType": "Fir",
+      "coordinates": "43.7296017,11.5545867",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D4BE",
+      "firstReading": 1738141348,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D502",
+      "firstReading": 1744358029,
+      "treeType": "Fir",
+      "coordinates": "43.730005,11.5547683",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D504",
+      "firstReading": 1738141948,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E8CF",
+      "firstReading": 1737378590,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082854FCB3",
+      "firstReading": 1740992771,
+      "treeType": "Fir",
+      "coordinates": "43.7299467,11.5546867",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855F0E7",
+      "firstReading": 1737019575,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E919",
+      "firstReading": 1736950792,
+      "treeType": "Fir",
+      "coordinates": "43.7300952,11.5547922",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E916",
+      "firstReading": 1737376967,
+      "treeType": "Fir",
+      "coordinates": "43.7341141,11.5512714",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120000000618AADE5",
+      "firstReading": 1738141592,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120005008285600C8",
+      "firstReading": 1738141627,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855DCDB",
+      "firstReading": 1738147445,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855DCC1",
+      "firstReading": 1738143092,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D8ED",
+      "firstReading": 1737023699,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855F098",
+      "firstReading": 1737539028,
+      "treeType": "Fir",
+      "coordinates": "43.7292866,11.5543531",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120000000618AAF48",
+      "firstReading": 1737106100,
+      "treeType": "Fir",
+      "coordinates": "43.7296626,11.5549913",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855B0D0",
+      "firstReading": 1737379075,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E90F",
+      "firstReading": 1736938276,
+      "treeType": "Fir",
+      "coordinates": "43.7294669,11.5548985",
+      "observations": ""
+    },
+    {
+      "epc": "E28068912000500828550058",
+      "firstReading": 1736947207,
+      "treeType": "Fir",
+      "coordinates": "43.7288195,11.5369812",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D89C",
+      "firstReading": 1736931917,
+      "treeType": "Fir",
+      "coordinates": "43.7297963,11.5552178",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D49F",
+      "firstReading": 1737370411,
+      "treeType": "Fir",
+      "coordinates": "43.734306,11.5551797",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D4BA",
+      "firstReading": 1737109471,
+      "treeType": "Fir",
+      "coordinates": "43.7296044,11.5551186",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D4B2",
+      "firstReading": 1736935555,
+      "treeType": "Fir",
+      "coordinates": "43.7294669,11.5548985",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E8CE",
+      "firstReading": 1737368947,
+      "treeType": "Fir",
+      "coordinates": "43.7341141,11.5512714",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D4BF",
+      "firstReading": 1738140533,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D8F6",
+      "firstReading": 1737106404,
+      "treeType": "Fir",
+      "coordinates": "43.7298323,11.5546021",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855B125",
+      "firstReading": 1738142783,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855DCD8",
+      "firstReading": 1740995751,
+      "treeType": "Fir",
+      "coordinates": "43.7299809,11.5544561",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D4B8",
+      "firstReading": 1737104905,
+      "treeType": "Fir",
+      "coordinates": "43.7294816,11.5548648",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E111",
+      "firstReading": 1736860860,
+      "treeType": "Fir",
+      "coordinates": "43.7299141,11.5551564",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082854FCB4",
+      "firstReading": 1737542630,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D89E",
+      "firstReading": 1737020721,
+      "treeType": "Fir",
+      "coordinates": "43.7298971,11.5547051",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D89D",
+      "firstReading": 1737531816,
+      "treeType": "Fir",
+      "coordinates": "43.7294865,11.5546322",
+      "observations": ""
+    },
+    {
+      "epc": "E28068912000500828560CC7",
+      "firstReading": 1737358170,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120005008285608EE",
+      "firstReading": 1736947688,
+      "treeType": "Fir",
+      "coordinates": "43.7288195,11.5369812",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120005008285500F2",
+      "firstReading": 1740995344,
+      "treeType": "Fir",
+      "coordinates": "43.729862,11.554562",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D4BD",
+      "firstReading": 1736932615,
+      "treeType": "Fir",
+      "coordinates": "43.7295691,11.5551059",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D501",
+      "firstReading": 1736935159,
+      "treeType": "Fir",
+      "coordinates": "43.7294669,11.5548985",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855DCDA",
+      "firstReading": 1737538085,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E11D",
+      "firstReading": 1736950655,
+      "treeType": "Fir",
+      "coordinates": "43.7301536,11.5547693",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E8D1",
+      "firstReading": 1736950103,
+      "treeType": "Fir",
+      "coordinates": "43.7298705,11.555605",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E0D6",
+      "firstReading": 1736934785,
+      "treeType": "Fir",
+      "coordinates": "43.7294669,11.5548985",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855DD22",
+      "firstReading": 1737360481,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D4C5",
+      "firstReading": 1737533704,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855B12D",
+      "firstReading": 1737379180,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D4AE",
+      "firstReading": 1737378098,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E8D2",
+      "firstReading": 1737019985,
+      "treeType": "Fir",
+      "coordinates": "43.7337202,11.5580222",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855D4C9",
+      "firstReading": 1736950339,
+      "treeType": "Fir",
+      "coordinates": "43.7301536,11.5547693",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120004008285604BA",
+      "firstReading": 1737539668,
+      "treeType": "Fir",
+      "coordinates": "43.729285,11.5543533",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E91C",
+      "firstReading": 1736862877,
+      "treeType": "Fir",
+      "coordinates": "43.729891,11.555256",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120004008285500AC",
+      "firstReading": 1737107606,
+      "treeType": "Fir",
+      "coordinates": "43.7299117,11.5546783",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855B0C0",
+      "firstReading": 1736934722,
+      "treeType": "Fir",
+      "coordinates": "43.7294417,11.5549519",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E49D",
+      "firstReading": 1737365674,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E0B8",
+      "firstReading": 1738145419,
+      "treeType": "Fir",
+      "coordinates": "43.7295617,11.5543257",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855FCC9",
+      "firstReading": 1737107094,
+      "treeType": "Fir",
+      "coordinates": "43.7299523,11.5546978",
+      "observations": ""
+    },
+    {
+      "epc": "E280689120000000618C34F7",
+      "firstReading": 1737020528,
+      "treeType": "Fir",
+      "coordinates": "43.7325745,11.5576668",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D88F",
+      "firstReading": 1737531945,
+      "treeType": "Fir",
+      "coordinates": "43.7293733,11.5544783",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D8E9",
+      "firstReading": 1737019918,
+      "treeType": "Fir",
+      "coordinates": "43.8488718,11.3595943",
+      "observations": ""
+    },
+    {
+      "epc": "E28068912000400828550451",
+      "firstReading": 1737364274,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E48E",
+      "firstReading": 1737365173,
+      "treeType": "Fir",
+      "coordinates": "43.7341141,11.5512714",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E4EA",
+      "firstReading": 1737020939,
+      "treeType": "Fir",
+      "coordinates": "43.7298967,11.554705",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E498",
+      "firstReading": 1736861309,
+      "treeType": "Fir",
+      "coordinates": "43.729891,11.555256",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855E0A0",
+      "firstReading": 1740994208,
+      "treeType": "Fir",
+      "coordinates": "43.7296435,11.554415",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200050082855D8D0",
+      "firstReading": 1738142589,
+      "treeType": "Fir",
+      "coordinates": "43.6935655,11.4206076",
+      "observations": ""
+    },
+    {
+      "epc": "E2806891200040082855E49A",
+      "firstReading": 1737533501,
+      "treeType": "Fir",
+      "coordinates": "43.7325693,11.5548244",
+      "observations": ""
+    }
+  ],
+  "sawnTimbers": []
+}

@@ -16,12 +16,23 @@ if (!CONTRACT_ADDRESS) {
 }
 
 const API_URL = "https://pollicino.topview.it:9443/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMjkxMjAxLCJpYXQiOjE3NTMyODc2MDEsImp0aSI6IjY3MDIxYjFiNWU3MjRjZjA5MDU3MGU0Yjc4MjliZmJiIiwidXNlcl9pZCI6MTEwfQ.58LZMIv_gesE0Moa50E4PibZ4zSUCcq_1LnwL3_G6YA";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzUxNzMyLCJpYXQiOjE3NTMzNDgxMzIsImp0aSI6IjY2YTIzNmFlNjY2YTRkN2ZhMDA0YzQ5NzJjODA3NzJiIiwidXNlcl9pZCI6MTEwfQ.hhtuCeyZBN6a2fJh0kF6vyNp6r8olhrfFz33FEN0We4";
 
 function leafHash(tree) {
   return keccak256(
     `${tree.epc}|${tree.firstReading}|${tree.treeType}|${tree.coordinates}|${tree.observations}`
   );
+}
+
+// Funzione per ottenere il prezzo ETH/EUR da CoinGecko
+async function getEthPriceInEuro() {
+  try {
+    const res = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur");
+    return res.data.ethereum.eur; // prezzo ETH in euro
+  } catch (error) {
+    console.error("❌ Errore nel recuperare il prezzo ETH/EUR:", error.message);
+    return null;
+  }
 }
 
 async function main() {
@@ -33,6 +44,10 @@ async function main() {
   const contractJson = require("../artifacts/contracts/ForestTracking.sol/ForestTracking.json");
   const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
 
+  console.log("=== DEBUG CONTRATTO ===");
+  console.log("Contract keys:", Object.keys(contract));
+  console.log("Contract interface fragments count:", contract.interface.fragments.length);
+
   if (contract.interface && Array.isArray(contract.interface.fragments)) {
     const funcs = contract.interface.fragments
       .filter(f => f.type === "function")
@@ -41,6 +56,9 @@ async function main() {
   } else {
     console.warn("⚠️ contract.interface.fragments non definito o non un array");
   }
+
+  console.log("setMerkleRootTrees esiste? Tipo:", typeof contract.setMerkleRootTrees);
+  console.log("=======================");
 
   console.log("✅ Contratto caricato da:", CONTRACT_ADDRESS);
 
@@ -76,6 +94,7 @@ async function main() {
 
   const batch = [];
   const leaves = [];
+  const allTimbersLogs = [];
 
   for (const id of treeKeys) {
     const t = treesDict[id];
@@ -92,49 +111,81 @@ async function main() {
     const obj = { epc, firstReading, treeType, coordinates, observations };
     batch.push(obj);
     leaves.push(leafHash(obj));
+
+    // Gestione sawnTimbers (oggetto)
+    if (t.sawnTimbers && Object.keys(t.sawnTimbers).length > 0) {
+      for (const timberEpc of Object.keys(t.sawnTimbers)) {
+        const timberData = t.sawnTimbers[timberEpc];
+        allTimbersLogs.push({
+          parentTreeEPC: epc,
+          timberEPC: timberEpc,
+          qualities: timberData.qualities || [],
+          observations: timberData.observations || [],
+          firstReadingTime: timberData.firstReadingTime || null,
+        });
+      }
+    }
   }
 
   console.log(`✅ Alberi validi per Merkle tree: ${batch.length}`);
+  console.log(`✅ Sawn timbers totali: ${allTimbersLogs.length}`);
 
   const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
   const root = merkleTree.getHexRoot();
   console.log("🌲 Merkle Root calcolata:", root);
 
   try {
-    if (typeof contract.setMerkleRoot !== "function") {
-      console.error("❌ La funzione setMerkleRoot non è disponibile nel contratto.");
+    if (typeof contract.setMerkleRootTrees !== "function") {
+      console.error("❌ La funzione setMerkleRootTrees non è disponibile nel contratto.");
       process.exit(1);
     }
 
-    const gasEstimate = await contract.setMerkleRoot.estimateGas(root);
-    const gasPriceBigInt = await hre.ethers.provider.send("eth_gasPrice", []);
-    const gasEstimateBigInt = BigInt(gasEstimate.toString());
-    const ethCostBigInt = gasEstimateBigInt * BigInt(gasPriceBigInt);
-    const ethCostFloat = Number(hre.ethers.formatEther(ethCostBigInt));
+    // Stima gas
+    const gasEstimate = await hre.ethers.provider.estimateGas({
+      to: CONTRACT_ADDRESS,
+      data: contract.interface.encodeFunctionData("setMerkleRootTrees", [root]),
+      from: await signer.getAddress()
+    });
+    console.log("⏳ Stima gas per setMerkleRootTrees:", gasEstimate.toString());
 
-    let ethEur = 3120.42;
-    try {
-      const res = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur");
-      ethEur = Number(res.data.ethereum.eur);
-    } catch {
-      console.warn("⚠️ Errore recupero ETH/EUR, uso 3120.42 di default.");
+    const feeData = await hre.ethers.provider.getFeeData();
+    const gasPrice = feeData.gasPrice || feeData.maxFeePerGas;
+    if (!gasPrice) {
+      throw new Error("Impossibile ottenere gas price da provider");
+    }
+    console.log("💰 Gas price:", hre.ethers.formatUnits(gasPrice, "gwei"), "Gwei");
+
+    const gasCost = gasEstimate * gasPrice;
+
+    console.log(`💰 Costo stimato: ${hre.ethers.formatEther(gasCost)} ETH`);
+
+    // Ottieni prezzo ETH/EUR
+    const ethPriceEUR = await getEthPriceInEuro();
+    if (ethPriceEUR !== null) {
+      console.log(`💶 Costo stimato in Euro: €${(Number(hre.ethers.formatEther(gasCost)) * ethPriceEUR).toFixed(4)}`);
+    } else {
+      console.log("⚠️ Non è stato possibile recuperare il prezzo ETH/EUR per mostrare i costi in euro.");
     }
 
-    console.log(`💰 Costo stimato: ${ethCostFloat.toFixed(6)} ETH ≈ €${(ethCostFloat * ethEur).toFixed(2)}`);
-
-    const tx = await contract.setMerkleRoot(root);
+    // Invio transazione
+    const tx = await contract.setMerkleRootTrees(root);
     const receipt = await tx.wait();
 
-    const gasUsedBigInt = BigInt(receipt.gasUsed.toString()) * BigInt(gasPriceBigInt);
-    const actualEth = Number(hre.ethers.formatEther(gasUsedBigInt));
+    const actualCost = receipt.gasUsed * gasPrice;
+
     console.log("✅ Merkle root aggiornata.");
     console.log(`⛽ Gas usato: ${receipt.gasUsed.toString()}`);
-    console.log(`💸 Costo reale: ${actualEth.toFixed(6)} ETH ≈ €${(actualEth * ethEur).toFixed(2)}`);
+    console.log(`💸 Costo reale: ${hre.ethers.formatEther(actualCost)} ETH`);
 
+    if (ethPriceEUR !== null) {
+      console.log(`💶 Costo reale in Euro: €${(Number(hre.ethers.formatEther(actualCost)) * ethPriceEUR).toFixed(4)}`);
+    }
+
+    // Proof per il primo albero
     const proof = merkleTree.getHexProof(leafHash(batch[0]));
     console.log("📌 Proof primo albero:", proof);
 
-    // Verifica immediata
+    // Verifica immediata della proof sul contratto
     const leaf = leafHash(batch[0]);
     const isValid = await contract.verifyTreeProof(leaf, proof);
     console.log(`🔍 Proof valida per il primo albero? ${isValid ? "✅ SÌ" : "❌ NO"}`);
@@ -144,9 +195,14 @@ async function main() {
     process.exit(1);
   }
 
-  const fsPath = path.join(__dirname, "last-batch.json");
-  fs.writeFileSync(fsPath, JSON.stringify(batch, null, 2));
-  console.log(`💾 Batch salvato in ${fsPath}`);
+  // Salva un file con alberi e sawn timbers unificati
+  const unifiedLogPath = path.join(__dirname, "forest-units-log.json");
+  const unifiedLog = {
+    trees: batch,
+    sawnTimbers: allTimbersLogs
+  };
+  fs.writeFileSync(unifiedLogPath, JSON.stringify(unifiedLog, null, 2));
+  console.log(`💾 Log unificato salvato in ${unifiedLogPath}`);
 }
 
 main().catch((err) => {
