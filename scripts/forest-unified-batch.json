@@ -1,0 +1,2762 @@
+[
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855DC8D",
+    "firstReading": 1736859577,
+    "treeType": "Fir",
+    "extra1": "43.7325755,11.5563542",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855AC9E",
+    "firstReading": 1736859699,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DC8D",
+    "extra2": "Lenght of wood: 4.23 m; Diameter 2 of a woodlog: 21 cm; Stiffness and properties of wood fibers: 4.164 Km/s; Diameter 1 of a woodlog: 23 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E500",
+    "firstReading": 1736859674,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DC8D",
+    "extra2": "Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 3.859 Km/s; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 32 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E8E9",
+    "firstReading": 1736859773,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DC8D",
+    "extra2": "Diameter 2 of a woodlog: 22 cm; Stiffness and properties of wood fibers: 4.075 Km/s; Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 20 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E4B7",
+    "firstReading": 1737106952,
+    "treeType": "Fir",
+    "extra1": "43.729815,11.5546719",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD6D0",
+    "firstReading": 1737106968,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E4B7",
+    "extra2": "Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.17 Km/s; Diameter 1 of a woodlog: 25 cm; Diameter 2 of a woodlog: 21 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D8E7",
+    "firstReading": 1736937045,
+    "treeType": "Fir",
+    "extra1": "43.7294669,11.5548985",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8C27",
+    "firstReading": 1736937632,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8E7",
+    "extra2": "Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 4.663 Km/h; Diameter 1 of a woodlog: 2.5 cm; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD2DF",
+    "firstReading": 1736937594,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8E7",
+    "extra2": "Stiffness and properties of wood fibers: 4.282 Km/h; Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 33 cm; Diameter 2 of a woodlog: 38 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B9133",
+    "firstReading": 1736937648,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8E7",
+    "extra2": "Stiffness and properties of wood fibers: 4.624 Km/h; Lenght of wood: 4.18 m; Diameter 1 of a woodlog: 24 cm; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B27C1",
+    "firstReading": 1736937613,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8E7",
+    "extra2": "Diameter 1 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.560 Km/s; Diameter 2 of a woodlog: 61 cm; Lenght of wood: 4.23 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E4B8",
+    "firstReading": 1737109054,
+    "treeType": "Fir",
+    "extra1": "43.7295805,11.5549812",
+    "extra2": ""
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D8E8",
+    "firstReading": 1736851442,
+    "treeType": "Fir",
+    "extra1": "43.729666,11.5551697",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082854F4E6",
+    "firstReading": 1736852200,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8E8",
+    "extra2": "Diameter 2 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 4.065 Km/s; Diameter 1 of a woodlog: 31 cm; Lenght of wood: 4.21 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B0BF",
+    "firstReading": 1736852143,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8E8",
+    "extra2": "Diameter 2 of a woodlog: 34 cm; Diameter 1 of a woodlog: 43 cm; Stiffness and properties of wood fibers: 3.705 Km/s; Lenght of wood: 4.25 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082854F8ED",
+    "firstReading": 1736852219,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8E8",
+    "extra2": "Stiffness and properties of wood fibers: 4.056 Km/s; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 29 cm; Diameter 1 of a woodlog: 26 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855F8C7",
+    "firstReading": 1736928964,
+    "treeType": "Fir",
+    "extra1": "43.7297963,11.5552178",
+    "extra2": ""
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082854FD45",
+    "firstReading": 1737364704,
+    "treeType": "Fir",
+    "extra1": "43.7341141,11.5512714",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD54F",
+    "firstReading": 1737364957,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082854FD45",
+    "extra2": "Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.45 Km/s; Diameter 2 of a woodlog: 21 cm; Lenght of wood: 4.24 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120005008285600C7",
+    "firstReading": 1737363996,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B30A6",
+    "firstReading": 1737364015,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285600C7",
+    "extra2": "Stiffness and properties of wood fibers: 4.205 Km/s; Diameter 2 of a woodlog: 53 cm; Lenght of wood: 6.50 m; Diameter 1 of a woodlog: 38 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AB138",
+    "firstReading": 1737364043,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285600C7",
+    "extra2": "Stiffness and properties of wood fibers: 4.164 Km/h; Diameter 1 of a woodlog: 32 cm; Diameter 2 of a woodlog: 35.5 cm; Lenght of wood: 4.19 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD57F",
+    "firstReading": 1737364170,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285600C7",
+    "extra2": "Stiffness and properties of wood fibers: 4.144 Km/h; Diameter 2 of a woodlog: 28.5 cm; Diameter 1 of a woodlog: 26 cm; Lenght of wood: 4.17 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD5F1",
+    "firstReading": 1737364054,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285600C7",
+    "extra2": "Diameter 1 of a woodlog: 32.5 cm; Stiffness and properties of wood fibers: 4.193 Km/h; Lenght of wood: 4.18 m; Diameter 2 of a woodlog: 29 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855B8AB",
+    "firstReading": 1737532741,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B3157",
+    "firstReading": 1737532749,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855B8AB",
+    "extra2": "Diameter 1 of a woodlog: 29 cm; Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.29 Km/s; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7FEF",
+    "firstReading": 1737532762,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855B8AB",
+    "extra2": "Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.21 Km/s; Diameter 1 of a woodlog: 27 cm; Diameter 2 of a woodlog: 23 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E918",
+    "firstReading": 1737110046,
+    "treeType": "Fir",
+    "extra1": "43.7297483,11.55486",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD651",
+    "firstReading": 1737110217,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E918",
+    "extra2": "Lenght of wood: 4.18 m; Diameter 1 of a woodlog: 24 cm; Stiffness and properties of wood fibers: 4.467 Km/h; Diameter 2 of a woodlog: 27 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD16C",
+    "firstReading": 1737110064,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E918",
+    "extra2": "Stiffness and properties of wood fibers: 4.232 Km/h; Lenght of wood: 4.18 m; Diameter 1 of a woodlog: 34.5 cm; Diameter 2 of a woodlog: 29 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDDFB",
+    "firstReading": 1737110242,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E918",
+    "extra2": "Diameter 1 of a woodlog: 22 cm; Diameter 2 of a woodlog: 24 cm; Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 4.350 Km/h"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B9104",
+    "firstReading": 1737110201,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E918",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.16 m; Stiffness and properties of wood fibers: 4.329 Km/h; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120005008285604BB",
+    "firstReading": 1737370222,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD260",
+    "firstReading": 1737370369,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285604BB",
+    "extra2": "Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.45 Km/s; Diameter 2 of a woodlog: 29 cm; Diameter 1 of a woodlog: 32 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD1AC",
+    "firstReading": 1737370238,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285604BB",
+    "extra2": "Stiffness and properties of wood fibers: 4.34 Km/s; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 40 cm; Diameter 2 of a woodlog: 33 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD220",
+    "firstReading": 1737370379,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285604BB",
+    "extra2": "Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.02 Km/s; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855F0E6",
+    "firstReading": 1736947981,
+    "treeType": "Fir",
+    "extra1": "43.7288195,11.5369812",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B815B",
+    "firstReading": 1736949429,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F0E6",
+    "extra2": "Stiffness and properties of wood fibers: 3.819 Km/s; Diameter 2 of a woodlog: 33 cm; Diameter 1 of a woodlog: 32 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C22E9",
+    "firstReading": 1736949668,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F0E6",
+    "extra2": "Diameter 2 of a woodlog: 25 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 3.741 Km/s; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8D58",
+    "firstReading": 1736948142,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F0E6",
+    "extra2": "Diameter 1 of a woodlog: 43 cm; Diameter 2 of a woodlog: 33 cm; Stiffness and properties of wood fibers: 4.016 Km/s; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD5D3",
+    "firstReading": 1736949645,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F0E6",
+    "extra2": "Diameter 2 of a woodlog: 32 cm; Diameter 1 of a woodlog: 28 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 3.819 Km/h"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D4EB",
+    "firstReading": 1737532378,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2F27",
+    "firstReading": 1737532520,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4EB",
+    "extra2": "Diameter 1 of a woodlog: 35 cm; Stiffness and properties of wood fibers: 4.223 Km/s; Diameter 2 of a woodlog: 31 cm; Lenght of wood: 4.21 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5C98",
+    "firstReading": 1737532537,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4EB",
+    "extra2": "Stiffness and properties of wood fibers: 4.40 Km/s; Diameter 1 of a woodlog: 31 cm; Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 30 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C24E2",
+    "firstReading": 1737532545,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4EB",
+    "extra2": "Diameter 2 of a woodlog: 27 cm; Stiffness and properties of wood fibers: 3.96 Km/s; Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 30 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855DCDD",
+    "firstReading": 1736946972,
+    "treeType": "Fir",
+    "extra1": "43.7288195,11.5369812",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5C39",
+    "firstReading": 1736947023,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCDD",
+    "extra2": "Diameter 1 of a woodlog: 24.5 cm; Diameter 2 of a woodlog: 27.5 cm; Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 4.046 Km/h"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E8D0",
+    "firstReading": 1737537538,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5FB3",
+    "firstReading": 1737537711,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8D0",
+    "extra2": "Stiffness and properties of wood fibers: 3.997 Km/h; Diameter 2 of a woodlog: 36 cm; Diameter 1 of a woodlog: 32.5 cm; Lenght of wood: 4.18 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD660",
+    "firstReading": 1737537579,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8D0",
+    "extra2": "Lenght of wood: 6.57 m; Stiffness and properties of wood fibers: 4.065 Km/s; Diameter 2 of a woodlog: 44 cm; Diameter 1 of a woodlog: 53 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD55F",
+    "firstReading": 1737537661,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8D0",
+    "extra2": "Stiffness and properties of wood fibers: 4.125 Km/h; Diameter 1 of a woodlog: 35.5 cm; Diameter 2 of a woodlog: 38 cm; Lenght of wood: 4.19 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5D38",
+    "firstReading": 1737537771,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8D0",
+    "extra2": "Diameter 2 of a woodlog: 33 cm; Stiffness and properties of wood fibers: 3.947 Km/h; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 31 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2D6E",
+    "firstReading": 1737537615,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8D0",
+    "extra2": "Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.253 Km/h; Diameter 2 of a woodlog: 40 cm; Diameter 1 of a woodlog: 42.5 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E11C",
+    "firstReading": 1740999124,
+    "treeType": "Fir",
+    "extra1": "43.7296583,11.5551017",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855BC9B",
+    "firstReading": 1740999213,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E11C",
+    "extra2": "Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 32 cm; Stiffness and properties of wood fibers: 4.095 Km/s; Diameter 1 of a woodlog: 33 cm"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200050082855DD15",
+    "firstReading": 1748520943,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 20 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200040082855D92A",
+    "firstReading": 1748520820,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 20 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200040082855E0E0",
+    "firstReading": 1748520685,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 20 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 3 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200040082855E907",
+    "firstReading": 1748520961,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 20 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B8B2",
+    "firstReading": 1740999168,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E11C",
+    "extra2": "Diameter 2 of a woodlog: 41 cm; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 46 cm; Stiffness and properties of wood fibers: 4.026 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855005F",
+    "firstReading": 1740999229,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E11C",
+    "extra2": "Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 32 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 3.977 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855D8BB",
+    "firstReading": 1740999150,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E11C",
+    "extra2": "Diameter 1 of a woodlog: 57 cm; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 47 cm; Stiffness and properties of wood fibers: 3.92 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082854FC71",
+    "firstReading": 1740999200,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E11C",
+    "extra2": "Diameter 1 of a woodlog: 38 cm; Diameter 2 of a woodlog: 34 cm; Stiffness and properties of wood fibers: 4.095 Km/s; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E28068912000400828550577",
+    "firstReading": 1740999185,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E11C",
+    "extra2": "Diameter 1 of a woodlog: 39 cm; Diameter 2 of a woodlog: 37 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.095 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E91B",
+    "firstReading": 1736928154,
+    "treeType": "Fir",
+    "extra1": "43.7296782,11.5551341",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082854F8E9",
+    "firstReading": 1736928521,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E91B",
+    "extra2": "Diameter 2 of a woodlog: 29 cm; Diameter 1 of a woodlog: 33 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 3.741 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B87F",
+    "firstReading": 1736928319,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E91B",
+    "extra2": "Diameter 1 of a woodlog: 36 cm; Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 3.771 Km/s; Diameter 2 of a woodlog: 33 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082854F13A",
+    "firstReading": 1736928291,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E91B",
+    "extra2": "Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 3.937 Km/s; Diameter 2 of a woodlog: 39 cm; Diameter 1 of a woodlog: 38 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855ACB4",
+    "firstReading": 1736928232,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E91B",
+    "extra2": "Lenght of wood: 4.25 m; Diameter 2 of a woodlog: 40 cm; Diameter 1 of a woodlog: 46 cm; Stiffness and properties of wood fibers: 3.825 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D899",
+    "firstReading": 1737111689,
+    "treeType": "Fir",
+    "extra1": "43.7297483,11.55486",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B90B5",
+    "firstReading": 1737111714,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D899",
+    "extra2": "Diameter 2 of a woodlog: 24 cm; Diameter 1 of a woodlog: 27 cm; Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 4.262 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855F097",
+    "firstReading": 1736850631,
+    "treeType": "Fir",
+    "extra1": "43.734306,11.5551797",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855DCAE",
+    "firstReading": 1736850776,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F097",
+    "extra2": "Diameter 2 of a woodlog: 22 cm; Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 2.334 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855BD30",
+    "firstReading": 1736850646,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F097",
+    "extra2": "Diameter of wood: 30.5 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 123 Km/h; Diameter 1 of a woodlog: 32 cm; Diameter 2 of a woodlog: 28 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E0ED",
+    "firstReading": 1736850758,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F097",
+    "extra2": "Diameter 1 of a woodlog: 29 cm; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.253 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D8EE",
+    "firstReading": 1737368766,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AE10A",
+    "firstReading": 1737368818,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8EE",
+    "extra2": "Diameter 2 of a woodlog: 28 cm; Lenght of wood: 4.23 m; Stiffness and properties of wood fibers: 4.57 Km/s; Diameter 1 of a woodlog: 30 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD601",
+    "firstReading": 1737368788,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8EE",
+    "extra2": "Lenght of wood: 4.25 m; Stiffness and properties of wood fibers: 4.21 Km/s; Diameter 1 of a woodlog: 41 cm; Diameter 2 of a woodlog: 35 cm"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200040082855E4F9",
+    "firstReading": 1748514480,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 25 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200050082855E4B0",
+    "firstReading": 1748514457,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 25 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200050082855B8B6",
+    "firstReading": 1748514438,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 20 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 3 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200050082855D921",
+    "firstReading": 1748514495,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 25 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C34C7",
+    "firstReading": 1737368802,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8EE",
+    "extra2": "Stiffness and properties of wood fibers: 4.26 Km/s; Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 30 cm; Diameter 1 of a woodlog: 34 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D89F",
+    "firstReading": 1737359202,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2E2A",
+    "firstReading": 1737359354,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89F",
+    "extra2": "Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.37 Km/s; Diameter 2 of a woodlog: 25 cm; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2E3B",
+    "firstReading": 1737359379,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89F",
+    "extra2": "Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 25 cm; Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.34 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2E4B",
+    "firstReading": 1737359258,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89F",
+    "extra2": "Diameter 1 of a woodlog: 30.5 cm; Stiffness and properties of wood fibers: 4.232 Km/h; Lenght of wood: 4.18 m; Diameter 2 of a woodlog: 28.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8BE7",
+    "firstReading": 1737359241,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89F",
+    "extra2": "Stiffness and properties of wood fibers: 3.874 Km/h; Diameter 1 of a woodlog: 31 cm; Diameter 2 of a woodlog: 39 cm; Lenght of wood: 4.26 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D503",
+    "firstReading": 1737365953,
+    "treeType": "Fir",
+    "extra1": "43.7341141,11.5512714",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B90C5",
+    "firstReading": 1737369829,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D503",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 31 cm; Diameter 2 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.44 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD611",
+    "firstReading": 1737369841,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D503",
+    "extra2": "Stiffness and properties of wood fibers: 4.44 Km/s; Diameter 2 of a woodlog: 24 cm; Lenght of wood: 4.15 m; Diameter 1 of a woodlog: 28 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AADAB",
+    "firstReading": 1737366109,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D503",
+    "extra2": "Diameter 2 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.29 Km/s; Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 36 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD201",
+    "firstReading": 1737369853,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D503",
+    "extra2": "Lenght of wood: 4.26 m; Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.27 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E28068912000400828550060",
+    "firstReading": 1736850794,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B0D8",
+    "firstReading": 1736850876,
+    "treeType": "Fir",
+    "extra1": "E28068912000400828550060",
+    "extra2": "Stiffness and properties of wood fibers: 4.085 Km/s; Diameter 2 of a woodlog: 29 cm; Diameter 1 of a woodlog: 32 cm; Lenght of wood: 4.23 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855DCBD",
+    "firstReading": 1736850958,
+    "treeType": "Fir",
+    "extra1": "E28068912000400828550060",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E89D",
+    "firstReading": 1736850863,
+    "treeType": "Fir",
+    "extra1": "E28068912000400828550060",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 32 cm; Stiffness and properties of wood fibers: 4.125 Km/s; Diameter 2 of a woodlog: 36 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B126",
+    "firstReading": 1736850894,
+    "treeType": "Fir",
+    "extra1": "E28068912000400828550060",
+    "extra2": "Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 4.085 Km/s; Diameter 2 of a woodlog: 30 cm; Diameter 1 of a woodlog: 27 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855DCD9",
+    "firstReading": 1740996253,
+    "treeType": "Fir",
+    "extra1": "43.7296017,11.5545867",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E900",
+    "firstReading": 1740996310,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DCD9",
+    "extra2": "Diameter 1 of a woodlog: 24 cm; Diameter 2 of a woodlog: 21 cm; Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 4.39 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855BCED",
+    "firstReading": 1740996261,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DCD9",
+    "extra2": "Lenght of wood: 4.24 m; Diameter 2 of a woodlog: 31 cm; Stiffness and properties of wood fibers: 4.01 Km/s; Diameter 1 of a woodlog: 38 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B472",
+    "firstReading": 1740996274,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DCD9",
+    "extra2": "Stiffness and properties of wood fibers: 4.263 Km/s; Diameter 1 of a woodlog: 31 cm; Lenght of wood: 4.25 m; Diameter 2 of a woodlog: 27 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B136",
+    "firstReading": 1740996289,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DCD9",
+    "extra2": "Stiffness and properties of wood fibers: 4.33 Km/s; Diameter 1 of a woodlog: 27 cm; Diameter 2 of a woodlog: 25 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D4BE",
+    "firstReading": 1738141348,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2FD8",
+    "firstReading": 1738141363,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4BE",
+    "extra2": "Lenght of wood: 4.23 m; Diameter 1 of a woodlog: 31 cm; Stiffness and properties of wood fibers: 4.402 Km/s; Diameter 2 of a woodlog: 24 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B818C",
+    "firstReading": 1738141379,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4BE",
+    "extra2": "Stiffness and properties of wood fibers: 4.657 Km/s; Diameter 2 of a woodlog: 25 cm; Diameter 1 of a woodlog: 24 cm; Lenght of wood: 4.21 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D502",
+    "firstReading": 1744358029,
+    "treeType": "Fir",
+    "extra1": "43.730005,11.5547683",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280110020007A8DDABC08BC",
+    "firstReading": 1744358055,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D502",
+    "extra2": "Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 3.94 Km/s; Diameter 1 of a woodlog: 26 cm; Diameter 2 of a woodlog: 22 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D504",
+    "firstReading": 1738141948,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C6033",
+    "firstReading": 1738142142,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D504",
+    "extra2": "Diameter 2 of a woodlog: 27 cm; Lenght of wood: 4.26 m; Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.353 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C2433",
+    "firstReading": 1738142051,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D504",
+    "extra2": "Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 29 cm; Diameter 2 of a woodlog: 31 cm; Stiffness and properties of wood fibers: 4.539 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7FAF",
+    "firstReading": 1738142118,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D504",
+    "extra2": "Lenght of wood: 4.23 m; Stiffness and properties of wood fibers: 4.442 Km/s; Diameter 1 of a woodlog: 29 cm; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5C58",
+    "firstReading": 1738142033,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D504",
+    "extra2": "Diameter 2 of a woodlog: 37 cm; Lenght of wood: 4.24 m; Stiffness and properties of wood fibers: 4.293 Km/s; Diameter 1 of a woodlog: 32 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E8CF",
+    "firstReading": 1737378590,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDD3C",
+    "firstReading": 1737378609,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E8CF",
+    "extra2": "Stiffness and properties of wood fibers: 4.46 Km/s; Diameter 2 of a woodlog: 22 cm; Diameter 1 of a woodlog: 27 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082854FCB3",
+    "firstReading": 1740992771,
+    "treeType": "Fir",
+    "extra1": "43.7299467,11.5546867",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855ED0E",
+    "firstReading": 1740992842,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082854FCB3",
+    "extra2": "Stiffness and properties of wood fibers: 4.323 Km/s; Diameter 2 of a woodlog: 42 cm; Lenght of wood: 4.23 m; Diameter 1 of a woodlog: 46 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855BD38",
+    "firstReading": 1740992933,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082854FCB3",
+    "extra2": "Diameter 2 of a woodlog: 34 cm; Diameter 1 of a woodlog: 35 cm; Stiffness and properties of wood fibers: 4.16 Km/s; Lenght of wood: 4.23 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855E8B7",
+    "firstReading": 1740992891,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082854FCB3",
+    "extra2": "Stiffness and properties of wood fibers: 4.06 Km/s; Lenght of wood: 4.22 m; Diameter 2 of a woodlog: 36 cm; Diameter 1 of a woodlog: 40 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855AC8F",
+    "firstReading": 1740992965,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082854FCB3",
+    "extra2": "Stiffness and properties of wood fibers: 3.996 Km/s; Diameter 1 of a woodlog: 31 cm; Lenght of wood: 4.22 m; Diameter 2 of a woodlog: 31 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E517",
+    "firstReading": 1740992863,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082854FCB3",
+    "extra2": "Diameter 2 of a woodlog: 46 cm; Stiffness and properties of wood fibers: 4.363 Km/s; Lenght of wood: 4.27 m; Diameter 1 of a woodlog: 50 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E503",
+    "firstReading": 1740992785,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082854FCB3",
+    "extra2": "Stiffness and properties of wood fibers: 4.030 Km/s; Diameter 1 of a woodlog: 60 cm; Lenght of wood: 4.30 m; Diameter 2 of a woodlog: 49 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855F0E7",
+    "firstReading": 1737019575,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD2EF",
+    "firstReading": 1737019598,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855F0E7",
+    "extra2": "Stiffness and properties of wood fibers: 4.00 Km/s; Lenght of wood: 4.22 m; Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 30 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E919",
+    "firstReading": 1736950792,
+    "treeType": "Fir",
+    "extra1": "43.7300952,11.5547922",
+    "extra2": ""
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E916",
+    "firstReading": 1737376967,
+    "treeType": "Fir",
+    "extra1": "43.7341141,11.5512714",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C2423",
+    "firstReading": 1737376996,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E916",
+    "extra2": "Stiffness and properties of wood fibers: 4.34 Km/s; Diameter 1 of a woodlog: 28 cm; Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7C93",
+    "firstReading": 1737377010,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E916",
+    "extra2": "Diameter 2 of a woodlog: 24 cm; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.30 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8C07",
+    "firstReading": 1737376983,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E916",
+    "extra2": "Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 38 cm; Stiffness and properties of wood fibers: 4.17 Km/s; Diameter 2 of a woodlog: 28 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120000000618AADE5",
+    "firstReading": 1738141592,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120005008285600C8",
+    "firstReading": 1738141627,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2E3A",
+    "firstReading": 1738141749,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285600C8",
+    "extra2": "Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 29 cm; Diameter 2 of a woodlog: 31 cm; Stiffness and properties of wood fibers: 4.471 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDF8A",
+    "firstReading": 1738141728,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285600C8",
+    "extra2": "Diameter 1 of a woodlog: 33 cm; Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.421 Km/s; Diameter 2 of a woodlog: 35 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855DCDB",
+    "firstReading": 1738147445,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855AC90",
+    "firstReading": 1738147532,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCDB",
+    "extra2": "Stiffness and properties of wood fibers: 4.471 Km/s; Diameter 2 of a woodlog: 20 cm; Diameter 1 of a woodlog: 22 cm; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B12E",
+    "firstReading": 1738147464,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCDB",
+    "extra2": "Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 4.467 Km/s; Diameter 1 of a woodlog: 23 cm; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855DD09",
+    "firstReading": 1738147453,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCDB",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.204 Km/s; Lenght of wood: 4.23 m; Diameter 1 of a woodlog: 36 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855DCC1",
+    "firstReading": 1738143092,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855E09D",
+    "firstReading": 1738143239,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DCC1",
+    "extra2": "Diameter 1 of a woodlog: 32 cm; Stiffness and properties of wood fibers: 4.06 Km/s; Diameter 2 of a woodlog: 23 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E4BA",
+    "firstReading": 1738143260,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DCC1",
+    "extra2": "Diameter 2 of a woodlog: 20 cm; Diameter 1 of a woodlog: 23 cm; Lenght of wood: 4.23 m; Stiffness and properties of wood fibers: 4.20 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D8ED",
+    "firstReading": 1737023699,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDA0F",
+    "firstReading": 1737023820,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8ED",
+    "extra2": "Lenght of wood: 4.27 m; Stiffness and properties of wood fibers: 4.28 Km/s; Diameter 2 of a woodlog: 29 cm; Diameter 1 of a woodlog: 31 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855ACB2",
+    "firstReading": 1737023836,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8ED",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 2 of a woodlog: 26 cm; Diameter 1 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.49 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855F098",
+    "firstReading": 1737539028,
+    "treeType": "Fir",
+    "extra1": "43.7292866,11.5543531",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7CB1",
+    "firstReading": 1737539238,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F098",
+    "extra2": "Diameter 2 of a woodlog: 32 cm; Stiffness and properties of wood fibers: 4.371 Km/h; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD95F",
+    "firstReading": 1737539252,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F098",
+    "extra2": "Diameter 2 of a woodlog: 26.5 cm; Diameter 1 of a woodlog: 29.5 cm; Stiffness and properties of wood fibers: 4.213 Km/h; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD94F",
+    "firstReading": 1737539207,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F098",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 34.5 cm; Stiffness and properties of wood fibers: 4.125 Km/h; Diameter 2 of a woodlog: 38 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2A94",
+    "firstReading": 1737539037,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F098",
+    "extra2": "Stiffness and properties of wood fibers: 3.978 Km/h; Lenght of wood: 4.16 m; Diameter 1 of a woodlog: 42 cm; Diameter 2 of a woodlog: 38 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5CCB",
+    "firstReading": 1737539224,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855F098",
+    "extra2": "Lenght of wood: 4.15 m; Diameter 1 of a woodlog: 36.5 cm; Stiffness and properties of wood fibers: 4.396 Km/h; Diameter 2 of a woodlog: 33 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120000000618AAF48",
+    "firstReading": 1737106100,
+    "treeType": "Fir",
+    "extra1": "43.7296626,11.5549913",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8D48",
+    "firstReading": 1737106196,
+    "treeType": "Fir",
+    "extra1": "E280689120000000618AAF48",
+    "extra2": "Lenght of wood: 4.24 m; Diameter 2 of a woodlog: 21 cm; Diameter 1 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.174 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855B0D0",
+    "firstReading": 1737379075,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8CF9",
+    "firstReading": 1737379086,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855B0D0",
+    "extra2": "Diameter 2 of a woodlog: 22 cm; Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.31 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E90F",
+    "firstReading": 1736938276,
+    "treeType": "Fir",
+    "extra1": "43.7294669,11.5548985",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2CDB",
+    "firstReading": 1736938323,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E90F",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.164 Km/h; Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 28.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C3536",
+    "firstReading": 1736938339,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E90F",
+    "extra2": "Stiffness and properties of wood fibers: 4.213 Km/h; Diameter 2 of a woodlog: 23 cm; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 24.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD670",
+    "firstReading": 1736938308,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E90F",
+    "extra2": "Lenght of wood: 4.18 m; Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 32 cm; Stiffness and properties of wood fibers: 3.880 Km/h"
+  },
+  {
+    "type": "Tree",
+    "epc": "E28068912000500828550058",
+    "firstReading": 1736947207,
+    "treeType": "Fir",
+    "extra1": "43.7288195,11.5369812",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5F54",
+    "firstReading": 1736947332,
+    "treeType": "Fir",
+    "extra1": "E28068912000500828550058",
+    "extra2": "Stiffness and properties of wood fibers: 4.321 Km/h; Lenght of wood: 4.19 m; Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 30.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618ADD2A",
+    "firstReading": 1736947235,
+    "treeType": "Fir",
+    "extra1": "E28068912000500828550058",
+    "extra2": "Diameter 1 of a woodlog: 31 cm; Stiffness and properties of wood fibers: 4.085 Km/h; Diameter 2 of a woodlog: 39 cm; Lenght of wood: 4.15 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD5E2",
+    "firstReading": 1736947349,
+    "treeType": "Fir",
+    "extra1": "E28068912000500828550058",
+    "extra2": "Stiffness and properties of wood fibers: 4.300 Km/h; Lenght of wood: 4.17 m; Diameter 1 of a woodlog: 23.5 cm; Diameter 2 of a woodlog: 27 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D89C",
+    "firstReading": 1736931917,
+    "treeType": "Fir",
+    "extra1": "43.7297963,11.5552178",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082854F0F0",
+    "firstReading": 1736932104,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89C",
+    "extra2": "Diameter 1 of a woodlog: 32 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.095 Km/s; Diameter 2 of a woodlog: 35 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082854F508",
+    "firstReading": 1736932137,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89C",
+    "extra2": "Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.263 Km/s; Diameter 1 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855AC79",
+    "firstReading": 1736931960,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89C",
+    "extra2": "Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.016 Km/h; Diameter 1 of a woodlog: 45 cm; Diameter 2 of a woodlog: 36.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E8F8",
+    "firstReading": 1736932120,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D89C",
+    "extra2": "Diameter 1 of a woodlog: 32 cm; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.292 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D49F",
+    "firstReading": 1737370411,
+    "treeType": "Fir",
+    "extra1": "43.734306,11.5551797",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B90E5",
+    "firstReading": 1737370526,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D49F",
+    "extra2": "Diameter 2 of a woodlog: 27 cm; Stiffness and properties of wood fibers: 3.98 Km/s; Diameter 1 of a woodlog: 34 cm; Lenght of wood: 4.21 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8D29",
+    "firstReading": 1737370573,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D49F",
+    "extra2": "Diameter 1 of a woodlog: 27 cm; Stiffness and properties of wood fibers: 4.28 Km/s; Lenght of wood: 4.19 m; Diameter 2 of a woodlog: 25 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D4BA",
+    "firstReading": 1737109471,
+    "treeType": "Fir",
+    "extra1": "43.7296044,11.5551186",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8BC7",
+    "firstReading": 1737109493,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4BA",
+    "extra2": "Stiffness and properties of wood fibers: 4.10 Km/s; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 28 cm; Diameter 2 of a woodlog: 20 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D4B2",
+    "firstReading": 1736935555,
+    "treeType": "Fir",
+    "extra1": "43.7294669,11.5548985",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7CDA",
+    "firstReading": 1736936991,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B2",
+    "extra2": "Diameter 2 of a woodlog: 24 cm; Diameter 1 of a woodlog: 21 cm; Stiffness and properties of wood fibers: 4.183 Km/h; Lenght of wood: 4.17 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD56F",
+    "firstReading": 1736936950,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B2",
+    "extra2": "Diameter 1 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.203 Km/s; Diameter 2 of a woodlog: 33 cm; Lenght of wood: 4.19 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B4E4",
+    "firstReading": 1736936965,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B2",
+    "extra2": "Diameter 2 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.331 Km/s; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 27 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E8CE",
+    "firstReading": 1737368947,
+    "treeType": "Fir",
+    "extra1": "43.7341141,11.5512714",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2A53",
+    "firstReading": 1737369037,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8CE",
+    "extra2": "Stiffness and properties of wood fibers: 4.55 Km/s; Diameter 1 of a woodlog: 39 cm; Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 35 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B9002",
+    "firstReading": 1737369284,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8CE",
+    "extra2": "Diameter 1 of a woodlog: 35 cm; Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 33 cm; Stiffness and properties of wood fibers: 4.43 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C3479",
+    "firstReading": 1737369447,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8CE",
+    "extra2": "Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.18 Km/s; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2E6B",
+    "firstReading": 1737368979,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8CE",
+    "extra2": "Lenght of wood: 6.50 m; Diameter 1 of a woodlog: 51 cm; Diameter 2 of a woodlog: 39 cm; Stiffness and properties of wood fibers: 4.30 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C3123",
+    "firstReading": 1737369302,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E8CE",
+    "extra2": "Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.33 Km/s; Diameter 2 of a woodlog: 31 cm; Diameter 1 of a woodlog: 32 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D4BF",
+    "firstReading": 1738140533,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C2083",
+    "firstReading": 1738140550,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4BF",
+    "extra2": "Lenght of wood: 4.24 m; Stiffness and properties of wood fibers: 4.015 Km/s; Diameter 1 of a woodlog: 28 cm; Diameter 2 of a woodlog: 35 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDC1B",
+    "firstReading": 1738140707,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4BF",
+    "extra2": "Diameter 1 of a woodlog: 24 cm; Diameter 2 of a woodlog: 21 cm; Lenght of wood: 4.24 m; Stiffness and properties of wood fibers: 4.214 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2D7D",
+    "firstReading": 1738140575,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4BF",
+    "extra2": "Diameter 1 of a woodlog: 26 cm; Lenght of wood: 4.23 m; Diameter 2 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.204 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D8F6",
+    "firstReading": 1737106404,
+    "treeType": "Fir",
+    "extra1": "43.7298323,11.5546021",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD1BC",
+    "firstReading": 1737106433,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8F6",
+    "extra2": "Diameter 2 of a woodlog: 25 cm; Diameter 1 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 3.94 Km/s; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AAC09",
+    "firstReading": 1737106472,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D8F6",
+    "extra2": "Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 25 cm; Diameter 2 of a woodlog: 23 cm; Stiffness and properties of wood fibers: 4.30 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855B125",
+    "firstReading": 1738142783,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855D905",
+    "firstReading": 1738142870,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855B125",
+    "extra2": "Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.381 Km/s; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855D917",
+    "firstReading": 1738142807,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855B125",
+    "extra2": "Stiffness and properties of wood fibers: 4.25 Km/s; Lenght of wood: 4.24 m; Diameter 2 of a woodlog: 28 cm; Diameter 1 of a woodlog: 35 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855BD2F",
+    "firstReading": 1738142890,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855B125",
+    "extra2": "Diameter 2 of a woodlog: 23 cm; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.43 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855DCD8",
+    "firstReading": 1740995751,
+    "treeType": "Fir",
+    "extra1": "43.7299809,11.5544561",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B09D",
+    "firstReading": 1740995894,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCD8",
+    "extra2": "Diameter 2 of a woodlog: 22 cm; Stiffness and properties of wood fibers: 4.44 Km/s; Diameter 1 of a woodlog: 26 cm; Lenght of wood: 4.23 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855D48B",
+    "firstReading": 1740995843,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCD8",
+    "extra2": "Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 31 cm; Stiffness and properties of wood fibers: 4.15 Km/s; Diameter 2 of a woodlog: 33 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855D4E9",
+    "firstReading": 1740995860,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCD8",
+    "extra2": "Diameter 1 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 4.44 Km/s; Diameter 2 of a woodlog: 27 cm; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855E516",
+    "firstReading": 1740995876,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCD8",
+    "extra2": "Diameter 2 of a woodlog: 27 cm; Stiffness and properties of wood fibers: 4.50 Km/s; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 28 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855D489",
+    "firstReading": 1740995827,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855DCD8",
+    "extra2": ""
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D4B8",
+    "firstReading": 1737104905,
+    "treeType": "Fir",
+    "extra1": "43.7294816,11.5548648",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B80F7",
+    "firstReading": 1737104930,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B8",
+    "extra2": "Diameter 2 of a woodlog: 40 cm; Diameter 1 of a woodlog: 50 cm; Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 4.29 Km/s"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200040082855DD17",
+    "firstReading": 1748514321,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 33 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200050082855DCEB",
+    "firstReading": 1748514299,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 33 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200040082855DC9E",
+    "firstReading": 1748514338,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 33 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200050082855ED16",
+    "firstReading": 1748514392,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 20 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 3 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200040082855BCEC",
+    "firstReading": 1748514222,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 25 cm; Lenght of wood: 4.2 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2806891200050082855D8DC",
+    "firstReading": 1748514370,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 1 #El; Width of a sawn timber: 25 cm; Lenght of wood: 4.20 m; Thickness of a sawn timber: 6 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C34A7",
+    "firstReading": 1737105075,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B8",
+    "extra2": "Stiffness and properties of wood fibers: 4.29 Km/s; Diameter 2 of a woodlog: 36 cm; Diameter 1 of a woodlog: 41 cm; Lenght of wood: 4.24 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AE11A",
+    "firstReading": 1737105729,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B8",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Diameter 1 of a woodlog: 29 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.44 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8FB2",
+    "firstReading": 1737105711,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B8",
+    "extra2": "Diameter 1 of a woodlog: 34 cm; Lenght of wood: 4.22 m; Stiffness and properties of wood fibers: 4.43 Km/s; Diameter 2 of a woodlog: 29 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD27F",
+    "firstReading": 1737105685,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4B8",
+    "extra2": "Stiffness and properties of wood fibers: 4.44 Km/s; Diameter 2 of a woodlog: 33 cm; Diameter 1 of a woodlog: 37 cm; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E111",
+    "firstReading": 1736860860,
+    "treeType": "Fir",
+    "extra1": "43.7299141,11.5551564",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B4A7",
+    "firstReading": 1736861283,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E111",
+    "extra2": "Stiffness and properties of wood fibers: 4.371 Km/s; Diameter 1 of a woodlog: 20 cm; Diameter 2 of a woodlog: 23 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855C07E",
+    "firstReading": 1736860966,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E111",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 2 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.360 Km/s; Diameter 1 of a woodlog: 23 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B4F4",
+    "firstReading": 1736860894,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E111",
+    "extra2": "Diameter 2 of a woodlog: 29 cm; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.134 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082854FCB4",
+    "firstReading": 1737542630,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C2062",
+    "firstReading": 1737542806,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082854FCB4",
+    "extra2": "Diameter 2 of a woodlog: 39 cm; Lenght of wood: 4.17 m; Diameter 1 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 4.300 Km/h"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AADE6",
+    "firstReading": 1737542823,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082854FCB4",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 27 cm; Stiffness and properties of wood fibers: 4.439 Km/h; Diameter 2 of a woodlog: 30.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2E4A",
+    "firstReading": 1737542838,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082854FCB4",
+    "extra2": "Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.350 Km/h; Lenght of wood: 4.18 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D89E",
+    "firstReading": 1737020721,
+    "treeType": "Fir",
+    "extra1": "43.7298971,11.5547051",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B9114",
+    "firstReading": 1737020744,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D89E",
+    "extra2": "Diameter 1 of a woodlog: 23 cm; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 20 cm; Stiffness and properties of wood fibers: 4.29 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B23F0",
+    "firstReading": 1737020730,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D89E",
+    "extra2": "Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 4.12 Km/s; Diameter 2 of a woodlog: 22 cm; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D89D",
+    "firstReading": 1737531816,
+    "treeType": "Fir",
+    "extra1": "43.7294865,11.5546322",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C60F8",
+    "firstReading": 1737531858,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D89D",
+    "extra2": "Diameter 2 of a woodlog: 22 cm; Stiffness and properties of wood fibers: 4.38 Km/s; Lenght of wood: 4.23 m; Diameter 1 of a woodlog: 25 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C2052",
+    "firstReading": 1737531841,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D89D",
+    "extra2": "Diameter 1 of a woodlog: 31 cm; Diameter 2 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.02 Km/s; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E28068912000500828560CC7",
+    "firstReading": 1737358170,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5F25",
+    "firstReading": 1737358187,
+    "treeType": "Fir",
+    "extra1": "E28068912000500828560CC7",
+    "extra2": "Stiffness and properties of wood fibers: 4.164 Km/h; Diameter 2 of a woodlog: 33 cm; Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 41 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7D3A",
+    "firstReading": 1737358220,
+    "treeType": "Fir",
+    "extra1": "E28068912000500828560CC7",
+    "extra2": "Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 26 cm; Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 4.400 Km/h"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5C48",
+    "firstReading": 1737358208,
+    "treeType": "Fir",
+    "extra1": "E28068912000500828560CC7",
+    "extra2": "Stiffness and properties of wood fibers: 4.567 Km/h; Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 30 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5F73",
+    "firstReading": 1737358197,
+    "treeType": "Fir",
+    "extra1": "E28068912000500828560CC7",
+    "extra2": "Stiffness and properties of wood fibers: 4.400 Km/h; Diameter 1 of a woodlog: 29 cm; Lenght of wood: 4.19 m; Diameter 2 of a woodlog: 32 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120005008285608EE",
+    "firstReading": 1736947688,
+    "treeType": "Fir",
+    "extra1": "43.7288195,11.5369812",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AB076",
+    "firstReading": 1736947739,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285608EE",
+    "extra2": "Diameter 1 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 3.948 Km/h; Diameter 2 of a woodlog: 24.5 cm; Lenght of wood: 4.17 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5F34",
+    "firstReading": 1736947820,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285608EE",
+    "extra2": "Diameter 1 of a woodlog: 25 cm; Lenght of wood: 4.16 m; Diameter 2 of a woodlog: 25.5 cm; Stiffness and properties of wood fibers: 4.036 Km/h"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120005008285500F2",
+    "firstReading": 1740995344,
+    "treeType": "Fir",
+    "extra1": "43.729862,11.554562",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E4CE",
+    "firstReading": 1740995378,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285500F2",
+    "extra2": "Lenght of wood: 4.22 m; Stiffness and properties of wood fibers: 4.51 Km/s; Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 25 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855D903",
+    "firstReading": 1740995361,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285500F2",
+    "extra2": "Diameter 1 of a woodlog: 31 cm; Stiffness and properties of wood fibers: 4.253 Km/s; Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.24 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855E8EB",
+    "firstReading": 1740995394,
+    "treeType": "Fir",
+    "extra1": "E280689120005008285500F2",
+    "extra2": "Diameter 2 of a woodlog: 21 cm; Diameter 1 of a woodlog: 23 cm; Lenght of wood: 4.19 m; Stiffness and properties of wood fibers: 4.68 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D4BD",
+    "firstReading": 1736932615,
+    "treeType": "Fir",
+    "extra1": "43.7295691,11.5551059",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B0FF",
+    "firstReading": 1736932951,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4BD",
+    "extra2": "Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 22 cm; Stiffness and properties of wood fibers: 4.460 Km/s; Diameter 1 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B528",
+    "firstReading": 1736932902,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4BD",
+    "extra2": "Stiffness and properties of wood fibers: 4.370 Km/s; Lenght of wood: 4.24 m; Diameter 2 of a woodlog: 32 cm; Diameter 1 of a woodlog: 39 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B4E1",
+    "firstReading": 1736932919,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4BD",
+    "extra2": "Diameter 2 of a woodlog: 32 cm; Diameter 1 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.490 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5EE8",
+    "firstReading": 1736932936,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4BD",
+    "extra2": "Stiffness and properties of wood fibers: 4.550 Km/s; Diameter 2 of a woodlog: 29 cm; Diameter 1 of a woodlog: 27 cm; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D501",
+    "firstReading": 1736935159,
+    "treeType": "Fir",
+    "extra1": "43.7294669,11.5548985",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2F4B",
+    "firstReading": 1736935251,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D501",
+    "extra2": "Stiffness and properties of wood fibers: 4.550 Km/s; Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 24 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C30D3",
+    "firstReading": 1736935196,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D501",
+    "extra2": "Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 26 cm; Diameter 2 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.342 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C30B3",
+    "firstReading": 1736935182,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D501",
+    "extra2": "Lenght of wood: 4.23 m; Diameter 2 of a woodlog: 35 cm; Stiffness and properties of wood fibers: 4.144 Km/s; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855DCDA",
+    "firstReading": 1737538085,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2FB8",
+    "firstReading": 1737538094,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DCDA",
+    "extra2": "Stiffness and properties of wood fibers: 3.307 Km/h; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 23 cm; Diameter 2 of a woodlog: 32 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E11D",
+    "firstReading": 1736950655,
+    "treeType": "Fir",
+    "extra1": "43.7301536,11.5547693",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C34E7",
+    "firstReading": 1736950684,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E11D",
+    "extra2": "Diameter 1 of a woodlog: 27 cm; Diameter 2 of a woodlog: 21.5 cm; Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 4.467 Km/h"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E8D1",
+    "firstReading": 1736950103,
+    "treeType": "Fir",
+    "extra1": "43.7298705,11.555605",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD52F",
+    "firstReading": 1736950212,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E8D1",
+    "extra2": "Diameter 2 of a woodlog: 24 cm; Stiffness and properties of wood fibers: 4.076 Km/h; Diameter 1 of a woodlog: 20.5 cm; Lenght of wood: 4.18 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B9123",
+    "firstReading": 1736950130,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E8D1",
+    "extra2": "Stiffness and properties of wood fibers: 3.861 Km/h; Lenght of wood: 4.16 m; Diameter 2 of a woodlog: 32 cm; Diameter 1 of a woodlog: 25 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E0D6",
+    "firstReading": 1736934785,
+    "treeType": "Fir",
+    "extra1": "43.7294669,11.5548985",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD631",
+    "firstReading": 1736934856,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E0D6",
+    "extra2": "Diameter 1 of a woodlog: 23 cm; Stiffness and properties of wood fibers: 4.449 Km/s; Diameter 2 of a woodlog: 22 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7D2A",
+    "firstReading": 1736934842,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E0D6",
+    "extra2": "Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 4.410 Km/s; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855DD22",
+    "firstReading": 1737360481,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD96F",
+    "firstReading": 1737360525,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DD22",
+    "extra2": "Stiffness and properties of wood fibers: 4.311 Km/h; Diameter 2 of a woodlog: 33.5 cm; Diameter 1 of a woodlog: 30 cm; Lenght of wood: 4.18 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AB147",
+    "firstReading": 1737360512,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DD22",
+    "extra2": "Diameter 2 of a woodlog: 33.5 cm; Stiffness and properties of wood fibers: 4.303 Km/h; Lenght of wood: 4.25 m; Diameter 1 of a woodlog: 36.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C60F7",
+    "firstReading": 1737360536,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DD22",
+    "extra2": "Diameter 1 of a woodlog: 26.5 cm; Lenght of wood: 4.19 m; Diameter 2 of a woodlog: 29.5 cm; Stiffness and properties of wood fibers: 4.282 Km/h"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD19C",
+    "firstReading": 1737360496,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855DD22",
+    "extra2": "Stiffness and properties of wood fibers: 4.134 Km/h; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 37 cm; Diameter 1 of a woodlog: 50.5 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D4C5",
+    "firstReading": 1737533704,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7DCF",
+    "firstReading": 1737533981,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4C5",
+    "extra2": "Stiffness and properties of wood fibers: 4.624 Km/h; Lenght of wood: 4.18 m; Diameter 1 of a woodlog: 29 cm; Diameter 2 of a woodlog: 30 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8176",
+    "firstReading": 1737533960,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4C5",
+    "extra2": "Diameter 1 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 4.350 Km/h; Lenght of wood: 4.18 m; Diameter 2 of a woodlog: 36 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDA9F",
+    "firstReading": 1737534009,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4C5",
+    "extra2": "Stiffness and properties of wood fibers: 4.624 Km/h; Diameter 2 of a woodlog: 25.5 cm; Diameter 1 of a woodlog: 27 cm; Lenght of wood: 4.18 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855B12D",
+    "firstReading": 1737379180,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AADD9",
+    "firstReading": 1737379194,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855B12D",
+    "extra2": "Stiffness and properties of wood fibers: 4.154 Km/s; Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.18 m; Diameter 1 of a woodlog: 36 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AB069",
+    "firstReading": 1737379251,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855B12D",
+    "extra2": "Lenght of wood: 4.23 m; Stiffness and properties of wood fibers: 3.79 Km/s; Diameter 2 of a woodlog: 24 cm; Diameter 1 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5EE7",
+    "firstReading": 1737379204,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855B12D",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 38 cm; Stiffness and properties of wood fibers: 4.44 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D4AE",
+    "firstReading": 1737378098,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B807B",
+    "firstReading": 1737378129,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4AE",
+    "extra2": "Stiffness and properties of wood fibers: 3.84 Km/s; Lenght of wood: 4.27 m; Diameter 2 of a woodlog: 50 cm; Diameter 1 of a woodlog: 63 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C264F",
+    "firstReading": 1737378158,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4AE",
+    "extra2": "Lenght of wood: 4.16 m; Stiffness and properties of wood fibers: 4.13 Km/s; Diameter 1 of a woodlog: 45 cm; Diameter 2 of a woodlog: 42 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDFE9",
+    "firstReading": 1737378413,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4AE",
+    "extra2": "Lenght of wood: 4.24 m; Stiffness and properties of wood fibers: 4.27 Km/s; Diameter 1 of a woodlog: 41 cm; Diameter 2 of a woodlog: 40 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7DC0",
+    "firstReading": 1737378142,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4AE",
+    "extra2": "Stiffness and properties of wood fibers: 4.16 Km/s; Diameter 2 of a woodlog: 47 cm; Diameter 1 of a woodlog: 51 cm; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2B30",
+    "firstReading": 1737378484,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D4AE",
+    "extra2": "Lenght of wood: 4.23 m; Diameter 2 of a woodlog: 36 cm; Stiffness and properties of wood fibers: 4.20 Km/s; Diameter 1 of a woodlog: 38 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E8D2",
+    "firstReading": 1737019985,
+    "treeType": "Fir",
+    "extra1": "43.7337202,11.5580222",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B80D5",
+    "firstReading": 1737020005,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E8D2",
+    "extra2": "Lenght of wood: 4.18 m; Diameter 2 of a woodlog: 31.5 cm; Stiffness and properties of wood fibers: 4.076 Km/h; Diameter 1 of a woodlog: 24.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD53F",
+    "firstReading": 1737020031,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E8D2",
+    "extra2": "Diameter 1 of a woodlog: 23 cm; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 23 cm; Stiffness and properties of wood fibers: 4.49 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855D4C9",
+    "firstReading": 1736950339,
+    "treeType": "Fir",
+    "extra1": "43.7301536,11.5547693",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2E5B",
+    "firstReading": 1736950365,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4C9",
+    "extra2": "Diameter 2 of a woodlog: 24 cm; Diameter 1 of a woodlog: 28.5 cm; Stiffness and properties of wood fibers: 4.046 Km/h; Lenght of wood: 4.19 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD1CC",
+    "firstReading": 1736950451,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855D4C9",
+    "extra2": "Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 4.271 Km/h; Diameter 2 of a woodlog: 21.5 cm; Diameter 1 of a woodlog: 23.5 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120004008285604BA",
+    "firstReading": 1737539668,
+    "treeType": "Fir",
+    "extra1": "43.729285,11.5543533",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B3147",
+    "firstReading": 1737542224,
+    "treeType": "Fir",
+    "extra1": "E280689120004008285604BA",
+    "extra2": "Diameter 2 of a woodlog: 45 cm; Stiffness and properties of wood fibers: 3.889 Km/h; Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 43.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2A83",
+    "firstReading": 1737542237,
+    "treeType": "Fir",
+    "extra1": "E280689120004008285604BA",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 1 of a woodlog: 40 cm; Diameter 2 of a woodlog: 42 cm; Stiffness and properties of wood fibers: 4.085 Km/h"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C263F",
+    "firstReading": 1737542322,
+    "treeType": "Fir",
+    "extra1": "E280689120004008285604BA",
+    "extra2": "Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 3.919 Km/h; Diameter 2 of a woodlog: 33 cm; Diameter 1 of a woodlog: 37 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2FC8",
+    "firstReading": 1737539679,
+    "treeType": "Fir",
+    "extra1": "E280689120004008285604BA",
+    "extra2": "Diameter 1 of a woodlog: 46 cm; Lenght of wood: 6.30 m; Stiffness and properties of wood fibers: 3.691 Km/s; Diameter 2 of a woodlog: 70 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDD4C",
+    "firstReading": 1737542293,
+    "treeType": "Fir",
+    "extra1": "E280689120004008285604BA",
+    "extra2": "Lenght of wood: 4.19 m; Diameter 2 of a woodlog: 45 cm; Stiffness and properties of wood fibers: 4.007 Km/h; Diameter 1 of a woodlog: 37 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E91C",
+    "firstReading": 1736862877,
+    "treeType": "Fir",
+    "extra1": "43.729891,11.555256",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855E8FF",
+    "firstReading": 1736863584,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E91C",
+    "extra2": "Diameter 2 of a woodlog: 28 cm; Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.499 Km/s; Lenght of wood: 4.21 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B8DD",
+    "firstReading": 1736862989,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E91C",
+    "extra2": "Diameter 1 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.243 Km/s; Lenght of wood: 4.23 m; Diameter 2 of a woodlog: 37 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082854F8C2",
+    "firstReading": 1736863554,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E91C",
+    "extra2": "Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.578 Km/s; Diameter 1 of a woodlog: 25 cm; Diameter 2 of a woodlog: 20 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120004008285500AC",
+    "firstReading": 1737107606,
+    "treeType": "Fir",
+    "extra1": "43.7299117,11.5546783",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AAF0B",
+    "firstReading": 1737107635,
+    "treeType": "Fir",
+    "extra1": "E280689120004008285500AC",
+    "extra2": "Diameter 1 of a woodlog: 27 cm; Diameter 2 of a woodlog: 22 cm; Stiffness and properties of wood fibers: 4.066 Km/h; Lenght of wood: 4.17 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855B0C0",
+    "firstReading": 1736934722,
+    "treeType": "Fir",
+    "extra1": "43.7294417,11.5549519",
+    "extra2": ""
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E49D",
+    "firstReading": 1737365674,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B80B5",
+    "firstReading": 1737365695,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E49D",
+    "extra2": "Stiffness and properties of wood fibers: 4.53 Km/s; Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 33 cm; Lenght of wood: 4.24 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C3113",
+    "firstReading": 1737365727,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E49D",
+    "extra2": "Stiffness and properties of wood fibers: 4.61 Km/s; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 23 cm; Diameter 2 of a woodlog: 20 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C3103",
+    "firstReading": 1737365716,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E49D",
+    "extra2": "Diameter 1 of a woodlog: 25 cm; Stiffness and properties of wood fibers: 4.69 Km/s; Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 23 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AAE01",
+    "firstReading": 1737365704,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E49D",
+    "extra2": "Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 28 cm; Diameter 2 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.63 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E0B8",
+    "firstReading": 1738145419,
+    "treeType": "Fir",
+    "extra1": "43.7295617,11.5543257",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855DCC0",
+    "firstReading": 1738145427,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E0B8",
+    "extra2": "Lenght of wood: 4.25 m; Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.16 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855E901",
+    "firstReading": 1738145436,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E0B8",
+    "extra2": "Diameter 1 of a woodlog: 21 cm; Lenght of wood: 4.22 m; Diameter 2 of a woodlog: 23 cm; Stiffness and properties of wood fibers: 4.312 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855FCC9",
+    "firstReading": 1737107094,
+    "treeType": "Fir",
+    "extra1": "43.7299523,11.5546978",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD58F",
+    "firstReading": 1737107167,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855FCC9",
+    "extra2": "Diameter 2 of a woodlog: 24 cm; Stiffness and properties of wood fibers: 4.28 Km/s; Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 27 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD210",
+    "firstReading": 1737107124,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855FCC9",
+    "extra2": "Lenght of wood: 4.24 m; Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 33 cm; Stiffness and properties of wood fibers: 4.05 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E280689120000000618C34F7",
+    "firstReading": 1737020528,
+    "treeType": "Fir",
+    "extra1": "43.7325745,11.5576668",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD13C",
+    "firstReading": 1737020557,
+    "treeType": "Fir",
+    "extra1": "E280689120000000618C34F7",
+    "extra2": "Lenght of wood: 4.18 m; Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 24 cm; Stiffness and properties of wood fibers: 4.311 Km/h"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C30C3",
+    "firstReading": 1737020543,
+    "treeType": "Fir",
+    "extra1": "E280689120000000618C34F7",
+    "extra2": "Diameter 1 of a woodlog: 38 cm; Diameter 2 of a woodlog: 26.5 cm; Stiffness and properties of wood fibers: 4.371 Km/h; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D88F",
+    "firstReading": 1737531945,
+    "treeType": "Fir",
+    "extra1": "43.7293733,11.5544783",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7DD8",
+    "firstReading": 1737532206,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D88F",
+    "extra2": "Diameter 2 of a woodlog: 27 cm; Stiffness and properties of wood fibers: 4.43 Km/s; Diameter 1 of a woodlog: 31 cm; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5F92",
+    "firstReading": 1737532234,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D88F",
+    "extra2": "Stiffness and properties of wood fibers: 3.78 Km/s; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 26 cm; Diameter 2 of a woodlog: 23 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5D28",
+    "firstReading": 1737532183,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D88F",
+    "extra2": "Lenght of wood: 4.22 m; Stiffness and properties of wood fibers: 4.12 Km/s; Diameter 1 of a woodlog: 40 cm; Diameter 2 of a woodlog: 31 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C2073",
+    "firstReading": 1737532220,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D88F",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.449 Km/s; Diameter 1 of a woodlog: 27 cm; Lenght of wood: 4.20 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D8E9",
+    "firstReading": 1737019918,
+    "treeType": "Fir",
+    "extra1": "43.8488718,11.3595943",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082854F87C",
+    "firstReading": 1737019931,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D8E9",
+    "extra2": "Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 2.17 Km/s; Diameter 2 of a woodlog: 24 cm; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C3143",
+    "firstReading": 1737019942,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D8E9",
+    "extra2": "Stiffness and properties of wood fibers: 4.46 Km/s; Diameter 1 of a woodlog: 24 cm; Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 23 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E28068912000400828550451",
+    "firstReading": 1737364274,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C34D7",
+    "firstReading": 1737364545,
+    "treeType": "Fir",
+    "extra1": "E28068912000400828550451",
+    "extra2": "Stiffness and properties of wood fibers: 4.30 Km/s; Lenght of wood: 4.21 m; Diameter 2 of a woodlog: 23 cm; Diameter 1 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDA1E",
+    "firstReading": 1737364510,
+    "treeType": "Fir",
+    "extra1": "E28068912000400828550451",
+    "extra2": "Diameter 1 of a woodlog: 34 cm; Diameter 2 of a woodlog: 28 cm; Stiffness and properties of wood fibers: 4.13 Km/s; Lenght of wood: 4.24 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD26F",
+    "firstReading": 1737364521,
+    "treeType": "Fir",
+    "extra1": "E28068912000400828550451",
+    "extra2": "Diameter 2 of a woodlog: 25 cm; Lenght of wood: 4.23 m; Stiffness and properties of wood fibers: 4,15 Km/s; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E48E",
+    "firstReading": 1737365173,
+    "treeType": "Fir",
+    "extra1": "43.7341141,11.5512714",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD14C",
+    "firstReading": 1737365333,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E48E",
+    "extra2": "Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 26 cm; Stiffness and properties of wood fibers: 4.61 Km/s; Diameter 1 of a woodlog: 27 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B312F",
+    "firstReading": 1737365192,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E48E",
+    "extra2": "Diameter 1 of a woodlog: 38 cm; Diameter 2 of a woodlog: 30 cm; Lenght of wood: 4.20 m; Stiffness and properties of wood fibers: 4.48 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C22F9",
+    "firstReading": 1737365205,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E48E",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 30 cm; Stiffness and properties of wood fibers: 4.57 Km/s"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E4EA",
+    "firstReading": 1737020939,
+    "treeType": "Fir",
+    "extra1": "43.7298967,11.554705",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BD500",
+    "firstReading": 1737020982,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E4EA",
+    "extra2": "Lenght of wood: 4.17 m; Diameter 1 of a woodlog: 27.5 cm; Stiffness and properties of wood fibers: 4.144 Km/h; Diameter 2 of a woodlog: 31.5 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B2B5E",
+    "firstReading": 1737020963,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E4EA",
+    "extra2": "Diameter 2 of a woodlog: 31.5 cm; Diameter 1 of a woodlog: 39 cm; Lenght of wood: 4.18 m; Stiffness and properties of wood fibers: 4.154 Km/h"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B8F92",
+    "firstReading": 1737021015,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E4EA",
+    "extra2": "Diameter 1 of a woodlog: 26 cm; Lenght of wood: 4.2 m; Diameter 2 of a woodlog: 23 cm; Stiffness and properties of wood fibers: 4.40 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618AAEA8",
+    "firstReading": 1737020996,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E4EA",
+    "extra2": "Stiffness and properties of wood fibers: 4.418 Km/h; Diameter 1 of a woodlog: 26 cm; Diameter 2 of a woodlog: 28 cm; Lenght of wood: 4.17 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E498",
+    "firstReading": 1736861309,
+    "treeType": "Fir",
+    "extra1": "43.729891,11.555256",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E0B7",
+    "firstReading": 1736861686,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E498",
+    "extra2": "Lenght of wood: 4.22 m; Diameter 2 of a woodlog: 26 cm; Diameter 1 of a woodlog: 33 cm; Stiffness and properties of wood fibers: 3.996 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855E8B6",
+    "firstReading": 1736861432,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E498",
+    "extra2": "Diameter 2 of a woodlog: 21 cm; Stiffness and properties of wood fibers: 4.352 Km/s; Diameter 1 of a woodlog: 24 cm; Lenght of wood: 4.22 m"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B485",
+    "firstReading": 1736861458,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E498",
+    "extra2": "Diameter 1 of a woodlog: 26 cm; Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.263 Km/s; Diameter 2 of a woodlog: 24 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855E0A0",
+    "firstReading": 1740994208,
+    "treeType": "Fir",
+    "extra1": "43.7296435,11.554415",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855B902",
+    "firstReading": 1740994287,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E0A0",
+    "extra2": "Lenght of wood: 4.23 m; Stiffness and properties of wood fibers: 3.97 Km/s; Diameter 1 of a woodlog: 28 cm; Diameter 2 of a woodlog: 26 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855D49D",
+    "firstReading": 1740994227,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E0A0",
+    "extra2": "Lenght of wood: 4.25 m; Diameter 2 of a woodlog: 33 cm; Stiffness and properties of wood fibers: 4.14 Km/s; Diameter 1 of a woodlog: 40 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855AC9D",
+    "firstReading": 1740994248,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E0A0",
+    "extra2": "Stiffness and properties of wood fibers: 4.42 Km/s; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 33 cm; Diameter 2 of a woodlog: 30 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855B8F7",
+    "firstReading": 1740994266,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855E0A0",
+    "extra2": "Diameter 1 of a woodlog: 29 cm; Diameter 2 of a woodlog: 29 cm; Stiffness and properties of wood fibers: 4.33 Km/s; Lenght of wood: 4.21 m"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200050082855D8D0",
+    "firstReading": 1738142589,
+    "treeType": "Fir",
+    "extra1": "43.6935655,11.4206076",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855DCC2",
+    "firstReading": 1738142606,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D8D0",
+    "extra2": "Lenght of wood: 4.20 m; Diameter 2 of a woodlog: 29 cm; Diameter 1 of a woodlog: 37 cm; Stiffness and properties of wood fibers: 4.43 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200050082855BCEE",
+    "firstReading": 1738142620,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D8D0",
+    "extra2": "Stiffness and properties of wood fibers: 4.88 Km/s; Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.21 m; Diameter 1 of a woodlog: 29 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E2806891200040082855D488",
+    "firstReading": 1738142697,
+    "treeType": "Fir",
+    "extra1": "E2806891200050082855D8D0",
+    "extra2": "Stiffness and properties of wood fibers: 4.92 Km/s; Diameter 2 of a woodlog: 22 cm; Lenght of wood: 4.20 m; Diameter 1 of a woodlog: 25 cm"
+  },
+  {
+    "type": "Tree",
+    "epc": "E2806891200040082855E49A",
+    "firstReading": 1737533501,
+    "treeType": "Fir",
+    "extra1": "43.7325693,11.5548244",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618B7DA0",
+    "firstReading": 1737533544,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E49A",
+    "extra2": "Lenght of wood: 4.22 m; Stiffness and properties of wood fibers: 4.589 Km/s; Diameter 1 of a woodlog: 23 cm; Diameter 2 of a woodlog: 25 cm"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618BDFA9",
+    "firstReading": 1737533529,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E49A",
+    "extra2": "Diameter 2 of a woodlog: 26 cm; Lenght of wood: 4.22 m; Diameter 1 of a woodlog: 27 cm; Stiffness and properties of wood fibers: 4.471 Km/s"
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E280689120000000618C5CA8",
+    "firstReading": 1737533511,
+    "treeType": "Fir",
+    "extra1": "E2806891200040082855E49A",
+    "extra2": "Lenght of wood: 4.21 m; Stiffness and properties of wood fibers: 4.144 Km/s; Diameter 2 of a woodlog: 27 cm; Diameter 1 of a woodlog: 32 cm"
+  }
+]

@@ -10,28 +10,12 @@ const deployedPath = path.join(__dirname, "../deployed.json");
 const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
-if (!CONTRACT_ADDRESS) {
-  console.error("❌ Indirizzo contratto non trovato nel file deployed.json.");
-  process.exit(1);
-}
-
 const API_URL = "https://pollicino.topview.it:9443/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzU2ODU4LCJpYXQiOjE3NTMzNTMyNTgsImp0aSI6IjExZTg1YTExZWIxMzRjZGE4MzM2M2YwZDNmYjY2ODVkIiwidXNlcl9pZCI6MTEwfQ.bnJUkG0ecQe_TEOfqHxRgPxno12WUB_Sue7QS3eusys";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDM0NzE5LCJpYXQiOjE3NTM0MzExMTksImp0aSI6IjY2NGM5MDhiOTQ1MDQzNDdhNTdkYzY4ZWIyY2I3NDg2IiwidXNlcl9pZCI6MTEwfQ.2zc5dSJGTkJgOkY0U1Y3EIZTeQnyq1kedBUanGePO2k";
 
-// Hash functions
-function leafHashTree(tree) {
+function hashUnified(obj) {
   return keccak256(
-    `${tree.epc}|${tree.firstReading}|${tree.treeType}|${tree.coordinates}|${tree.observations}`
-  );
-}
-function leafHashWoodLog(log) {
-  return keccak256(
-    `${log.epc}|${log.firstReading}|${log.treeType}|${log.logSectionNumber}|${log.parentTreeEpc}|${log.observations}`
-  );
-}
-function leafHashSawnTimber(st) {
-  return keccak256(
-    `${st.epc}|${st.firstReading}|${st.treeType}|${st.observations}`
+    `${obj.type}|${obj.epc}|${obj.firstReading}|${obj.treeType}|${obj.extra1}|${obj.extra2}`
   );
 }
 
@@ -46,250 +30,116 @@ async function getEthPriceInEuro() {
 }
 
 async function main() {
-  console.log("=== INIZIO SCRIPT UNIFICATO ===");
-
   const signer = (await ethers.getSigners())[0];
-  console.log("👤 Signer address:", await signer.getAddress());
-
   const contractJson = require("../artifacts/contracts/ForestTracking.sol/ForestTracking.json");
   const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
 
-  // 1) Fetch forest units
   let response;
   try {
     response = await axios.get(API_URL, { headers: { Authorization: AUTH_TOKEN } });
-console.log("✅ Chiamata API riuscita, status:", response.status);
   } catch (e) {
     console.error("❌ Errore chiamata API:", e.message);
     process.exit(1);
   }
 
-  const forestUnits = response.data.forestUnits;  // <-- aggiungi questa riga
+  const forestUnits = response.data.forestUnits;
+  const forestName = process.env.FOREST_UNIT?.toLowerCase() || "vallombrosa";
+  const forestKey = Object.keys(forestUnits).find(
+    k => k.toLowerCase() === forestName || forestUnits[k].name?.toLowerCase().includes(forestName)
+  );
+  if (!forestKey) {
+    console.error("❌ Forest unit non trovata.");
+    process.exit(1);
+  }
 
-const forestUnitName = process.env.FOREST_UNIT?.toLowerCase() || "vallombrosa";
+  const unit = forestUnits[forestKey];
+  const treesDict = unit.trees || {};
 
-const forestKey = Object.keys(forestUnits).find(
-  k =>
-    k.toLowerCase() === forestUnitName ||
-    forestUnits[k].name?.toLowerCase().includes(forestUnitName)
-);
-
-if (!forestKey) {
-  console.error(`❌ Nessuna forest unit '${forestUnitName}' trovata.`);
-  process.exit(1);
-}
-console.log(`🌲 Forest unit trovata: '${forestKey}'`);
-
-  const forestUnit = forestUnits[forestKey];
-  const treesDict = forestUnit.trees || {};
-
-  // 2) Preparazione batch Trees
-  const batchTrees = [];
-  const leavesTrees = [];
-
-  // 3) Preparazione batch Wood Logs
-  const woodLogs = [];
-  const leavesWoodLogs = [];
-
-  // 4) Preparazione batch Sawn Timbers
-  const sawnTimbers = [];
-  const leavesSawnTimbers = [];
+  const unifiedBatch = [];
+  const unifiedLeaves = [];
 
   for (const treeId of Object.keys(treesDict)) {
     const tree = treesDict[treeId];
-
-    // Trees batch
     const epc = tree.domainUUID || tree.domainUuid || treeId;
     const firstReading = tree.firstReadingTime ? Math.floor(new Date(tree.firstReadingTime).getTime() / 1000) : 0;
     const treeType = tree.treeType?.specie || "";
-    const coordinates = tree.coordinates ? `${tree.coordinates.latitude},${tree.coordinates.longitude}` : "";
-    const observations = tree.notes || "";
+    const coord = tree.coordinates ? `${tree.coordinates.latitude},${tree.coordinates.longitude}` : "";
+    const obs = tree.notes || "";
 
-    const treeObj = { epc, firstReading, treeType, coordinates, observations };
-    batchTrees.push(treeObj);
-    leavesTrees.push(leafHashTree(treeObj));
+    const treeEntry = { type: "Tree", epc, firstReading, treeType, extra1: coord, extra2: obs };
+    unifiedBatch.push(treeEntry);
+    unifiedLeaves.push(hashUnified(treeEntry));
 
-    // Wood logs batch
     if (tree.woodLogs) {
       for (const logEpc of Object.keys(tree.woodLogs)) {
         const log = tree.woodLogs[logEpc];
-        const obsArr = log.observations || [];
-        const obs = obsArr.map(o => `${o.phenomenonType?.phenomenonTypeName || ''}: ${o.quantity} ${o.unit?.unitName || ''}`).join("; ");
-        woodLogs.push({
+        const obsLog = (log.observations || []).map(o => `${o.phenomenonType?.phenomenonTypeName || ""}: ${o.quantity} ${o.unit?.unitName || ""}`).join("; ");
+        const logEntry = {
+          type: "WoodLog",
           epc: logEpc,
           firstReading: log.firstReadingTime ? Math.floor(new Date(log.firstReadingTime).getTime() / 1000) : 0,
           treeType,
-          logSectionNumber: 1, // statico per ora
-          parentTreeEpc: epc,
-          observations: obs
-        });
-      }
-    }
+          extra1: epc,
+          extra2: obsLog
+        };
+        unifiedBatch.push(logEntry);
+        unifiedLeaves.push(hashUnified(logEntry));
 
-    // Sawn Timbers batch
-    if (tree.woodLogs) {
-      for (const logEpc of Object.keys(tree.woodLogs)) {
-        const woodLog = tree.woodLogs[logEpc];
-        const list = woodLog.sawnTimbers || {};
-        for (const stEpc of Object.keys(list)) {
-          const st = list[stEpc];
-          const obs = (st.observations || []).map(o => `${o.phenomenonType?.phenomenonTypeName || ''}: ${o.quantity} ${o.unit?.unitName || ''}`).join("; ");
-          sawnTimbers.push({
-            epc: st.epc || stEpc || "",
+        const stList = log.sawnTimbers || {};
+        for (const stEpc of Object.keys(stList)) {
+          const st = stList[stEpc];
+          const obsSt = (st.observations || []).map(o => `${o.phenomenonType?.phenomenonTypeName || ""}: ${o.quantity} ${o.unit?.unitName || ""}`).join("; ");
+          const stEntry = {
+            type: "SawnTimber",
+            epc: st.epc || stEpc,
             firstReading: st.firstReadingTime ? Math.floor(new Date(st.firstReadingTime).getTime() / 1000) : 0,
             treeType,
-            observations: obs
-          });
+            extra1: "",
+            extra2: obsSt
+          };
+          unifiedBatch.push(stEntry);
+          unifiedLeaves.push(hashUnified(stEntry));
         }
       }
     }
   }
 
-  // Leaves Merkle trees
-  leavesWoodLogs.push(...woodLogs.map(leafHashWoodLog));
-  leavesSawnTimbers.push(...sawnTimbers.map(leafHashSawnTimber));
-
-  console.log(`✅ Alberi per Merkle tree: ${batchTrees.length}`);
-  console.log(`✅ Wood logs totali: ${woodLogs.length}`);
-  console.log(`✅ Sawn timbers totali: ${sawnTimbers.length}`);
-
-  // Calcolo Merkle root per tutti e tre
-  const merkleTreeTrees = new MerkleTree(leavesTrees, keccak256, { sortPairs: true });
-  const rootTrees = merkleTreeTrees.getHexRoot();
-
-  const merkleTreeWoodLogs = new MerkleTree(leavesWoodLogs, keccak256, { sortPairs: true });
-  const rootWoodLogs = merkleTreeWoodLogs.getHexRoot();
-
-  const merkleTreeSawnTimbers = new MerkleTree(leavesSawnTimbers, keccak256, { sortPairs: true });
-  const rootSawnTimbers = merkleTreeSawnTimbers.getHexRoot();
-
-  console.log("🌲 Merkle root trees:", rootTrees);
-  console.log("🌲 Merkle root wood logs:", rootWoodLogs);
-  console.log("🌲 Merkle root sawn timbers:", rootSawnTimbers);
-
-  // Funzione helper per stimare gas e inviare tx
-  async function sendTxSetMerkleRoot(methodName, root) {
-    if (typeof contract[methodName] !== "function") {
-      throw new Error(`Funzione ${methodName} non trovata nel contratto`);
-    }
-
-    const gasEstimate = await hre.ethers.provider.estimateGas({
-      to: CONTRACT_ADDRESS,
-      data: contract.interface.encodeFunctionData(methodName, [root]),
-      from: await signer.getAddress()
-    });
-
-    const feeData = await hre.ethers.provider.getFeeData();
-    const gasPrice = feeData.gasPrice;
-    if (!gasPrice) throw new Error("Gas price non disponibile");
-
-    const gasCostWei = gasEstimate * gasPrice;
-    const gasCostEth = Number(hre.ethers.formatEther(gasCostWei.toString()));
-
-    const tx = await contract[methodName](root);
-    const receipt = await tx.wait();
-
-    const actualGasCostWei = receipt.gasUsed * gasPrice;
-    const actualGasCostEth = Number(hre.ethers.formatEther(actualGasCostWei.toString()));
-
-    return {
-      gasEstimate,
-      gasPrice: Number(hre.ethers.formatUnits(gasPrice, "gwei")),
-      gasCostEth,
-      actualGasUsed: receipt.gasUsed.toString(),
-      actualGasCostEth,
-      txHash: receipt.transactionHash,
-    };
-  }
-
-  const ethPriceEUR = await getEthPriceInEuro();
-
-  // Aggiorna Merkle root trees
-  console.log("\n⏳ Aggiorno Merkle root trees...");
-  const resTrees = await sendTxSetMerkleRoot("setMerkleRootTrees", rootTrees);
-  console.log(`Gas stimato: ${resTrees.gasEstimate.toString()} | Gas price: ${resTrees.gasPrice} Gwei | Costo stimato: ${resTrees.gasCostEth.toFixed(6)} ETH ≈ €${(resTrees.gasCostEth * ethPriceEUR).toFixed(2)}`);
-  console.log(`Gas usato: ${resTrees.actualGasUsed} | Costo reale: ${resTrees.actualGasCostEth.toFixed(6)} ETH ≈ €${(resTrees.actualGasCostEth * ethPriceEUR).toFixed(2)}`);
-  console.log(`Tx hash: ${resTrees.txHash}`);
-
-  // Aggiorna Merkle root wood logs
-  console.log("\n⏳ Aggiorno Merkle root wood logs...");
-  const resWoodLogs = await sendTxSetMerkleRoot("setMerkleRootWoodLogs", rootWoodLogs);
-  console.log(`Gas stimato: ${resWoodLogs.gasEstimate.toString()} | Gas price: ${resWoodLogs.gasPrice} Gwei | Costo stimato: ${resWoodLogs.gasCostEth.toFixed(6)} ETH ≈ €${(resWoodLogs.gasCostEth * ethPriceEUR).toFixed(2)}`);
-  console.log(`Gas usato: ${resWoodLogs.actualGasUsed} | Costo reale: ${resWoodLogs.actualGasCostEth.toFixed(6)} ETH ≈ €${(resWoodLogs.actualGasCostEth * ethPriceEUR).toFixed(2)}`);
-  console.log(`Tx hash: ${resWoodLogs.txHash}`);
-
-  // Aggiorna Merkle root sawn timbers
-  console.log("\n⏳ Aggiorno Merkle root sawn timbers...");
-  const resSawnTimbers = await sendTxSetMerkleRoot("setMerkleRootSawnTimbers", rootSawnTimbers);
-  console.log(`Gas stimato: ${resSawnTimbers.gasEstimate.toString()} | Gas price: ${resSawnTimbers.gasPrice} Gwei | Costo stimato: ${resSawnTimbers.gasCostEth.toFixed(6)} ETH ≈ €${(resSawnTimbers.gasCostEth * ethPriceEUR).toFixed(2)}`);
-  console.log(`Gas usato: ${resSawnTimbers.actualGasUsed} | Costo reale: ${resSawnTimbers.actualGasCostEth.toFixed(6)} ETH ≈ €${(resSawnTimbers.actualGasCostEth * ethPriceEUR).toFixed(2)}`);
-  console.log(`Tx hash: ${resSawnTimbers.txHash}`);
-
-  // Totali gas e costi
- const totalGasEstimate =
-  BigInt(resTrees.gasEstimate) +
-  BigInt(resWoodLogs.gasEstimate) +
-  BigInt(resSawnTimbers.gasEstimate);
-
-  const totalGasUsed = BigInt(resTrees.actualGasUsed) + BigInt(resWoodLogs.actualGasUsed) + BigInt(resSawnTimbers.actualGasUsed);
-  const totalCostEth = resTrees.actualGasCostEth + resWoodLogs.actualGasCostEth + resSawnTimbers.actualGasCostEth;
-const totalCostEur = totalCostEth * ethPriceEUR;
-
-
-  console.log("\n=== RIEPILOGO COSTI TOTALI ===");
-  console.log(`Gas stimato totale: ${totalGasEstimate.toString()}`);
-  console.log(`Gas usato totale: ${totalGasUsed.toString()}`);
-  console.log(`Costo reale totale: ${totalCostEth.toFixed(6)} ETH ≈ €${totalCostEur.toFixed(2)}`);
-
-// === VERIFICA PROOF SU CONTRATTO ===
-console.log("\n🔍 Verifica di un esempio per ciascun tipo via contratto...");
-
-function getProofAndRoot(item, leaves, hashFn) {
-  const leaf = hashFn(item);
-  const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
-  const proof = merkleTree.getHexProof(leaf);
+  const merkleTree = new MerkleTree(unifiedLeaves, keccak256, { sortPairs: true });
   const root = merkleTree.getHexRoot();
-  return { proof, leaf, root };
+
+  const gasEstimate = await hre.ethers.provider.estimateGas({
+    to: CONTRACT_ADDRESS,
+    data: contract.interface.encodeFunctionData("setMerkleRootUnified", [root]),
+    from: await signer.getAddress()
+  });
+
+  const feeData = await hre.ethers.provider.getFeeData();
+  const gasPrice = feeData.gasPrice;
+  const gasCostWei = gasEstimate * gasPrice;
+  const gasCostEth = Number(hre.ethers.formatEther(gasCostWei.toString()));
+  const ethPrice = await getEthPriceInEuro();
+
+  console.log(`Merkle Root: ${root}`);
+  console.log(`Gas stimato: ${gasEstimate.toString()} | Costo: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
+
+  const tx = await contract.setMerkleRootUnified(root);
+  const receipt = await tx.wait();
+  console.log(`✅ Root aggiornata. Tx hash: ${receipt.transactionHash}`);
+
+  fs.writeFileSync(path.join(__dirname, "forest-unified-batch.json"), JSON.stringify(unifiedBatch, null, 2));
+  console.log("💾 Salvato: forest-unified-batch.json");
+
+  // Verifica di un esempio
+  if (unifiedBatch.length > 0) {
+    const sample = unifiedBatch[0];
+    const leaf = hashUnified(sample);
+    const proof = merkleTree.getHexProof(leaf);
+    const isValid = await contract.verifyUnifiedProofWithRoot(leaf, proof, root);
+    console.log(`🔍 Proof di esempio valida? ${isValid}`);
+  }
 }
 
-const verifyResult = {};
-
-if (batchTrees.length > 0) {
-  const sample = batchTrees[0];
-  const { proof, leaf, root } = getProofAndRoot(sample, leavesTrees, leafHashTree);
-  const isValid = await contract.verifyTreeProofWithRoot(leaf, proof, root);
-  verifyResult.tree = isValid;
-  console.log(`🌲 Tree proof valida: ${isValid}`);
-}
-
-if (woodLogs.length > 0) {
-  const sample = woodLogs[0];
-  const { proof, leaf, root } = getProofAndRoot(sample, leavesWoodLogs, leafHashWoodLog);
-  const isValid = await contract.verifyWoodLogProofWithRoot(leaf, proof, root);
-  verifyResult.woodLog = isValid;
-  console.log(`🪵 Wood Log proof valida: ${isValid}`);
-}
-
-if (sawnTimbers.length > 0) {
-  const sample = sawnTimbers[0];
-  const { proof, leaf, root } = getProofAndRoot(sample, leavesSawnTimbers, leafHashSawnTimber);
-  const isValid = await contract.verifySawnTimberProofWithRoot(leaf, proof, root);
-  verifyResult.sawnTimber = isValid;
-  console.log(`🪚 Sawn Timber proof valida: ${isValid}`);
-}
-
-// Salvataggio file batch JSON
-fs.writeFileSync(path.join(__dirname, "forest-trees-batch.json"), JSON.stringify(batchTrees, null, 2));
-fs.writeFileSync(path.join(__dirname, "wood-logs-batch.json"), JSON.stringify(woodLogs, null, 2));
-fs.writeFileSync(path.join(__dirname, "sawn-timbers-batch.json"), JSON.stringify(sawnTimbers, null, 2));
-
-console.log("\n💾 File batch salvati:");
-console.log(" - forest-trees-batch.json");
-console.log(" - wood-logs-batch.json");
-console.log(" - sawn-timbers-batch.json");
-}
-
-main().catch(err => {
-  console.error("❌ Errore:", err);
+main().catch(e => {
+  console.error("❌ Errore:", e);
   process.exit(1);
 });
