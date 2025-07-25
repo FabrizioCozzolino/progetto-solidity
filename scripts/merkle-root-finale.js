@@ -11,7 +11,7 @@ const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
 const API_URL = "https://pollicino.topview.it:9443/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDM2ODY3LCJpYXQiOjE3NTM0MzMyNjcsImp0aSI6IjhlMmE3YjRjNDYzYzRmNjE4NDJhZjAzYmU5MWQwMWFiIiwidXNlcl9pZCI6MTI1fQ.xM1b2LBCa5XPzMMBDQnuwNcEV6v9rVm2RX7v_lyeATc";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDM3Mzg0LCJpYXQiOjE3NTM0MzM3ODQsImp0aSI6ImFkMjI2ODkxNmM0MTQ0OTViMjUyZjkzMjUxZDI4NjRhIiwidXNlcl9pZCI6MTE0fQ.b_8aIU4FMqaqKq0zJXP8lUa0AeTCYMIuXFiLWQrjLzQ";
 
 function hashUnified(obj) {
   return keccak256(
