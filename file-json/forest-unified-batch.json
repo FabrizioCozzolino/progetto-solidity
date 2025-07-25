@@ -1,0 +1,42 @@
+[
+  {
+    "type": "Tree",
+    "epc": "E280110020007A54DB0F08BC",
+    "firstReading": 1744823963,
+    "treeType": "Fir",
+    "extra1": "43.5605481,11.1711793",
+    "extra2": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "E28011002000759DDAC608BC",
+    "firstReading": 1744823996,
+    "treeType": "Fir",
+    "extra1": "E280110020007A54DB0F08BC",
+    "extra2": "Stiffness and properties of wood fibers: 1400 Km/s; Diameter 2 of a woodlog: 35 cm; Stiffness and properties of wood fibers: 1400 Km/s; Diameter 1 of a woodlog: 28 cm; Lenght of wood: 4.0 m; Lenght of wood: 6.0 m; Diameter 1 of a woodlog: 42 cm; Diameter 2 of a woodlog: 45 cm"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E280110020007894DB0F08BC",
+    "firstReading": 1744824028,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 10 #El; Width of a sawn timber: 40 cm; Lenght of wood: 4 m; Thickness of a sawn timber: 20 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E280110020007A94DB0F08BC",
+    "firstReading": 1742399705,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 25 #El; Width of a sawn timber: 15 cm; Lenght of wood: 6 m; Thickness of a sawn timber: 15 cm; Sawn timber quality category: 14 C"
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "E2801100200078D4DB0F08BC",
+    "firstReading": 1742199618,
+    "treeType": "Fir",
+    "extra1": "",
+    "extra2": "Number of sawn timber related to this ID: 25 #El; Width of a sawn timber: 20 cm; Lenght of wood: 5 m; Thickness of a sawn timber: 10 cm; Sawn timber quality category: 14 C"
+  }
+]

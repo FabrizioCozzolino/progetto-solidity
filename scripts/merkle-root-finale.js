@@ -11,7 +11,7 @@ const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
 const API_URL = "https://pollicino.topview.it:9443/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDM0NzE5LCJpYXQiOjE3NTM0MzExMTksImp0aSI6IjY2NGM5MDhiOTQ1MDQzNDdhNTdkYzY4ZWIyY2I3NDg2IiwidXNlcl9pZCI6MTEwfQ.2zc5dSJGTkJgOkY0U1Y3EIZTeQnyq1kedBUanGePO2k";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDM2ODY3LCJpYXQiOjE3NTM0MzMyNjcsImp0aSI6IjhlMmE3YjRjNDYzYzRmNjE4NDJhZjAzYmU5MWQwMWFiIiwidXNlcl9pZCI6MTI1fQ.xM1b2LBCa5XPzMMBDQnuwNcEV6v9rVm2RX7v_lyeATc";
 
 function hashUnified(obj) {
   return keccak256(
@@ -43,14 +43,37 @@ async function main() {
   }
 
   const forestUnits = response.data.forestUnits;
-  const forestName = process.env.FOREST_UNIT?.toLowerCase() || "vallombrosa";
-  const forestKey = Object.keys(forestUnits).find(
-    k => k.toLowerCase() === forestName || forestUnits[k].name?.toLowerCase().includes(forestName)
-  );
-  if (!forestKey) {
-    console.error("❌ Forest unit non trovata.");
-    process.exit(1);
-  }
+  const readline = require("readline");
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+// Mostra tutte le forest units disponibili
+console.log("\n🌲 Forest Units disponibili:\n");
+Object.entries(forestUnits).forEach(([key, val], index) => {
+  console.log(`${index + 1}) ${val.name || "(senza nome)"} — key: ${key}`);
+});
+
+// Aspetta la scelta dell'utente
+const userChoice = await new Promise((resolve) => {
+  rl.question("\n✏️ Inserisci il numero della forest unit da selezionare: ", resolve);
+});
+rl.close();
+
+// Prende la key corrispondente
+const choiceIndex = parseInt(userChoice) - 1;
+const forestKeys = Object.keys(forestUnits);
+
+if (isNaN(choiceIndex) || choiceIndex < 0 || choiceIndex >= forestKeys.length) {
+  console.error("❌ Scelta non valida.");
+  process.exit(1);
+}
+
+const forestKey = forestKeys[choiceIndex];
+console.log(`\n✅ Forest Unit selezionata: ${forestUnits[forestKey].name || forestKey}\n`);
+
 
   const unit = forestUnits[forestKey];
   const treesDict = unit.trees || {};
@@ -104,6 +127,12 @@ async function main() {
     }
   }
 
+  // 🔍 Verifica se ci sono dati da usare per la root
+if (unifiedLeaves.length === 0) {
+  console.error("❌ Forest Unit vuota: nessun albero, tronco o tavola trovato. Root non generata.");
+  process.exit(1);
+}
+
   const merkleTree = new MerkleTree(unifiedLeaves, keccak256, { sortPairs: true });
   const root = merkleTree.getHexRoot();
 
@@ -126,7 +155,13 @@ async function main() {
   const receipt = await tx.wait();
   console.log(`✅ Root aggiornata. Tx hash: ${receipt.transactionHash}`);
 
-  fs.writeFileSync(path.join(__dirname, "forest-unified-batch.json"), JSON.stringify(unifiedBatch, null, 2));
+  const outputDir = path.join(__dirname, "..", "file-json");
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir);
+}
+fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(unifiedBatch, null, 2));
+
+
   console.log("💾 Salvato: forest-unified-batch.json");
 
   // Verifica di un esempio
