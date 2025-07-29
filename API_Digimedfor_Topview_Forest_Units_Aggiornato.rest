@@ -29,7 +29,7 @@ Content-Type: application/json
 #   "company": "",
 #   "country": "Italy"
 # }
-@authAdmin = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMTg5MDIzLCJpYXQiOjE3NTMxODU0MjMsImp0aSI6ImFiNGZiOTljNDJmYTRjOTJhZjNjOWFlNTFmNzBlZjg1IiwidXNlcl9pZCI6MTEwfQ.SyFXFqBZDjUjWS_g6OKe3De1bHZ2YAdSUOH-B9X5ZE4
+@authAdmin = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNzc5MDc1LCJpYXQiOjE3NTM3NzU0NzUsImp0aSI6IjIzZDQxMjI2ODNkNjQ3YjFiZGI1MmM0MjgyZmE0NzhkIiwidXNlcl9pZCI6MTE0fQ.cbC-E6-W_PSpcZxOmgpJ4BwJiJ6HO-muKaEJHJToRYU
 
 
 GET https://digimedfor.topview.it/api/get-forest-units/
