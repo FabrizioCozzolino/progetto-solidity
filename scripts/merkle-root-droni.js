@@ -1,18 +1,20 @@
 require("dotenv").config({ path: "./test.env" });
 const hre = require("hardhat");
-const { Wallet, formatEther, getPublicKey } = require("ethers");  // <- qui tutto insieme
+const { Wallet, formatEther } = require("ethers");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
+const secp = require("@noble/secp256k1");
 
 const deployedPath = path.join(__dirname, "../deployed.json");
 const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.Bitacora || deployed.address;
 
-const API_URL = "http://51.91.111.200:3000/flight_data";
-const DEVICE_API = "http://51.91.111.200:3000/device";
+const API_BASE_URL = "http://51.91.111.200:3000";
+const API_URL = `${API_BASE_URL}/flight_data`;
+const DEVICE_API = `${API_BASE_URL}/device`;
 
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
 const DEVICE_ID = process.env.DEVICE_ID || "device_123";
@@ -22,78 +24,61 @@ async function generatePublicKey() {
   const wallet = Wallet.createRandom();
   console.log("🔐 Wallet generato:", wallet.address);
 
-  const rawPublicKeyUncompressed = getPublicKey(wallet.privateKey, false);
+  const compressed = secp.getPublicKey(wallet.privateKey.slice(2), true);
+  const compressedHex = "0x" + Buffer.from(compressed).toString("hex");
 
-  console.log("🔑 Public Key NON compressa:", rawPublicKeyUncompressed);
-
-  return { wallet, rawPublicKeyCompressed: rawPublicKeyUncompressed };
+  console.log("🔑 Public Key COMPRESSA:", compressedHex);
+  return { wallet, rawPublicKeyCompressed: compressedHex };
 }
 
-
-function hexStringToByteArray(hex) {
-  if (typeof hex !== "string") return hex; // se è già array, ritorna così
-  if (hex.startsWith("0x")) hex = hex.slice(2);
-  const bytes = [];
-  for (let c = 0; c < hex.length; c += 2) {
-    bytes.push(parseInt(hex.substr(c, 2), 16));
+async function fetchDataset(datasetId) {
+  try {
+    const url = `${API_BASE_URL}/dataset/${datasetId}`;
+    const response = await axios.get(url, {
+      headers: { Authorization: AUTH_TOKEN },
+      timeout: 10000,
+    });
+    console.log(`📦 Dataset ${datasetId} recuperato, ${response.data.count || response.data.length} elementi.`);
+    return response.data;
+  } catch (e) {
+    console.error(`❌ Errore recupero dataset ${datasetId}:`, e.message);
+    return null;
   }
-  return bytes;
 }
 
-async function trySendPkFormats(rawPublicKeyCompressed) {
-  const formats = [
-    {
-      name: "Hex with 0x prefix",
-      value: rawPublicKeyCompressed,
-    },
-    {
-      name: "Hex without 0x prefix",
-      value: rawPublicKeyCompressed.startsWith("0x")
-        ? rawPublicKeyCompressed.slice(2)
-        : rawPublicKeyCompressed,
-    },
-    {
-      name: "Hex without prefix byte (0x02/0x03), no 0x",
-      value: rawPublicKeyCompressed.startsWith("0x")
-        ? rawPublicKeyCompressed.slice(4)
-        : rawPublicKeyCompressed.slice(2),
-    },
-    {
-      name: "Byte array from full hex",
-      value: hexStringToByteArray(rawPublicKeyCompressed),
-    },
-    {
-      name: "Byte array from hex without 0x prefix byte",
-      value: hexStringToByteArray(
-        rawPublicKeyCompressed.startsWith("0x")
-          ? rawPublicKeyCompressed.slice(4)
-          : rawPublicKeyCompressed.slice(2)
-      ),
-    },
-  ];
-
-  for (const fmt of formats) {
-    console.log(`\n🔄 Provo formato: ${fmt.name}`);
-    try {
-      await axios.post(
-        DEVICE_API,
-        {
-          id: DEVICE_ID,
-          pk: fmt.value,
-        },
-        { headers: { Authorization: AUTH_TOKEN } }
-      );
-      console.log(`✅ Formato "${fmt.name}" accettato dall'API!`);
-      return true; // esce al primo successo
-    } catch (e) {
-      console.error(
-        `❌ Formato "${fmt.name}" rifiutato:`,
-        e.response?.data || e.message
-      );
-    }
+async function trySendPkExact(rawPublicKeyCompressed) {
+  try {
+    await axios.post(
+      DEVICE_API,
+      { id: DEVICE_ID, pk: rawPublicKeyCompressed }, // invia esattamente la stringa con "0x" davanti
+      { headers: { Authorization: AUTH_TOKEN } }
+    );
+    console.log("✅ Public key inviata esattamente con prefisso 0x.");
+    return true;
+  } catch (e) {
+    console.error("❌ Errore invio public key:", e.response?.data || e.message);
+    return false;
   }
-  console.error("⚠️ Nessun formato è stato accettato dall'API.");
-  return false;
+}
+
+function hashFlightData(fd) {
+  const deviceId = fd.device_id || "";
+  const timestamp = fd.timestamp || 0;
+  const lat = fd.localization?.latitude ?? 0;
+  const lon = fd.localization?.longitude ?? 0;
+  const signature = fd.signature || "";
+  const concatStr = `${deviceId}|${timestamp}|${lat}|${lon}|${signature}`;
+  return keccak256(concatStr);
+}
+
+async function getEthPriceInEuro() {
+  try {
+    const res = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur");
+    return res.data.ethereum.eur;
+  } catch {
+    console.warn("⚠️ Errore recupero ETH/EUR, uso default 3000");
+    return 3000;
+  }
 }
 
 async function main() {
@@ -103,18 +88,22 @@ async function main() {
 
   const { wallet, rawPublicKeyCompressed } = await generatePublicKey();
 
-  // Provo a registrare il device con tutti i formati di pk finché uno non va bene
-  const success = await trySendPkFormats(rawPublicKeyCompressed);
-  if (!success) {
-    console.error("Errore: nessun formato PK accettato dall'API, esco.");
-    return;
-  }
+  const pkSuccess = await trySendPkExact(rawPublicKeyCompressed);
+if (!pkSuccess) {
+  console.error("Errore: public key non accettata dall'API, esco.");
+  return;
+}
+
+
 
   try {
     await contract.getDevice(DEVICE_ID);
     console.log("✅ Device già presente on-chain.");
   } catch {
-    const pkForOnChain = rawPublicKeyCompressed.slice(4, 4 + 64);
+    // Registro la pk on-chain senza il byte di compressione (primo byte)
+    const pkForOnChain = rawPublicKeyCompressed.startsWith("0x")
+      ? rawPublicKeyCompressed.slice(4) // tolgo 0x + 1 byte (2 cifre esadecimali)
+      : rawPublicKeyCompressed.slice(2);
     const pkBytes32 = "0x" + pkForOnChain;
     const txReg = await contract.registerDevice(DEVICE_ID, pkBytes32);
     await txReg.wait();
@@ -127,33 +116,23 @@ async function main() {
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
   for (const DATASET_ID of DATASET_IDS) {
-    console.log(`\n📦 Dataset: ${DATASET_ID}`);
+    const datasetData = await fetchDataset(DATASET_ID);
+    if (!datasetData) continue;
 
-    let response;
-    try {
-      response = await axios.post(
-        API_URL,
-        {
-          id: DEVICE_ID,
-          dataset_id: DATASET_ID,
-        },
-        {
-          headers: { Authorization: AUTH_TOKEN },
-          timeout: 10000,
-        }
-      );
-    } catch (e) {
-      console.error("❌ Errore chiamata API:", e.message);
+    const flightDatas = Array.isArray(datasetData)
+      ? datasetData
+      : datasetData.flight_datas || datasetData.data || [];
+
+    if (!flightDatas.length) {
+      console.error(`❌ Nessun dato flight_data nel dataset ${DATASET_ID}`);
       continue;
     }
 
-    const flightDatas = response.data;
-    if (!Array.isArray(flightDatas) || flightDatas.length === 0) {
-      console.error("❌ Nessun dato trovato nel dataset.");
-      continue;
-    }
+    const leaves = flightDatas.map(fd => {
+      fd.device_id = DEVICE_ID;
+      return hashFlightData(fd);
+    });
 
-    const leaves = flightDatas.map(hashFlightData);
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const root = merkleTree.getHexRoot();
 
@@ -182,34 +161,14 @@ async function main() {
       console.error("❌ Errore registrazione on-chain:", e.error?.message || e.message);
     }
 
-    const testLeaf = hashFlightData(flightDatas[0]);
+    const testLeaf = leaves[0];
     const proof = merkleTree.getHexProof(testLeaf);
     const isValid = merkleTree.verify(proof, testLeaf, root);
     console.log(`🔍 Proof valida? ${isValid}`);
   }
 }
 
-async function getEthPriceInEuro() {
-  try {
-    const res = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur");
-    return res.data.ethereum.eur;
-  } catch {
-    console.warn("⚠️ Errore recupero ETH/EUR, uso default 3000");
-    return 3000;
-  }
-}
-
-function hashFlightData(fd) {
-  const deviceId = fd.device_id || "";
-  const timestamp = fd.timestamp || 0;
-  const lat = fd.localization?.latitude ?? 0;
-  const lon = fd.localization?.longitude ?? 0;
-  const signature = fd.signature || "";
-  const concatStr = `${deviceId}|${timestamp}|${lat}|${lon}|${signature}`;
-  return keccak256(concatStr);
-}
-
-main().catch((e) => {
+main().catch(e => {
   console.error("❌ Errore generale:", e);
   process.exit(1);
 });

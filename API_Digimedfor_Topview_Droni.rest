@@ -1,0 +1,55 @@
+### Login per ottenere il token di accesso
+POST https://digimedfor.topview.it/api/get-token/
+Content-Type: application/json
+
+{
+    "username": "lorenzo",
+    "password": "puglet007"
+}
+
+###
+
+# Copia il valore "access" del token ottenuto nella risposta e incollalo qui sotto in Authorization
+
+### Esempio: ottenere forest units con token di autorizzazione
+GET https://digimedfor.topview.it/api/get-forest-units/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzOTU0MjI1LCJpYXQiOjE3NTM5NTA2MjUsImp0aSI6IjRjMjJjZGNlODJmMTRiNDVhNTdhYjM4Y2Q0NDk3YzAwIiwidXNlcl9pZCI6MTE0fQ.50CXUCrmifzNV4Gbq68BkujfCHAwmzdasbUVzeKhIwQ
+
+###
+
+### Creare un nuovo device
+POST http://51.91.111.200:3000/device
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzOTU0MjI1LCJpYXQiOjE3NTM5NTA2MjUsImp0aSI6IjRjMjJjZGNlODJmMTRiNDVhNTdhYjM4Y2Q0NDk3YzAwIiwidXNlcl9pZCI6MTE0fQ.50CXUCrmifzNV4Gbq68BkujfCHAwmzdasbUVzeKhIwQ
+Content-Type: application/json
+
+{
+  "pk": "BByyvP5FLmnSIoH3H36czjMTqoalgth+MP/HYNGoLdwMfpJsnpik1fmYcqU25XQ6AVUK6Nb45Dx4unp9NWo="
+}
+
+
+
+
+###
+
+### Inviare dati di volo (flight data)
+POST http://51.91.111.200:3000/flight_data
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzOTU0MjI1LCJpYXQiOjE3NTM5NTA2MjUsImp0aSI6IjRjMjJjZGNlODJmMTRiNDVhNTdhYjM4Y2Q0NDk3YzAwIiwidXNlcl9pZCI6MTE0fQ.50CXUCrmifzNV4Gbq68BkujfCHAwmzdasbUVzeKhIwQ
+Content-Type: application/json
+
+{
+    "device_id": "6vz8qjFcHbKF5fjdBstVNb1zoWNE2SQwyNHNrAAzvA1w",
+    "timestamp": 20,
+    "signature": "Fg6tt7UKb==",
+    "localization": {
+        "longitude": 42.45323,
+        "latitude": -150.4774
+    },
+    "payload": "cGF5bG9hZA==",
+    "signature_full": "8JK9u54="
+}
+
+###
+
+### Ottenere informazioni su un device specifico
+GET http://51.91.111.200:3000/device/6vz8qjFcHbKF5fjdBstVNb1zoWNE2SQwyNHNrAAzvA1w
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzOTU0MjI1LCJpYXQiOjE3NTM5NTA2MjUsImp0aSI6IjRjMjJjZGNlODJmMTRiNDVhNTdhYjM4Y2Q0NDk3YzAwIiwidXNlcl9pZCI6MTE0fQ.50CXUCrmifzNV4Gbq68BkujfCHAwmzdasbUVzeKhIwQ

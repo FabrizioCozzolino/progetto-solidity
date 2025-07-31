@@ -16,6 +16,7 @@
   "dependencies": {
     "@ethersproject/crypto": "^6.0.0-beta.1",
     "@ethersproject/signing-key": "^5.8.0",
+    "@noble/secp256k1": "^2.3.0",
     "@openzeppelin/contracts": "^5.4.0",
     "dotenv": "^17.2.1",
     "ethers": "^6.15.0",
