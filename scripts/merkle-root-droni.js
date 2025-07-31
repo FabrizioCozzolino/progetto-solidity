@@ -1,63 +1,106 @@
 require("dotenv").config({ path: "./test.env" });
 const hre = require("hardhat");
-const { Wallet, formatEther } = require("ethers");
+const { formatEther } = require("ethers");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
-const secp = require("@noble/secp256k1");
 
 const deployedPath = path.join(__dirname, "../deployed.json");
 const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.Bitacora || deployed.address;
 
 const API_BASE_URL = "http://51.91.111.200:3000";
-const API_URL = `${API_BASE_URL}/flight_data`;
-const DEVICE_API = `${API_BASE_URL}/device`;
-
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
-const DEVICE_ID = process.env.DEVICE_ID || "device_123";
-const DATASET_IDS = (process.env.DATASET_IDS || "dataset_001").split(",").map(d => d.trim());
+let DEVICE_ID = process.env.DEVICE_ID || "";
+const DATASET_IDS = (process.env.DATASET_IDS || "").split(",").map(d => d.trim()).filter(Boolean);
 
-async function generatePublicKey() {
-  const wallet = Wallet.createRandom();
-  console.log("🔐 Wallet generato:", wallet.address);
-
-  const compressed = secp.getPublicKey(wallet.privateKey.slice(2), true);
-  const compressedHex = "0x" + Buffer.from(compressed).toString("hex");
-
-  console.log("🔑 Public Key COMPRESSA:", compressedHex);
-  return { wallet, rawPublicKeyCompressed: compressedHex };
-}
-
-async function fetchDataset(datasetId) {
+async function createDevice() {
+  // Usa una pk fissa o generane una random, qui fissa per comodità
+  const fullPk = "3d888e8be9907d60c8a21e84e20cb72659a77caafe6165be39fe730a44465d8130942563edd89e0cf9ecea2b6ab6e475502264e042dcac3b301d4268f89f3b38";
   try {
-    const url = `${API_BASE_URL}/dataset/${datasetId}`;
-    const response = await axios.get(url, {
-      headers: { Authorization: AUTH_TOKEN },
-      timeout: 10000,
-    });
-    console.log(`📦 Dataset ${datasetId} recuperato, ${response.data.count || response.data.length} elementi.`);
-    return response.data;
+    const res = await axios.post(
+      `${API_BASE_URL}/device`,
+      { pk: fullPk },
+      { headers: { Authorization: `Bearer ${AUTH_TOKEN}` }, timeout: 10000 }
+    );
+    console.log("✅ Device creato via API:", res.data);
+    return res.data.device_id || res.data.id || res.data; // adattare in base alla risposta API
   } catch (e) {
-    console.error(`❌ Errore recupero dataset ${datasetId}:`, e.message);
+    console.error("❌ Errore creazione device via API:", e.response?.data || e.message);
     return null;
   }
 }
 
-async function trySendPkExact(rawPublicKeyCompressed) {
+async function listDatasets() {
   try {
-    await axios.post(
-      DEVICE_API,
-      { id: DEVICE_ID, pk: rawPublicKeyCompressed }, // invia esattamente la stringa con "0x" davanti
-      { headers: { Authorization: AUTH_TOKEN } }
-    );
-    console.log("✅ Public key inviata esattamente con prefisso 0x.");
-    return true;
+    const response = await axios.get(`${API_BASE_URL}/dataset`, {
+      headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      timeout: 10000,
+    });
+    if (Array.isArray(response.data)) {
+      console.log("✅ Lista dataset disponibili:");
+      response.data.forEach((ds, idx) => {
+        if (typeof ds === "string") {
+          console.log(`  ${idx + 1}. ${ds}`);
+        } else if (ds.id) {
+          console.log(`  ${idx + 1}. ${ds.id}`);
+        } else {
+          console.log(`  ${idx + 1}.`, ds);
+        }
+      });
+      return response.data.map(d => (typeof d === "string" ? d : d.id));
+    } else {
+      console.log("ℹ️ Risposta API non è un array, contenuto:", response.data);
+      return [];
+    }
   } catch (e) {
-    console.error("❌ Errore invio public key:", e.response?.data || e.message);
+    console.error("❌ Errore chiamata API:", e.response?.data || e.message);
+    return [];
+  }
+}
+
+async function fetchDevicesFromDataset(datasetId) {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/dataset/${datasetId}`, {
+      headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      timeout: 10000,
+    });
+    if (res.data.devices && Array.isArray(res.data.devices) && res.data.devices.length > 0) {
+      console.log(`✅ Device trovati nel dataset ${datasetId}:`, res.data.devices.map(d => d.id || d));
+      return res.data.devices.map(d => (typeof d === "string" ? d : d.id));
+    } else {
+      console.warn(`⚠️ Nessun device trovato nel dataset ${datasetId}`);
+      return [];
+    }
+  } catch (e) {
+    console.error(`❌ Errore fetch device da dataset ${datasetId}:`, e.response?.data || e.message);
+    return [];
+  }
+}
+
+async function checkDeviceExists(contract, deviceId) {
+  try {
+    await contract.getDevice(deviceId);
+    return true;
+  } catch {
     return false;
+  }
+}
+
+async function fetchFlightData(deviceId) {
+  try {
+    const url = `${API_BASE_URL}/flight_data/${encodeURIComponent(deviceId)}`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      timeout: 10000,
+    });
+    console.log(`✅ Flight data recuperati per device ${deviceId}:`, response.data);
+    return response.data;
+  } catch (e) {
+    console.error(`❌ Errore recupero flight data ${deviceId}:`, e.response?.status, e.response?.data || e.message);
+    return null;
   }
 }
 
@@ -82,63 +125,88 @@ async function getEthPriceInEuro() {
 }
 
 async function main() {
+  // Se DEVICE_ID non impostato, crealo
+  if (!DEVICE_ID) {
+    console.log("ℹ️ DEVICE_ID non impostato, creo device via API...");
+    const newDeviceId = await createDevice();
+    if (!newDeviceId) {
+      console.error("❌ Non è stato possibile creare il device, esco.");
+      process.exit(1);
+    }
+    DEVICE_ID = newDeviceId;
+    console.log(`ℹ️ Nuovo DEVICE_ID creato: ${DEVICE_ID}`);
+  }
+
+  // Se non hai dataset in env, listali tutti e usa i primi 1-2 di default
+  let datasets = DATASET_IDS;
+  if (datasets.length === 0) {
+    console.log("ℹ️ Nessun DATASET_ID in env, recupero lista da API...");
+    datasets = await listDatasets();
+    if (datasets.length === 0) {
+      console.error("❌ Nessun dataset disponibile, esco.");
+      process.exit(1);
+    }
+    // Prendi al massimo 2 dataset per sicurezza
+    datasets = datasets.slice(0, 2);
+  }
+
   const signer = (await hre.ethers.getSigners())[0];
   const contractJson = require("../artifacts/contracts/DroneTracking.sol/Bitacora.json");
   const contract = new hre.ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
 
-  const { wallet, rawPublicKeyCompressed } = await generatePublicKey();
-
-  const pkSuccess = await trySendPkExact(rawPublicKeyCompressed);
-if (!pkSuccess) {
-  console.error("Errore: public key non accettata dall'API, esco.");
-  return;
-}
-
-
-
-  try {
-    await contract.getDevice(DEVICE_ID);
-    console.log("✅ Device già presente on-chain.");
-  } catch {
-    // Registro la pk on-chain senza il byte di compressione (primo byte)
-    const pkForOnChain = rawPublicKeyCompressed.startsWith("0x")
-      ? rawPublicKeyCompressed.slice(4) // tolgo 0x + 1 byte (2 cifre esadecimali)
-      : rawPublicKeyCompressed.slice(2);
-    const pkBytes32 = "0x" + pkForOnChain;
-    const txReg = await contract.registerDevice(DEVICE_ID, pkBytes32);
-    await txReg.wait();
-    console.log("✅ Device registrato on-chain!");
-  }
-
   const ethPrice = await getEthPriceInEuro();
 
-  const outputDir = path.join(__dirname, "..", "file-json");
-  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+  for (const DATASET_ID of datasets) {
+    console.log(`\n📁 Elaborazione dataset: ${DATASET_ID}`);
 
-  for (const DATASET_ID of DATASET_IDS) {
-    const datasetData = await fetchDataset(DATASET_ID);
-    if (!datasetData) continue;
+    // Prendi devices dal dataset
+    const devices = await fetchDevicesFromDataset(DATASET_ID);
+    if (devices.length === 0) {
+      console.warn(`⚠️ Nessun device nel dataset ${DATASET_ID}, ma usiamo DEVICE_ID creato o impostato: ${DEVICE_ID}`);
+    }
 
-    const flightDatas = Array.isArray(datasetData)
-      ? datasetData
-      : datasetData.flight_datas || datasetData.data || [];
+    // Usa DEVICE_ID creato o primo device dataset (se presente)
+    const usedDeviceId = devices.length > 0 ? devices[0] : DEVICE_ID;
 
-    if (!flightDatas.length) {
-      console.error(`❌ Nessun dato flight_data nel dataset ${DATASET_ID}`);
+    // Controlla se device registrato on-chain
+    const exists = await checkDeviceExists(contract, usedDeviceId);
+    if (exists) {
+      console.log(`✅ Device ${usedDeviceId} già registrato on-chain.`);
+    } else {
+      // Registra device on-chain con chiave pk32 fissa (puoi cambiare se vuoi)
+      const fullPk = "3d888e8be9907d60c8a21e84e20cb72659a77caafe6165be39fe730a44465d8130942563edd89e0cf9ecea2b6ab6e475502264e042dcac3b301d4268f89f3b38";
+      const pk32 = fullPk.slice(0, 64);
+      const pkBytes32 = "0x" + pk32;
+      try {
+        const tx = await contract.registerDevice(usedDeviceId, pkBytes32);
+        const receipt = await tx.wait();
+        console.log("✅ Device registrato on-chain con chiave (32 byte), tx hash:", receipt.transactionHash);
+      } catch (e) {
+        console.error("❌ Errore registrazione device on-chain:", e.error?.message || e.message);
+        continue; // passa al prossimo dataset
+      }
+    }
+
+    // Prendi flight data per device
+    const flightDatas = await fetchFlightData(usedDeviceId);
+    if (!flightDatas || flightDatas.length === 0) {
+      console.error(`❌ Nessun flight_data per device ${usedDeviceId} nel dataset ${DATASET_ID}, salto.`);
       continue;
     }
 
-    const leaves = flightDatas.map(fd => {
-      fd.device_id = DEVICE_ID;
-      return hashFlightData(fd);
+    // Assicura che ogni record abbia device_id
+    flightDatas.forEach(fd => {
+      if (!fd.device_id) fd.device_id = usedDeviceId;
     });
 
+    // Merkle tree
+    const leaves = flightDatas.map(hashFlightData);
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const root = merkleTree.getHexRoot();
 
     const gasEstimate = await hre.ethers.provider.estimateGas({
       to: CONTRACT_ADDRESS,
-      data: contract.interface.encodeFunctionData("registerDataset", [DATASET_ID, DEVICE_ID, root]),
+      data: contract.interface.encodeFunctionData("registerDataset", [DATASET_ID, usedDeviceId, root]),
       from: await signer.getAddress(),
     });
 
@@ -150,17 +218,25 @@ if (!pkSuccess) {
     console.log(`⛽ Gas stimato: ${gasEstimate.toString()}`);
     console.log(`💸 Costo stimato: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
 
-    fs.writeFileSync(path.join(outputDir, `${DATASET_ID}-batch.json`), JSON.stringify(flightDatas, null, 2));
-    console.log(`💾 Salvato: ${DATASET_ID}-batch.json`);
+    // Salva batch json
+    const outputDir = path.join(__dirname, "..", "file-json");
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+
+    fs.writeFileSync(
+      path.join(outputDir, `${DATASET_ID}-${usedDeviceId}-batch.json`),
+      JSON.stringify(flightDatas, null, 2)
+    );
+    console.log(`💾 Salvato batch JSON: ${DATASET_ID}-${usedDeviceId}-batch.json`);
 
     try {
-      const tx = await contract.registerDataset(DATASET_ID, DEVICE_ID, root);
+      const tx = await contract.registerDataset(DATASET_ID, usedDeviceId, root);
       const receipt = await tx.wait();
-      console.log(`✅ Dataset registrato. Tx hash: ${receipt.transactionHash}`);
+      console.log(`✅ Dataset registrato on-chain. Tx hash: ${receipt.transactionHash}`);
     } catch (e) {
       console.error("❌ Errore registrazione on-chain:", e.error?.message || e.message);
     }
 
+    // Verifica prova Merkle
     const testLeaf = leaves[0];
     const proof = merkleTree.getHexProof(testLeaf);
     const isValid = merkleTree.verify(proof, testLeaf, root);
