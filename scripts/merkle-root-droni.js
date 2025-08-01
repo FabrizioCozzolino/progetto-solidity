@@ -6,6 +6,7 @@ const path = require("path");
 const axios = require("axios");
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
+const crypto = require("crypto");
 
 const deployedPath = path.join(__dirname, "../deployed.json");
 const deployed = JSON.parse(fs.readFileSync(deployedPath));
@@ -15,22 +16,90 @@ const API_BASE_URL = "http://51.91.111.200:3000";
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
 let DEVICE_ID = process.env.DEVICE_ID || "";
 const DATASET_IDS = (process.env.DATASET_IDS || "").split(",").map(d => d.trim()).filter(Boolean);
+const PK = process.env.PK || "";
 
+// Funzione per generare pk casuale esadecimale 64 caratteri
+function generateRandomPk() {
+  return "0x" + crypto.randomBytes(64).toString("hex");
+}
+
+// Nuova createDevice con retry e pk casuale
 async function createDevice() {
-  // Usa una pk fissa o generane una random, qui fissa per comodità
-  const fullPk = "3d888e8be9907d60c8a21e84e20cb72659a77caafe6165be39fe730a44465d8130942563edd89e0cf9ecea2b6ab6e475502264e042dcac3b301d4268f89f3b38";
+  const fullPk = PK.startsWith("0x") ? PK : "0x" + PK;
   try {
     const res = await axios.post(
       `${API_BASE_URL}/device`,
       { pk: fullPk },
       { headers: { Authorization: `Bearer ${AUTH_TOKEN}` }, timeout: 10000 }
     );
-    console.log("✅ Device creato via API:", res.data);
-    return res.data.device_id || res.data.id || res.data; // adattare in base alla risposta API
+    console.log("✅ Device creato via API, risposta completa:", res.data);
+
+    const deviceId = res.data.id || res.data.device_id || null;
+    if (!deviceId) {
+      console.warn("⚠️ Attenzione: non è stato trovato un 'id' device valido nella risposta.");
+      console.warn("Risposta API:", res.data);
+      process.exit(1);
+    }
+
+    console.log("ℹ️ Device ID estratto dalla risposta:", deviceId);
+    return deviceId;
+
   } catch (e) {
-    console.error("❌ Errore creazione device via API:", e.response?.data || e.message);
+    if (e.response?.data?.code === 1001) {
+      console.warn("⚠️ Device già esistente con questa pk. Inserisci DEVICE_ID corretto in .env per continuare.");
+      process.exit(1);
+    } else {
+      console.error("❌ Errore creazione device via API:", e.response?.data || e.message);
+      process.exit(1);
+    }
+  }
+}
+
+// Funzione per ottenere dettagli device via API GET
+async function getDevice(deviceId) {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/device/${encodeURIComponent(deviceId)}`, {
+      headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      timeout: 10000,
+    });
+    console.log(`✅ Dettagli device recuperati via GET:`, res.data);
+    return res.data;
+  } catch (e) {
+    console.error(`❌ Errore recupero device via GET:`, e.response?.data || e.message);
     return null;
   }
+}
+
+async function getDatasetForDevice(deviceId) {
+  const datasetId = `${deviceId}:2`;
+  try {
+    const res = await axios.get(`${API_BASE_URL}/dataset/${encodeURIComponent(datasetId)}?end=false`, {
+      headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      timeout: 10000,
+    });
+    console.log(`✅ Dataset per device ${deviceId} recuperato:`, res.data);
+    return [datasetId]; // ritorna un array con un solo dataset ID
+  } catch (e) {
+    console.error(`❌ Errore recupero dataset per device ${deviceId}:`, e.response?.data || e.message);
+    return [];
+  }
+}
+
+// Funzione per recuperare device da PK
+async function listDevicesByPk(pk) {
+  try {
+    const fullPk = pk.startsWith("0x") ? pk : "0x" + pk;
+    const res = await axios.get(`${API_BASE_URL}/device?pk=${encodeURIComponent(fullPk)}`, {
+      headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      timeout: 10000
+    });
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return res.data[0].id;
+    }
+  } catch (e) {
+    console.error("❌ Errore nel recupero device esistente:", e.response?.data || e.message);
+  }
+  return null;
 }
 
 async function listDatasets() {
@@ -89,6 +158,37 @@ async function checkDeviceExists(contract, deviceId) {
   }
 }
 
+async function createFlightData(deviceId, timestamp = 20) {
+  try {
+    const res = await axios.post(
+      `${API_BASE_URL}/flight_data`,
+      {
+        device_id: deviceId,
+        timestamp,
+        signature: "Fg6tt7UKb==",
+        localization: {
+          longitude: 42.45323,
+          latitude: -150.4774,
+        },
+        payload: "cGF5bG9hZA==", // "payload" in base64
+        signature_full: "8JK9u54=",
+      },
+      {
+        headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+        timeout: 10000,
+      }
+    );
+
+    console.log("✅ Flight data creato con successo:", res.data);
+    return res.data;
+
+  } catch (e) {
+    console.error("❌ Errore creazione flight data:", e.response?.data || e.message);
+    return null;
+  }
+}
+
+
 async function fetchFlightData(deviceId) {
   try {
     const url = `${API_BASE_URL}/flight_data/${encodeURIComponent(deviceId)}`;
@@ -103,6 +203,21 @@ async function fetchFlightData(deviceId) {
     return null;
   }
 }
+
+async function fetchFlightDatasFromDataset(datasetId) {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/dataset/${encodeURIComponent(datasetId)}/flight_datas`, {
+      headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      timeout: 10000
+    });
+    console.log(`✅ Flight data ottenuti per dataset ${datasetId}:`, res.data);
+    return res.data;
+  } catch (e) {
+    console.error(`❌ Errore fetch flight data dal dataset ${datasetId}:`, e.response?.data || e.message);
+    return null;
+  }
+}
+
 
 function hashFlightData(fd) {
   const deviceId = fd.device_id || "";
@@ -124,30 +239,41 @@ async function getEthPriceInEuro() {
   }
 }
 
-async function main() {
-  // Se DEVICE_ID non impostato, crealo
-  if (!DEVICE_ID) {
-    console.log("ℹ️ DEVICE_ID non impostato, creo device via API...");
-    const newDeviceId = await createDevice();
-    if (!newDeviceId) {
-      console.error("❌ Non è stato possibile creare il device, esco.");
-      process.exit(1);
-    }
-    DEVICE_ID = newDeviceId;
-    console.log(`ℹ️ Nuovo DEVICE_ID creato: ${DEVICE_ID}`);
+// Nuova funzione per gestire DEVICE_ID da PK o creazione
+async function getOrCreateDevice() {
+  if (DEVICE_ID) {
+    console.log(`ℹ️ DEVICE_ID trovato in env: ${DEVICE_ID}`);
+    return DEVICE_ID;
+  }
+  if (!PK) {
+    console.error("❌ PK non impostata in env, impossibile procedere.");
+    process.exit(1);
+  }
+  console.log("ℹ️ DEVICE_ID non impostato, provo a recuperarlo tramite PK...");
+
+  let deviceId = null;
+  deviceId = await listDevicesByPk(PK);
+  if (deviceId) {
+    console.log(`✅ Device trovato via PK, DEVICE_ID: ${deviceId}`);
+    return deviceId;
   }
 
-  // Se non hai dataset in env, listali tutti e usa i primi 1-2 di default
+  console.log("ℹ️ Device con questa pk non trovato, provo a crearlo...");
+  return await createDevice();
+}
+
+async function main() {
+  DEVICE_ID = await getOrCreateDevice();
+
   let datasets = DATASET_IDS;
+
   if (datasets.length === 0) {
-    console.log("ℹ️ Nessun DATASET_ID in env, recupero lista da API...");
-    datasets = await listDatasets();
+    console.log("ℹ️ Nessun DATASET_ID in env, recupero dataset per DEVICE_ID...");
+    datasets = await getDatasetForDevice(DEVICE_ID);
     if (datasets.length === 0) {
-      console.error("❌ Nessun dataset disponibile, esco.");
+      console.error("❌ Nessun dataset disponibile per device, esco.");
       process.exit(1);
     }
-    // Prendi al massimo 2 dataset per sicurezza
-    datasets = datasets.slice(0, 2);
   }
 
   const signer = (await hre.ethers.getSigners())[0];
@@ -157,76 +283,81 @@ async function main() {
   const ethPrice = await getEthPriceInEuro();
 
   for (const DATASET_ID of datasets) {
-    console.log(`\n📁 Elaborazione dataset: ${DATASET_ID}`);
+  console.log(`\n📁 Elaborazione dataset: ${DATASET_ID}`);
 
-    // Prendi devices dal dataset
-    const devices = await fetchDevicesFromDataset(DATASET_ID);
-    if (devices.length === 0) {
-      console.warn(`⚠️ Nessun device nel dataset ${DATASET_ID}, ma usiamo DEVICE_ID creato o impostato: ${DEVICE_ID}`);
-    }
+  const usedDeviceId = DEVICE_ID;
 
-    // Usa DEVICE_ID creato o primo device dataset (se presente)
-    const usedDeviceId = devices.length > 0 ? devices[0] : DEVICE_ID;
-
-    // Controlla se device registrato on-chain
-    const exists = await checkDeviceExists(contract, usedDeviceId);
-    if (exists) {
-      console.log(`✅ Device ${usedDeviceId} già registrato on-chain.`);
-    } else {
-      // Registra device on-chain con chiave pk32 fissa (puoi cambiare se vuoi)
-      const fullPk = "3d888e8be9907d60c8a21e84e20cb72659a77caafe6165be39fe730a44465d8130942563edd89e0cf9ecea2b6ab6e475502264e042dcac3b301d4268f89f3b38";
-      const pk32 = fullPk.slice(0, 64);
-      const pkBytes32 = "0x" + pk32;
-      try {
-        const tx = await contract.registerDevice(usedDeviceId, pkBytes32);
-        const receipt = await tx.wait();
-        console.log("✅ Device registrato on-chain con chiave (32 byte), tx hash:", receipt.transactionHash);
-      } catch (e) {
-        console.error("❌ Errore registrazione device on-chain:", e.error?.message || e.message);
-        continue; // passa al prossimo dataset
-      }
-    }
-
-    // Prendi flight data per device
-    const flightDatas = await fetchFlightData(usedDeviceId);
-    if (!flightDatas || flightDatas.length === 0) {
-      console.error(`❌ Nessun flight_data per device ${usedDeviceId} nel dataset ${DATASET_ID}, salto.`);
+  const exists = await checkDeviceExists(contract, usedDeviceId);
+  if (exists) {
+    console.log(`✅ Device ${usedDeviceId} già registrato on-chain.`);
+  } else {
+    const fullPk = "3d888e8be9907d60c8a21e84e20cb72659a77caafe6165be39fe730a44465d8130942563edd89e0cf9ecea2b6ab6e475502264e042dcac3b301d4268f89f3b38";
+    const pk32 = fullPk.slice(0, 64);
+    const pkBytes32 = "0x" + pk32;
+    try {
+      const tx = await contract.registerDevice(usedDeviceId, pkBytes32);
+      const receipt = await tx.wait();
+      console.log("✅ Device registrato on-chain con chiave (32 byte), tx hash:", receipt.transactionHash);
+    } catch (e) {
+      console.error("❌ Errore registrazione device on-chain:", e.error?.message || e.message);
       continue;
     }
+  }
 
-    // Assicura che ogni record abbia device_id
+  await createFlightData(usedDeviceId);
+  const flightDatas = await fetchFlightDatasFromDataset(DATASET_ID);
+  if (!flightDatas || flightDatas.length === 0) {
+    console.error(`❌ Nessun flight_data per device ${usedDeviceId} nel dataset ${DATASET_ID}, salto.`);
+    continue;
+  }
+
     flightDatas.forEach(fd => {
       if (!fd.device_id) fd.device_id = usedDeviceId;
     });
 
-    // Merkle tree
     const leaves = flightDatas.map(hashFlightData);
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const root = merkleTree.getHexRoot();
 
     const gasEstimate = await hre.ethers.provider.estimateGas({
-      to: CONTRACT_ADDRESS,
-      data: contract.interface.encodeFunctionData("registerDataset", [DATASET_ID, usedDeviceId, root]),
-      from: await signer.getAddress(),
-    });
+  to: CONTRACT_ADDRESS,
+  data: contract.interface.encodeFunctionData("registerDataset", [DATASET_ID, usedDeviceId, root]),
+  from: await signer.getAddress(),
+});
 
-    const feeData = await hre.ethers.provider.getFeeData();
-    const gasCostWei = gasEstimate.mul(feeData.gasPrice);
-    const gasCostEth = Number(formatEther(gasCostWei));
+const feeData = await hre.ethers.provider.getFeeData();
+const gasPrice = feeData.gasPrice ?? 1n; // fallback di sicurezza
+
+const gasCostWei = gasEstimate * gasPrice;
+const gasCostEth = Number(formatEther(gasCostWei.toString())); // perché formatEther vuole una stringa in ethers 6
+
+
 
     console.log(`🧩 Merkle Root: ${root}`);
     console.log(`⛽ Gas stimato: ${gasEstimate.toString()}`);
     console.log(`💸 Costo stimato: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
 
-    // Salva batch json
-    const outputDir = path.join(__dirname, "..", "file-json");
-    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+    const outputDir = path.join(__dirname, "..", "file-json", usedDeviceId);
 
-    fs.writeFileSync(
-      path.join(outputDir, `${DATASET_ID}-${usedDeviceId}-batch.json`),
-      JSON.stringify(flightDatas, null, 2)
-    );
-    console.log(`💾 Salvato batch JSON: ${DATASET_ID}-${usedDeviceId}-batch.json`);
+// Assicuro che tutta la cartella esista, con recursive
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
+}
+
+const safeFilename = `${DATASET_ID}-${usedDeviceId}-batch.json`.replace(/[:]/g, "_");
+
+const fullPath = path.join(outputDir, safeFilename);
+
+console.log("ℹ️ Salvo batch JSON in:", fullPath);
+
+fs.writeFileSync(
+  fullPath,
+  JSON.stringify(flightDatas, null, 2)
+);
+
+console.log(`💾 Salvato batch JSON: ${path.join(usedDeviceId, safeFilename)}`);
+
+
 
     try {
       const tx = await contract.registerDataset(DATASET_ID, usedDeviceId, root);
@@ -236,7 +367,6 @@ async function main() {
       console.error("❌ Errore registrazione on-chain:", e.error?.message || e.message);
     }
 
-    // Verifica prova Merkle
     const testLeaf = leaves[0];
     const proof = merkleTree.getHexProof(testLeaf);
     const isValid = merkleTree.verify(proof, testLeaf, root);

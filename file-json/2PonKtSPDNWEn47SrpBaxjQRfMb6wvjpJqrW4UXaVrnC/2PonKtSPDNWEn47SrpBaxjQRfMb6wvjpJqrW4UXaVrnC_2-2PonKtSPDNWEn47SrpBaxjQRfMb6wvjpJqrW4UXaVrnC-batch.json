@@ -1,0 +1,35 @@
+[
+  {
+    "id": "wYtNChjCtZnV9bvvUGAAW7e9tPn1QL32NSY6kqPF1CN",
+    "signature": "Fg6tt7UKb==7890",
+    "timestamp": 1746225618,
+    "localization": {
+      "longitude": 40.45323,
+      "latitude": -152.4774
+    },
+    "payload": "78798987",
+    "device_id": "2PonKtSPDNWEn47SrpBaxjQRfMb6wvjpJqrW4UXaVrnC"
+  },
+  {
+    "id": "FkwGbCXBRBPjXdivDeVWDRiopvTgdvzKV5Bo6A4EFkPK",
+    "signature": "Fg6tt7UKb==7890",
+    "timestamp": 1746425618,
+    "localization": {
+      "longitude": 40.45323,
+      "latitude": -152.4774
+    },
+    "payload": "78798987",
+    "device_id": "2PonKtSPDNWEn47SrpBaxjQRfMb6wvjpJqrW4UXaVrnC"
+  },
+  {
+    "id": "7DgNiRWTmpezBsLNxHdy6VVgCa9B9j2kaDCoCNafpvtK",
+    "signature": "Fg6tt7UKb==7890",
+    "timestamp": 1746525618,
+    "localization": {
+      "longitude": 40.45323,
+      "latitude": -152.4774
+    },
+    "payload": "78798987",
+    "device_id": "2PonKtSPDNWEn47SrpBaxjQRfMb6wvjpJqrW4UXaVrnC"
+  }
+]
