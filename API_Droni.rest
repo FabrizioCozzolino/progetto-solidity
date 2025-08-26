@@ -1,0 +1,56 @@
+### Variabili ambiente
+@baseUrl = http://51.91.111.200:3000
+@authToken = {{AUTH_TOKEN}}
+@deviceId = {{DEVICE_ID}}
+@datasetId = {{DATASET_IDS}}
+@pk = {{PK}}
+@gasEstimated = 47520
+@gasPriceGwei = 1.7
+### TEST Variabili
+GET https://httpbin.org/get?token={{authToken}}&device={{deviceId}}&dataset={{datasetId}}&pk={{pk}}
+
+### Crea un nuovo device (con PK esadecimale)
+POST {{baseUrl}}/device
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "pk": "{{pk}}"
+}
+
+### Recupera dettagli di un device per ID
+GET {{baseUrl}}/device/{{deviceId}}
+Authorization: Bearer {{authToken}}
+
+### Recupera dataset per device (ultimo attivo)
+GET {{baseUrl}}/dataset/{{deviceId}}:2?end=false
+Authorization: Bearer {{authToken}}
+
+### Crea un nuovo flight data per un device
+POST {{baseUrl}}/flight_data
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "device_id": "{{deviceId}}",
+  "timestamp": 1699999999,
+  "signature": "Fg6tt7UKb==",
+  "localization": {
+    "longitude": 42.45323,
+    "latitude": -150.4774
+  },
+  "payload": "cGF5bG9hZA==",
+  "signature_full": "8JK9u54="
+}
+
+### Recupera flight data per device
+GET {{baseUrl}}/flight_data/{{deviceId}}
+Authorization: Bearer {{authToken}}
+
+### Recupera flight data da un dataset
+GET {{baseUrl}}/dataset/{{datasetId}}/flight_datas
+Authorization: Bearer {{authToken}}
+
+### Recupera prezzo ETH in EUR (Coingecko)
+GET https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur
+Accept: application/json
