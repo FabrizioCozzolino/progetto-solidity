@@ -1,13 +1,31 @@
-# Sample Hardhat Project
+APRIRE LE PAGINE DEL TERMINALE QUI: PS C:\progetto-solidity>
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+PAGINA TERMINALE 1
 
-Try running some of the following tasks:
+Step 1: AVVIO DEL SERVER
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
+npx serve
+
+PAGINA TERMINALE 2
+
+Step 2: AVVIO HARDHAT NODE
+
 npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
-```
+
+PAGINA TERMINALE 3
+
+Step 3: DEPLOY DEL CONTRATTO DELLE FOREST UNITS
+
+npx hardhat run scripts/ForestTracking.js --network localhost
+
+Step 3b: AVVIO DELLO SCRIPT PER LA SCRITTURA DELLA FOREST UNIT E CALOCLO DEL GAS, ETH E EURO SPESI.
+
+PS C:\progetto-solidity> npx hardhat run scripts/merkle-root-finale.js --network localhost
+
+Step 4: DEPLOY DEL CONTRATTO DEL TRACKING DEI DRONI
+
+PS C:\progetto-solidity> npx hardhat run scripts/DroneTracking.js --network localhost
+
+Step 4b: AVVIO DELLO SCRIPT PER LA SCRITTURA DEL TRACKING DI UN DRONE E CALOCLO DEL GAS, ETH E EURO SPESI.
+
+PS C:\progetto-solidity> npx hardhat run scripts/merkle-root-droni.js --network localhost
