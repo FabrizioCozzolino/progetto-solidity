@@ -1,31 +1,79 @@
 {
   "info": {
     "_postman_id": "f9a3c1d0-7e91-4f5b-8a5f-abcdef123456",
-    "name": "ForestTracking Full API",
+    "name": "ForestTracking Full API (Fixed Tests)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "Get All Forest Units",
       "request": {
-        "method": "GET",
+        "method": "POST",
         "header": [
-          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" }
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
         ],
-        "url": { "raw": "{{API_URL}}", "host": ["{{API_URL}}"] },
-        "description": "Recupera tutte le forest units disponibili dall'API."
-      }
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnits\": {{forestUnits}}\n}"
+        },
+        "url": { "raw": "{{API_URL}}get-forest-units", "host": ["{{API_URL}}get-forest-units"] },
+        "description": "Restituisce tutte le forest units passate nel body."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Get Forest Unit Details",
       "request": {
-        "method": "GET",
+        "method": "POST",
         "header": [
-          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" }
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
         ],
-        "url": { "raw": "{{API_URL}}{{forestUnitKey}}", "host": ["{{API_URL}}{{forestUnitKey}}"] },
-        "description": "Recupera i dati completi di una forest unit selezionata usando la chiave forestUnitKey."
-      }
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\"\n}"
+        },
+        "url": { "raw": "{{API_URL}}get-forest-unit", "host": ["{{API_URL}}get-forest-unit"] },
+        "description": "Restituisce la forest unit selezionata dal body."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Generate Merkle Root",
@@ -37,11 +85,30 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"batch\": {{unifiedBatch}}\n}"
+          "raw": "{\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"batch\": {{batch}}\n}"
         },
         "url": { "raw": "{{API_URL}}generate-root", "host": ["{{API_URL}}generate-root"] },
-        "description": "Genera la Merkle Root per la forest unit selezionata usando il batch unificato di Trees, WoodLogs e SawnTimbers."
-      }
+        "description": "Genera la Merkle Root reale per la forest unit selezionata usando il batch unificato di Trees, WoodLogs e SawnTimbers. La root è calcolata con la stessa logica dello script Solidity."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Verify Sample Proof",
@@ -53,11 +120,30 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"leaf\": \"{{sampleLeaf}}\",\n  \"proof\": {{sampleProof}},\n  \"root\": \"{{merkleRoot}}\"\n}"
+          "raw": "{\n  \"leaf\": \"{{leaf}}\",\n  \"proof\": {{proof}},\n  \"root\": \"{{root}}\"\n}"
         },
         "url": { "raw": "{{API_URL}}verify-proof", "host": ["{{API_URL}}verify-proof"] },
-        "description": "Verifica la proof di esempio usando la Merkle Root generata."
-      }
+        "description": "Verifica la proof reale usando la Merkle Root generata e la logica di hashing dello script. La proof viene validata come su blockchain."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Add Tree",
@@ -69,11 +155,30 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"tree\": {\n    \"epc\": \"tree123\",\n    \"firstReading\": 1690000000,\n    \"treeType\": \"Oak\",\n    \"coordinates\": {\"latitude\": 45.0, \"longitude\": 12.0},\n    \"notes\": \"Sample tree\"\n  }\n}"
+          "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"tree\": {{tree}}\n}"
         },
         "url": { "raw": "{{API_URL}}add-tree", "host": ["{{API_URL}}add-tree"] },
-        "description": "Aggiunge un nuovo albero alla forest unit selezionata."
-      }
+        "description": "Aggiunge un nuovo albero alla forest unit e restituisce la struttura aggiornata."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Add WoodLog",
@@ -85,11 +190,30 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"treeEpc\": \"tree123\",\n  \"woodLog\": {\n    \"epc\": \"log456\",\n    \"firstReading\": 1690000500,\n    \"observations\": [\n      {\"phenomenonTypeName\": \"Height\", \"quantity\": 5, \"unitName\": \"m\"}\n    ]\n  }\n}"
+          "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"treeEpc\": \"{{treeEpc}}\",\n  \"woodLog\": {{woodLog}}\n}"
         },
         "url": { "raw": "{{API_URL}}add-woodlog", "host": ["{{API_URL}}add-woodlog"] },
-        "description": "Aggiunge un tronco a un albero specifico nella forest unit."
-      }
+        "description": "Aggiunge un tronco e restituisce la struttura aggiornata."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Add SawnTimber",
@@ -101,11 +225,169 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"woodLogEpc\": \"log456\",\n  \"sawnTimber\": {\n    \"epc\": \"st789\",\n    \"firstReading\": 1690000600,\n    \"observations\": [\n      {\"phenomenonTypeName\": \"Volume\", \"quantity\": 2, \"unitName\": \"m3\"}\n    ]\n  }\n}"
+          "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"woodLogEpc\": \"{{woodLogEpc}}\",\n  \"sawnTimber\": {{sawnTimber}}\n}"
         },
         "url": { "raw": "{{API_URL}}add-sawntimber", "host": ["{{API_URL}}add-sawntimber"] },
-        "description": "Aggiunge una tavola segata (sawn timber) a un tronco specifico nella forest unit."
-      }
+        "description": "Aggiunge una tavola segata e restituisce la struttura aggiornata."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Merkle Root",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"batch\": {{batch}}\n}"
+        },
+        "url": { "raw": "{{API_URL}}merkle-root", "host": ["{{API_URL}}merkle-root"] },
+        "description": "Calcola la Merkle root dal batch unificato."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Merkle Proof",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"batch\": {{batch}},\n  \"sampleIndex\": {{sampleIndex}}\n}"
+        },
+        "url": { "raw": "{{API_URL}}merkle-proof", "host": ["{{API_URL}}merkle-proof"] },
+        "description": "Calcola la proof per una leaf del batch."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Merkle Verify",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"leaf\": \"{{leaf}}\",\n  \"proof\": {{proof}},\n  \"root\": \"{{root}}\"\n}"
+        },
+        "url": { "raw": "{{API_URL}}merkle-verify", "host": ["{{API_URL}}merkle-verify"] },
+        "description": "Verifica la proof con root e leaf."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Forest Units By Account",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"account\": \"{{account}}\",\n  \"authToken\": \"{{AUTH_TOKEN}}\"\n}"
+        },
+        "url": { "raw": "{{API_URL}}get-forest-units-by-account", "host": ["{{API_URL}}get-forest-units-by-account"] },
+        "description": "Restituisce tutte le forest units associate all'account tramite API esterna."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    const keys = ['forestUnits','forestUnitKey','batch','tree','woodLog','sawnTimber','leaf','proof','root','isValid'];",
+              "    keys.forEach(k => {",
+              "        if (json[k] !== undefined) {",
+              "            pm.globals.set(k, typeof json[k] === 'object' ? JSON.stringify(json[k]) : json[k]);",
+              "        }",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     }
   ]
 }
