@@ -29,3 +29,9 @@ PS C:\progetto-solidity> npx hardhat run scripts/DroneTracking.js --network loca
 Step 4b: AVVIO DELLO SCRIPT PER LA SCRITTURA DEL TRACKING DI UN DRONE E CALOCLO DEL GAS, ETH E EURO SPESI.
 
 PS C:\progetto-solidity> npx hardhat run scripts/merkle-root-droni.js --network localhost
+
+COMANDI PER I SERVER PER PROVARE LE RICHIESTE POSTMAN:
+
+PS C:\progetto-solidity\droni-api-mock> node server-droni.js
+
+PS C:\progetto-solidity\forest-api-mock> node server.Forest.js
