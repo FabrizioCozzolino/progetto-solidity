@@ -12,7 +12,7 @@ const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
 const API_URL = "https://digimedfor.topview.it/api/get-forest-units/";
 
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3MDYzMjM1LCJpYXQiOjE3NTcwNTk2MzUsImp0aSI6ImE4NDlkZDMyZjQxZTQ1NDY5OTQ3MmQxYzFjNzZhNTJhIiwidXNlcl9pZCI6MTE0fQ.F058JpXLWAaQK-xHdnoUdrNhgNCjUQ2x2CWIES9bpjM";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3NDA3OTEyLCJpYXQiOjE3NTc0MDQzMTIsImp0aSI6ImJkM2RlOGM2YTRkNTQxOTU5NGU4ZjZiYjc4NGNkN2YyIiwidXNlcl9pZCI6MTE0fQ.ExmCxH9Y7F0JwnHaSyktA1O0edDhE9_lByh_sqopsv0";
 
 function hashUnified(obj) {
   return keccak256(

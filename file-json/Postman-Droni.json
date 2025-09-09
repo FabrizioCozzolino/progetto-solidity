@@ -1,46 +1,86 @@
 {
   "info": {
-    "_postman_id": "mock-api-realistic-001",
-    "name": "Mock API Collection - Realistic Data",
+    "_postman_id": "mock-api-forest-v3",
+    "name": "Mock API + On-Chain - Device & Flight Data",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Create Device",
+      "name": "Init Device On-Chain",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Authorization", "value": "Bearer testtoken123", "type": "text" },
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
           { "key": "Content-Type", "value": "application/json", "type": "text" }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"pk\": \"device-abc123\"\n}"
+          "raw": "{}"
         },
-        "url": { "raw": "http://localhost:3000/device", "host": ["http://localhost:3000/device"] },
-        "description": "Crea un nuovo device"
-      }
+        "url": { "raw": "{{API_URL}}/init-device-onchain", "host": ["{{API_URL}}", "init-device-onchain"] },
+        "description": "Crea o recupera device, dataset, flight data, salva batch JSON e registra tutto on-chain"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    pm.globals.set('deviceId', json.deviceId);",
+              "    json.datasets.forEach((ds, idx) => {",
+              "        pm.globals.set('datasetId_' + idx, ds.datasetId);",
+              "        pm.globals.set('merkleRoot_' + idx, ds.merkleRoot);",
+              "        pm.globals.set('txHash_' + idx, ds.txHash);",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Device (solo API REST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"pk\": \"{{devicePk}}\" }"
+        },
+        "url": { "raw": "{{API_URL}}/device", "host": ["{{API_URL}}", "device"] },
+        "description": "Crea un nuovo device (senza registrazione on-chain)"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var json = pm.response.json();",
+              "    pm.globals.set('deviceId', json.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Get Device",
       "request": {
-        "method": "GET",
+        "method": "POST",
         "header": [
-          { "key": "Authorization", "value": "Bearer testtoken123", "type": "text" }
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
         ],
-        "url": { "raw": "http://localhost:3000/device/device-1", "host": ["http://localhost:3000/device/device-1"] },
-        "description": "Recupera i dettagli di un device usando DEVICE_ID"
-      }
-    },
-    {
-      "name": "List Datasets",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer testtoken123", "type": "text" }
-        ],
-        "url": { "raw": "http://localhost:3000/dataset?device_id=device-1", "host": ["http://localhost:3000/dataset"], "query": [{ "key": "device_id", "value": "device-1" }] },
-        "description": "Lista i dataset per un device specifico"
+        "body": { "mode": "raw", "raw": "{ \"deviceId\": \"{{deviceId}}\" }" },
+        "url": { "raw": "{{API_URL}}/device/get", "host": ["{{API_URL}}", "device", "get"] },
+        "description": "Recupera i dettagli di un device"
       }
     },
     {
@@ -48,14 +88,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Authorization", "value": "Bearer testtoken123", "type": "text" },
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
           { "key": "Content-Type", "value": "application/json", "type": "text" }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"device_id\": \"device-1\",\n  \"name\": \"Missione Drone 01\",\n  \"description\": \"Raccolta dati volo area boschiva - 01/09/2025\"\n}"
+          "raw": "{ \"device_id\": \"{{deviceId}}\", \"name\": \"{{datasetName}}\", \"description\": \"{{datasetDescription}}\" }"
         },
-        "url": { "raw": "http://localhost:3000/dataset", "host": ["http://localhost:3000/dataset"] },
+        "url": { "raw": "{{API_URL}}/dataset", "host": ["{{API_URL}}", "dataset"] },
         "description": "Crea un nuovo dataset per un device"
       }
     },
@@ -64,26 +104,44 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Authorization", "value": "Bearer testtoken123", "type": "text" },
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
           { "key": "Content-Type", "value": "application/json", "type": "text" }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"device_id\": \"device-1\",\n  \"dataset_id\": \"dataset-1\",\n  \"timestamp\": 1693641600,\n  \"localization\": { \"latitude\": 44.9876, \"longitude\": 12.3421 },\n  \"payload\": \"altitude:120m, temperature:22C, humidity:55%\"\n}"
+          "raw": "{ \"device_id\": \"{{deviceId}}\", \"dataset_id\": \"{{datasetId}}\", \"timestamp\": {{timestamp}}, \"localization\": { \"latitude\": {{latitude}}, \"longitude\": {{longitude}} }, \"payload\": \"{{payload}}\" }"
         },
-        "url": { "raw": "http://localhost:3000/flight_data", "host": ["http://localhost:3000/flight_data"] },
+        "url": { "raw": "{{API_URL}}/flight_data", "host": ["{{API_URL}}", "flight_data"] },
         "description": "Aggiunge un flight data a un dataset"
       }
     },
     {
       "name": "Get Flight Data for Dataset",
       "request": {
-        "method": "GET",
+        "method": "POST",
         "header": [
-          { "key": "Authorization", "value": "Bearer testtoken123", "type": "text" }
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
         ],
-        "url": { "raw": "http://localhost:3000/dataset/dataset-1/flight_datas", "host": ["http://localhost:3000/dataset/dataset-1/flight_datas"] },
-        "description": "Recupera tutti i flight data per un dataset specifico"
+        "body": { "mode": "raw", "raw": "{ \"dataset_id\": \"{{datasetId}}\" }" },
+        "url": { "raw": "{{API_URL}}/dataset/flight_datas", "host": ["{{API_URL}}", "dataset", "flight_datas"] },
+        "description": "Recupera tutti i flight data per un dataset"
+      }
+    },
+    {
+      "name": "Register Dataset On-Chain (simulazione endpoint)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{AUTH_TOKEN}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"deviceId\": \"{{deviceId}}\", \"datasetId\": \"{{datasetId}}\", \"merkleRoot\": \"{{merkleRoot_0}}\" }"
+        },
+        "url": { "raw": "{{API_URL}}/register-onchain", "host": ["{{API_URL}}", "register-onchain"] },
+        "description": "Endpoint simulato per registrazione on-chain del dataset e device"
       }
     }
   ]

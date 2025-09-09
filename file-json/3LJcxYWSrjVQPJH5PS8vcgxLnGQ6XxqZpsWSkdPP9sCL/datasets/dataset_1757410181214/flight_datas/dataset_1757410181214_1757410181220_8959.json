@@ -1,0 +1,10 @@
+{
+  "device_id": "3LJcxYWSrjVQPJH5PS8vcgxLnGQ6XxqZpsWSkdPP9sCL",
+  "dataset_id": "dataset_1757410181214",
+  "timestamp": 1757410181,
+  "localization": {
+    "latitude": "-15.165817",
+    "longitude": "17.767082"
+  },
+  "payload": "{\"info\":\"flight sample\",\"random\":558}"
+}
