@@ -1,0 +1,52 @@
+[
+  {
+    "device_id": "4YS5kSNCZSwtJN9Q5ZWt2LMWg68sDDgjPaEenCG9QK2o",
+    "dataset_id": "dataset_1757409873670",
+    "timestamp": 1757409873,
+    "localization": {
+      "latitude": "17.771442",
+      "longitude": "-172.194046"
+    },
+    "payload": "{\"info\":\"flight sample\",\"random\":588}"
+  },
+  {
+    "device_id": "4YS5kSNCZSwtJN9Q5ZWt2LMWg68sDDgjPaEenCG9QK2o",
+    "dataset_id": "dataset_1757409873670",
+    "timestamp": 1757409873,
+    "localization": {
+      "latitude": "-71.730304",
+      "longitude": "67.133337"
+    },
+    "payload": "{\"info\":\"flight sample\",\"random\":773}"
+  },
+  {
+    "device_id": "4YS5kSNCZSwtJN9Q5ZWt2LMWg68sDDgjPaEenCG9QK2o",
+    "dataset_id": "dataset_1757409873670",
+    "timestamp": 1757409873,
+    "localization": {
+      "latitude": "-12.462293",
+      "longitude": "-171.260690"
+    },
+    "payload": "{\"info\":\"flight sample\",\"random\":482}"
+  },
+  {
+    "device_id": "4YS5kSNCZSwtJN9Q5ZWt2LMWg68sDDgjPaEenCG9QK2o",
+    "dataset_id": "dataset_1757409873670",
+    "timestamp": 1757409873,
+    "localization": {
+      "latitude": "0.215134",
+      "longitude": "-51.127812"
+    },
+    "payload": "{\"info\":\"flight sample\",\"random\":566}"
+  },
+  {
+    "device_id": "4YS5kSNCZSwtJN9Q5ZWt2LMWg68sDDgjPaEenCG9QK2o",
+    "dataset_id": "dataset_1757409873670",
+    "timestamp": 1757409873,
+    "localization": {
+      "latitude": "59.404903",
+      "longitude": "-139.702391"
+    },
+    "payload": "{\"info\":\"flight sample\",\"random\":375}"
+  }
+]

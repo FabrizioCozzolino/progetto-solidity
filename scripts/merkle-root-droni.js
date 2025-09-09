@@ -273,6 +273,20 @@ async function getOrCreateDevice() {
   }
 }
 
+// --- EXPORT ---
+module.exports = {
+  getOrCreateDevice,
+  getDevice,
+  getDatasetForDevice,
+  createFlightData,
+  fetchFlightDatasFromDataset,
+  hashFlightData,
+  PK,
+  CONTRACT_ADDRESS,
+  getEthPriceInEuro,
+  checkDeviceExists
+};
+
 
 // --- MAIN aggiornato secondo il flusso ---
 async function main() {

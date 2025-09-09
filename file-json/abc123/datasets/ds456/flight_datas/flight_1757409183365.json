@@ -1,0 +1,11 @@
+{
+  "flightDataId": "flight_1757409183365",
+  "device_id": "abc123",
+  "dataset_id": "ds456",
+  "timestamp": 1694253840,
+  "localization": {
+    "latitude": 45.4642,
+    "longitude": 9.19
+  },
+  "payload": "esempio payload senza caratteri strani"
+}

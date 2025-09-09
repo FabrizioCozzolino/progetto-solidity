@@ -1,0 +1,13 @@
+[
+  {
+    "id": "AcZbm6NYXNzrsd5SCSFCgCpr23nX3EAwWNhJe8t5PRGV",
+    "signature": "Fg6tt7UKb==",
+    "timestamp": 20,
+    "localization": {
+      "longitude": 42.45323,
+      "latitude": -150.4774
+    },
+    "payload": "cGF5bG9hZA==",
+    "device_id": "4NUW3nwfE3bTz5YSBsxGrL8F2ttQTRc73HTg7rGGkJN5"
+  }
+]
