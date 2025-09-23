@@ -11,21 +11,59 @@ const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
 const API_URL = "https://digimedfor.topview.it/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4MjAwMDI0LCJpYXQiOjE3NTgxOTY0MjQsImp0aSI6IjI2ODYxYzdkYjBjZDRlNjY5MjJkZWZjZDQ1YzNlNjk1IiwidXNlcl9pZCI6MTE0fQ.ujmr-9ZMsgUbUP3iGl_OjH8iN4aFVx_cGcqSzfQkvn4";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4NjMxODU3LCJpYXQiOjE3NTg2MjgyNTcsImp0aSI6IjViNDY2MjE1NGEzNDRjOTNhMmJjZjczZTExMTk4ODk3IiwidXNlcl9pZCI6MTE0fQ.MaNie1aBn05_jbl-9ku5IAPYD697kBvw9sjvdwfxIhM"; // Inserisci il token reale
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 
-// --- Funzione hash ---
 function hashUnified(obj) {
   return keccak256(
-    `${obj.type}|${obj.epc}|${obj.firstReading}|${obj.treeType || ""}|${obj.coordinates || ""}|${obj.notes || ""}|${obj.parentTree || ""}|${obj.parentWoodLog || ""}|${obj.observations || ""}`
+    `${obj.type}|${obj.epc}|${obj.firstReading}|${obj.treeType || ""}|${obj.coordinates || ""}|${obj.notes || ""}|${obj.parentTree || ""}|${obj.parentWoodLog || ""}|${obj.observations || ""}|${obj.forestUnitId || ""}|${obj.domainUUID || ""}|${obj.deleted ? 1 : 0}|${obj.lastModification || ""}`
   );
 }
 
+function normalizeEpc(epcRaw, seed = "") {
+  if (!epcRaw && !seed) return "";
+  const s = String(epcRaw || "");
+  if (s.toUpperCase().startsWith("E")) return s;
+  const h = keccak256(s + "|" + seed).toString("hex").toUpperCase();
+  return "E280" + h.slice(0, 20);
+}
+
+function normalizeObservations(obsArrayOrString) {
+  if (!obsArrayOrString) return "";
+  if (typeof obsArrayOrString === "string") return obsArrayOrString.trim();
+  if (!Array.isArray(obsArrayOrString) || obsArrayOrString.length === 0) return "";
+
+  return obsArrayOrString
+    .map(o => {
+      const name = o.phenomenonType?.phenomenonTypeName || o.phenomenonName || o.phenomenonTypeId || "";
+      const qty = o.quantity || "";
+      const unit = o.unit?.unitName || o.unitId || "";
+      return `${name}${qty ? `: ${qty}` : ""}${unit ? ` ${unit}` : ""}`.trim();
+    })
+    .filter(s => s.length > 0)
+    .join("; ");
+}
+
+// --- Funzione aggiornata per osservazioni sempre valorizzate
+function getObservations(obj) {
+  const obs = normalizeObservations(
+    obj.observations ||
+    obj.treeObservations ||
+    obj.phenomena ||
+    obj.obs ||
+    obj.observation
+  );
+  return obs && obs.length > 0 ? obs : "(nessuna osservazione)";
+}
+
+
 async function getEthPriceInEuro() {
   try {
-    const res = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur");
+    const res = await axios.get(
+      "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur"
+    );
     return res.data.ethereum.eur;
   } catch {
     console.warn("⚠️ Errore recupero ETH/EUR, uso default 3000");
@@ -38,7 +76,7 @@ async function main() {
   const contractJson = require("../artifacts/contracts/ForestTracking.sol/ForestTracking.json");
   const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
 
-  // --- Recupero dati forest units ---
+  // Recupero forest units
   let response;
   try {
     response = await axios.get(API_URL, { headers: { Authorization: AUTH_TOKEN } });
@@ -47,7 +85,7 @@ async function main() {
     process.exit(1);
   }
 
-  const forestUnits = response.data.forestUnits;
+  const forestUnits = response.data.forestUnits || {};
   const readline = require("readline");
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
@@ -56,9 +94,7 @@ async function main() {
     console.log(`${index + 1}) ${val.name || "(senza nome)"} — key: ${key}`);
   });
 
-  const userChoice = await new Promise((resolve) => {
-    rl.question("\n✏️ Inserisci il numero della forest unit da selezionare: ", resolve);
-  });
+  const userChoice = await new Promise(resolve => rl.question("\n✏️ Seleziona il numero della forest unit: ", resolve));
   rl.close();
 
   const choiceIndex = parseInt(userChoice) - 1;
@@ -67,136 +103,103 @@ async function main() {
     console.error("❌ Scelta non valida.");
     process.exit(1);
   }
-  const forestKey = forestKeys[choiceIndex];
-  const unit = forestUnits[forestKey];
-  console.log(`\n✅ Forest Unit selezionata: ${unit.name || forestKey}\n`);
 
-  const unifiedBatch = [];
-  const unifiedLeaves = [];
+  const selectedForestKey = forestKeys[choiceIndex];
+  const unit = forestUnits[selectedForestKey];
+  console.log(`\n✅ Forest Unit selezionata: ${unit.name || selectedForestKey}\n`);
 
-  const treesSource = unit.trees || unit.treesData || {};
-  for (const treeKey of Object.keys(treesSource)) {
-    const tree = treesSource[treeKey];
+  const treesDict = unit.trees || {};
+  const batch = [];
+  const leaves = [];
+  const seenEpcs = new Set();
 
-    const epc = tree.EPC || tree.epc || tree.domainUUID || tree.domainUuid || `tree-${treeKey}`;
-    const firstReading = tree.firstReadingTime ? Math.floor(new Date(tree.firstReadingTime).getTime() / 1000) : tree.firstReading || 0;
-    const treeType = tree.treeTypeId || tree.treeType?.specie || tree.treeType?.type || "";
-    const coordinates = tree.coordinates ? `${tree.coordinates.latitude || tree.coordinates.lat || ""},${tree.coordinates.longitude || tree.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "";
-    const notes = Array.isArray(tree.notes) ? tree.notes.map(n => n.description || n).join("; ") : tree.notes || "";
-    const observations = Array.isArray(tree.observations) ? tree.observations.map(o => `${o.phenomenonTypeId || o.phenomenonName}:${o.quantity || ""}`).join("; ") : "";
+  for (const treeId of Object.keys(treesDict)) {
+    const t = treesDict[treeId];
+    const treeEpc = t.domainUUID || t.domainUuid || t.epc || treeId;
 
-    const treeEntry = {
+    const treeObj = {
       type: "Tree",
-      epc,
-      firstReading,
-      treeType,
-      coordinates,
-      notes,
-      observations,
-      forestUnitId: unit.forestUnitId,
-      domainUUID: tree.domainUUID || tree.domainUuid || "",
-      deleted: tree.deleted || false,
-      lastModification: tree.lastModification || tree.lastModfication || ""
+      epc: treeEpc,
+      firstReading: t.firstReadingTime ? Math.floor(new Date(t.firstReadingTime).getTime() / 1000) : 0,
+      treeType: t.treeType?.specie || t.treeTypeId || t.specie || "Unknown",
+      coordinates: t.coordinates ? `${t.coordinates.latitude || t.coordinates.lat || ""},${t.coordinates.longitude || t.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
+      notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : t.notes || "",
+      observations: getObservations(t),
+      forestUnitId: selectedForestKey,
+      domainUUID: treeEpc,
+      deleted: t.deleted || false,
+      lastModification: t.lastModification || t.lastModfication || ""
     };
-    unifiedBatch.push(treeEntry);
-    unifiedLeaves.push(hashUnified(treeEntry));
 
-    // --- WoodLogs: gestione array o oggetto ---
-    const woodLogsArr = [];
-    const treeLogs = tree.woodLogs || [];
+    batch.push(treeObj);
+    leaves.push(hashUnified(treeObj));
+    seenEpcs.add(treeEpc);
 
-    if (Array.isArray(treeLogs)) {
-      for (let i = 0; i < treeLogs.length; i++) {
-        const log = treeLogs[i];
-        const epcLog = log.EPC || log.epc || `log-${i}`;
-        const obsArr = log.observations || [];
-        const obs = obsArr.map(o => `${o.phenomenonType?.phenomenonTypeName || ''}: ${o.quantity || ''} ${o.unit?.unitName || ''}`).join("; ");
-        woodLogsArr.push({
-          epc: epcLog,
-          firstReading: log.firstReadingTime ? Math.floor(new Date(log.firstReadingTime).getTime() / 1000) : 0,
-          treeType: tree.treeType?.specie || "",
-          logSectionNumber: 1,
-          parentTreeEpc: tree.domainUUID || tree.domainUuid || treeKey,
-          observations: obs,
-          rawLog: log
-        });
-      }
-    } else {
-      for (const logEpc of Object.keys(treeLogs)) {
-        const log = treeLogs[logEpc];
-        const obsArr = log.observations || [];
-        const obs = obsArr.map(o => `${o.phenomenonType?.phenomenonTypeName || ''}: ${o.quantity || ''} ${o.unit?.unitName || ''}`).join("; ");
-        woodLogsArr.push({
-          epc: logEpc,
-          firstReading: log.firstReadingTime ? Math.floor(new Date(log.firstReadingTime).getTime() / 1000) : 0,
-          treeType: tree.treeType?.specie || "",
-          logSectionNumber: 1,
-          parentTreeEpc: tree.domainUUID || tree.domainUuid || treeKey,
-          observations: obs,
-          rawLog: log
-        });
-      }
-    }
+    const treeLogs = t.woodLogs || {};
+    for (const logKey of Object.keys(treeLogs)) {
+      const log = treeLogs[logKey];
+      const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID, treeEpc);
+      if (seenEpcs.has(logEpc)) continue;
+      seenEpcs.add(logEpc);
 
-    for (const logObj of woodLogsArr) {
-      const logEntry = {
+      const logObj = {
         type: "WoodLog",
-        epc: logObj.epc,
-        firstReading: logObj.firstReading,
-        treeType: logObj.treeType,
-        parentTree: logObj.parentTreeEpc,
-        coordinates: "",
-        notes: logObj.rawLog.notes ? (Array.isArray(logObj.rawLog.notes) ? logObj.rawLog.notes.map(n => n.description || n).join("; ") : logObj.rawLog.notes) : "",
-        observations: logObj.observations,
-        forestUnitId: unit.forestUnitId,
-        domainUUID: logObj.rawLog.domainUUID || logObj.rawLog.domainUuid || "",
-        deleted: logObj.rawLog.deleted || false,
-        lastModification: logObj.rawLog.lastModification || logObj.rawLog.lastModfication || ""
+        epc: logEpc,
+        firstReading: log.firstReadingTime ? Math.floor(new Date(log.firstReadingTime).getTime() / 1000) : 0,
+        treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
+        logSectionNumber: log.logSectionNumber || 1,
+        parentTree: treeEpc,
+        coordinates: log.coordinates ? `${log.coordinates.latitude || log.coordinates.lat || ""},${log.coordinates.longitude || log.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
+        notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : log.notes || "",
+        observations: getObservations(log),
+        forestUnitId: selectedForestKey,
+        domainUUID: log.domainUUID || log.domainUuid || logEpc,
+        deleted: log.deleted || false,
+        lastModification: log.lastModification || log.lastModfication || ""
       };
-      unifiedBatch.push(logEntry);
-      unifiedLeaves.push(hashUnified(logEntry));
 
-      // --- SawnTimbers ---
-      let sawnTimbers = Array.isArray(logObj.rawLog.sawnTimbers) ? logObj.rawLog.sawnTimbers : [];
-      if (sawnTimbers.length === 0 && logObj.rawLog.domainUUID) {
-        sawnTimbers = await fetchWoodLogDetails(logObj.rawLog.domainUUID);
-      }
+      batch.push(logObj);
+      leaves.push(hashUnified(logObj));
 
-      for (let j = 0; j < sawnTimbers.length; j++) {
-        const st = sawnTimbers[j];
-        if (!st) continue;
-        const stEpc = st.EPC || st.epc || st.domainUUID || st.domainUuid || `st-${j}`;
-        const notesSt = Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : st.notes || "";
-        const observationsSt = Array.isArray(st.observations) ? st.observations.map(o => `${o.phenomenonTypeId || o.phenomenonName}:${o.quantity || ""}`).join("; ") : "";
-        const coordinatesSt = st.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "";
+      const sawnTimbersObj = log.sawnTimbers || {};
+if (sawnTimbersObj && Object.keys(sawnTimbersObj).length > 0) {
+  for (const stKey of Object.keys(sawnTimbersObj)) {
+    const st = sawnTimbersObj[stKey]; // prendi l'oggetto del singolo sawn timber
+    const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey, logEpc);
+    if (seenEpcs.has(stEpc)) continue; // evita duplicati
+    seenEpcs.add(stEpc);
 
-        const stEntry = {
-          type: "SawnTimber",
-          epc: stEpc,
-          firstReading: st.firstReadingTime ? Math.floor(new Date(st.firstReadingTime).getTime() / 1000) : st.firstReading || 0,
-          treeType: treeType,
-          parentTree: treeEntry.epc,
-          parentWoodLog: logObj.epc,
-          coordinates: coordinatesSt,
-          notes: notesSt,
-          observations: observationsSt,
-          forestUnitId: unit.forestUnitId,
-          domainUUID: st.domainUUID || st.domainUuid || "",
-          deleted: st.deleted || false,
-          lastModification: st.lastModification || st.lastModfication || ""
-        };
-        unifiedBatch.push(stEntry);
-        unifiedLeaves.push(hashUnified(stEntry));
-      }
-    }
+    console.log("🔍 Raw SawnTimber:", st);
+
+    const stObj = {
+      type: "SawnTimber",
+      epc: stEpc,
+      firstReading: st.firstReadingTime ? Math.floor(new Date(st.firstReadingTime).getTime() / 1000) : st.firstReading || 0,
+      treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
+      parentTreeEpc: treeEpc,
+      parentWoodLog: logEpc,
+      coordinates: st.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
+      notes: Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : st.notes || "",
+      observations: getObservations(st.observations),
+      forestUnitId: selectedForestKey,
+      domainUUID: st.domainUUID || st.domainUuid || stEpc,
+      deleted: st.deleted || false,
+      lastModification: st.lastModification || st.lastModfication || ""
+    };
+
+    batch.push(stObj);
+    leaves.push(hashUnified(stObj));
+  }
+}
+}
   }
 
-  if (unifiedLeaves.length === 0) {
-    console.error("❌ Forest Unit vuota: nessun albero, tronco o tavola trovato. Root non generata.");
+  if (leaves.length === 0) {
+    console.error("❌ Forest Unit vuota: nessun albero o tronco trovato. Root non generata.");
     process.exit(1);
   }
 
-  const merkleTree = new MerkleTree(unifiedLeaves, keccak256, { sortPairs: true });
+  const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
   const root = merkleTree.getHexRoot();
   console.log(`\n🔑 Merkle Root: ${root}`);
 
@@ -229,7 +232,7 @@ async function main() {
 
   const outputDir = path.join(__dirname, "..", "file-json");
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-  fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(unifiedBatch, null, 2));
+  fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(batch, null, 2));
   console.log("💾 Salvato: forest-unified-batch.json");
 }
 
