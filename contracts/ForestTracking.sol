@@ -40,4 +40,17 @@ contract ForestTracking {
     function verifyUnifiedProofWithRoot(bytes32 leaf, bytes32[] calldata proof, bytes32 root) external pure returns (bool) {
         return MerkleProof.verifyCalldata(proof, root, leaf);
     }
+
+     // --- Merkle root specifica per i wood logs ---
+    bytes32 public merkleRootWoodLogs;
+    event MerkleRootWoodLogsUpdated(bytes32 newRoot);
+
+    function setMerkleRootWoodLogs(bytes32 _root) external onlyOwner {
+        merkleRootWoodLogs = _root;
+        emit MerkleRootWoodLogsUpdated(_root);
+    }
+
+    function verifyWoodLogProof(bytes32 leaf, bytes32[] calldata proof) external view returns (bool) {
+        return MerkleProof.verifyCalldata(proof, merkleRootWoodLogs, leaf);
+    }
 }

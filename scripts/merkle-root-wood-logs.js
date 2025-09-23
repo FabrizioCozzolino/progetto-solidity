@@ -10,8 +10,8 @@ const deployedPath = path.join(__dirname, "../deployed.json");
 const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
-const API_URL = "https://pollicino.topview.it:9443/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzUxNzMyLCJpYXQiOjE3NTMzNDgxMzIsImp0aSI6IjY2YTIzNmFlNjY2YTRkN2ZhMDA0YzQ5NzJjODA3NzJiIiwidXNlcl9pZCI6MTEwfQ.hhtuCeyZBN6a2fJh0kF6vyNp6r8olhrfFz33FEN0We4";
+const API_URL = "https://digimedfor.topview.it/api/get-forest-units/";
+const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4NjI4NDkxLCJpYXQiOjE3NTg2MjQ4OTEsImp0aSI6ImU2MDY3YjdkZWFiMDRjY2FhYThkOTQwOWU5MjVlYWU2IiwidXNlcl9pZCI6MTE0fQ.AJucqndkGrGYekyqB35dWDQbdAtk0ma8DOyitmwps3U"; // Inserisci il token reale
 
 function leafHashWoodLog(log) {
   return keccak256(
@@ -33,21 +33,43 @@ async function main() {
   console.log("=== SCRIPT WOOD LOGS ===");
 
   const signer = (await ethers.getSigners())[0];
-  const contractJson = require("../artifacts/contracts/ForestTracking.sol/ForestTracking.json");
-  const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
+    const contractJson = require("../artifacts/contracts/ForestTracking.sol/ForestTracking.json");
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
+  
+    // --- Recupero dati forest units ---
+    let response;
+    try {
+      response = await axios.get(API_URL, { headers: { Authorization: AUTH_TOKEN } });
+    } catch (e) {
+      console.error("❌ Errore chiamata API:", e.message);
+      process.exit(1);
+    }
+  
+    const forestUnits = response.data.forestUnits || {};
+    const readline = require("readline");
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  
+    console.log("\n🌲 Forest Units disponibili:\n");
+    Object.entries(forestUnits).forEach(([key, val], index) => {
+      console.log(`${index + 1}) ${val.name || "(senza nome)"} — key: ${key}`);
+    });
+  
+    const userChoice = await new Promise((resolve) => {
+      rl.question("\n✏️ Inserisci il numero della forest unit da selezionare: ", resolve);
+    });
+    rl.close();
+  
+    const choiceIndex = parseInt(userChoice) - 1;
+    const forestKeys = Object.keys(forestUnits);
+    if (isNaN(choiceIndex) || choiceIndex < 0 || choiceIndex >= forestKeys.length) {
+      console.error("❌ Scelta non valida.");
+      process.exit(1);
+    }
+    const selectedForestKey = forestKeys[choiceIndex];
+    const unit = forestUnits[selectedForestKey];
+    console.log(`\n✅ Forest Unit selezionata: ${unit.name || selectedForestKey}\n`);
 
-  console.log("👤 Signer:", await signer.getAddress());
-
-  // Fetch forest unit
-  const res = await axios.get(API_URL, { headers: { Authorization: AUTH_TOKEN } });
-  const forestUnits = res.data.forestUnits;
-  const forestKey = Object.keys(forestUnits).find(k =>
-    k.toLowerCase() === "vallombrosa" || forestUnits[k].name?.toLowerCase().includes("vallombrosa")
-  );
-
-  if (!forestKey) throw new Error("❌ Forest unit 'Vallombrosa' non trovata");
-
-  const treesDict = forestUnits[forestKey].trees;
+  const treesDict = forestUnits[selectedForestKey].trees;
   const woodLogs = [];
 
   for (const id of Object.keys(treesDict)) {
@@ -58,6 +80,8 @@ async function main() {
       const log = tree.woodLogs[epc];
       const obsArr = log.observations || [];
       const obs = obsArr.map(o => `${o.phenomenonType?.phenomenonTypeName || ''}: ${o.quantity} ${o.unit?.unitName || ''}`).join("; ");
+      console.log("DEBUG log object:", log);
+      console.log("DEBUG log.observations:", log.observations);
       woodLogs.push({
         epc,
         firstReading: log.firstReadingTime ? Math.floor(new Date(log.firstReadingTime).getTime() / 1000) : 0,
