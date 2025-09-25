@@ -6,16 +6,19 @@ const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
 const ethers = hre.ethers;
 
+// Parametri di login
+const LOGIN_CREDENTIALS = {
+  username: "lorenzo",
+  password: "puglet007"
+};
+
 const deployedPath = path.join(__dirname, "../deployed.json");
 const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
-const API_URL = "https://digimedfor.topview.it/api/get-forest-units/";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4NjMxODU3LCJpYXQiOjE3NTg2MjgyNTcsImp0aSI6IjViNDY2MjE1NGEzNDRjOTNhMmJjZjczZTExMTk4ODk3IiwidXNlcl9pZCI6MTE0fQ.MaNie1aBn05_jbl-9ku5IAPYD697kBvw9sjvdwfxIhM"; // Inserisci il token reale
+const API_URL_FOREST_UNITS = "https://digimedfor.topview.it/api/get-forest-units/";
 
-const args = process.argv.slice(2);
-const dryRun = args.includes("--dry-run");
-
+// --- Funzioni di hashing e normalizzazione ---
 function hashUnified(obj) {
   return keccak256(
     `${obj.type}|${obj.epc}|${obj.firstReading}|${obj.treeType || ""}|${obj.coordinates || ""}|${obj.notes || ""}|${obj.parentTree || ""}|${obj.parentWoodLog || ""}|${obj.observations || ""}|${obj.forestUnitId || ""}|${obj.domainUUID || ""}|${obj.deleted ? 1 : 0}|${obj.lastModification || ""}`
@@ -46,18 +49,16 @@ function normalizeObservations(obsArrayOrString) {
     .join("; ");
 }
 
-// --- Funzione aggiornata per osservazioni sempre valorizzate
 function getObservations(obj) {
   const obs = normalizeObservations(
-    obj.observations ||
-    obj.treeObservations ||
-    obj.phenomena ||
-    obj.obs ||
-    obj.observation
+    obj?.observations ||
+    obj?.treeObservations ||
+    obj?.phenomena ||
+    obj?.obs ||
+    obj?.observation
   );
   return obs && obs.length > 0 ? obs : "(nessuna osservazione)";
 }
-
 
 async function getEthPriceInEuro() {
   try {
@@ -71,15 +72,55 @@ async function getEthPriceInEuro() {
   }
 }
 
+function summarizeForestUnitRaw(unit) {
+  let treeCount = 0;
+  let woodLogCount = 0;
+  let sawnTimberCount = 0;
+
+  const treesDict = unit.trees || {};
+  for (const treeId of Object.keys(treesDict)) {
+    const t = treesDict[treeId];
+    treeCount++;
+
+    const treeLogs = t.woodLogs || {};
+    for (const logKey of Object.keys(treeLogs)) {
+      woodLogCount++;
+      const log = treeLogs[logKey];
+      const sawnTimbersObj = log.sawnTimbers || {};
+      sawnTimberCount += Object.keys(sawnTimbersObj).length;
+    }
+  }
+
+  console.log(`\n📊 Conteggio reale (RAW) forest unit "${unit.name || unit.forestUnitId || 'Unnamed'}":`);
+  console.log(`🌳 Trees: ${treeCount}`);
+  console.log(`🪵 WoodLogs: ${woodLogCount}`);
+  console.log(`🪚 SawnTimbers: ${sawnTimberCount}\n`);
+}
+
+// --- Funzione principale ---
 async function main() {
   const signer = (await ethers.getSigners())[0];
   const contractJson = require("../artifacts/contracts/ForestTracking.sol/ForestTracking.json");
   const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
 
-  // Recupero forest units
+  // --- Ottieni access token dal nuovo endpoint ---
+  let tokenResponse;
+  try {
+    tokenResponse = await axios.post(
+      "https://digimedfor.topview.it/api/get-token/",
+      LOGIN_CREDENTIALS,
+      { headers: { "Content-Type": "application/json" } }
+    );
+  } catch (e) {
+    console.error("❌ Errore login:", e.message);
+    process.exit(1);
+  }
+  const AUTH_TOKEN = `Bearer ${tokenResponse.data.access}`;
+
+  // --- Recupera forest units ---
   let response;
   try {
-    response = await axios.get(API_URL, { headers: { Authorization: AUTH_TOKEN } });
+    response = await axios.get(API_URL_FOREST_UNITS, { headers: { Authorization: AUTH_TOKEN } });
   } catch (e) {
     console.error("❌ Errore chiamata API:", e.message);
     process.exit(1);
@@ -107,7 +148,9 @@ async function main() {
   const selectedForestKey = forestKeys[choiceIndex];
   const unit = forestUnits[selectedForestKey];
   console.log(`\n✅ Forest Unit selezionata: ${unit.name || selectedForestKey}\n`);
+  summarizeForestUnitRaw(unit);
 
+  // --- Creazione batch e Merkle Tree ---
   const treesDict = unit.trees || {};
   const batch = [];
   const leaves = [];
@@ -162,36 +205,34 @@ async function main() {
       leaves.push(hashUnified(logObj));
 
       const sawnTimbersObj = log.sawnTimbers || {};
-if (sawnTimbersObj && Object.keys(sawnTimbersObj).length > 0) {
-  for (const stKey of Object.keys(sawnTimbersObj)) {
-    const st = sawnTimbersObj[stKey]; // prendi l'oggetto del singolo sawn timber
-    const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey, logEpc);
-    if (seenEpcs.has(stEpc)) continue; // evita duplicati
-    seenEpcs.add(stEpc);
+      for (const stKey of Object.keys(sawnTimbersObj)) {
+        const st = sawnTimbersObj[stKey];
+        const stEpc = typeof st === "string"
+          ? normalizeEpc(st, logEpc)
+          : normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey, logEpc);
+        if (seenEpcs.has(stEpc)) continue;
+        seenEpcs.add(stEpc);
 
-    console.log("🔍 Raw SawnTimber:", st);
+        const stObj = {
+          type: "SawnTimber",
+          epc: stEpc,
+          firstReading: st?.firstReadingTime ? Math.floor(new Date(st.firstReadingTime).getTime() / 1000) : 0,
+          treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
+          parentTreeEpc: treeEpc,
+          parentWoodLog: logEpc,
+          coordinates: st?.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
+          notes: Array.isArray(st?.notes) ? st.notes.map(n => n.description || n).join("; ") : (st?.notes || ""),
+          observations: getObservations(st || {}),
+          forestUnitId: selectedForestKey,
+          domainUUID: st?.domainUUID || st?.domainUuid || stEpc,
+          deleted: st?.deleted || false,
+          lastModification: st?.lastModification || st?.lastModfication || ""
+        };
 
-    const stObj = {
-      type: "SawnTimber",
-      epc: stEpc,
-      firstReading: st.firstReadingTime ? Math.floor(new Date(st.firstReadingTime).getTime() / 1000) : st.firstReading || 0,
-      treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
-      parentTreeEpc: treeEpc,
-      parentWoodLog: logEpc,
-      coordinates: st.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
-      notes: Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : st.notes || "",
-      observations: getObservations(st.observations),
-      forestUnitId: selectedForestKey,
-      domainUUID: st.domainUUID || st.domainUuid || stEpc,
-      deleted: st.deleted || false,
-      lastModification: st.lastModification || st.lastModfication || ""
-    };
-
-    batch.push(stObj);
-    leaves.push(hashUnified(stObj));
-  }
-}
-}
+        batch.push(stObj);
+        leaves.push(hashUnified(stObj));
+      }
+    }
   }
 
   if (leaves.length === 0) {
@@ -203,33 +244,26 @@ if (sawnTimbersObj && Object.keys(sawnTimbersObj).length > 0) {
   const root = merkleTree.getHexRoot();
   console.log(`\n🔑 Merkle Root: ${root}`);
 
-  if (!dryRun) {
-    const gasEstimate = await hre.ethers.provider.estimateGas({
-      to: CONTRACT_ADDRESS,
-      data: contract.interface.encodeFunctionData("setMerkleRootUnified", [root]),
-      from: await signer.getAddress()
-    });
-    const feeData = await hre.ethers.provider.getFeeData();
-    const gasPrice = feeData.gasPrice || ethers.parseUnits("20", "gwei");
-    const gasCostWei = gasEstimate * gasPrice;
-    const gasCostEth = Number(ethers.formatEther(gasCostWei.toString()));
-    const ethPrice = await getEthPriceInEuro();
-    console.log(`⛽ Gas stimato: ${gasEstimate.toString()} | Costo: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
+  const gasEstimate = await hre.ethers.provider.estimateGas({
+    to: CONTRACT_ADDRESS,
+    data: contract.interface.encodeFunctionData("setMerkleRootUnified", [root]),
+    from: await signer.getAddress()
+  });
+  const feeData = await hre.ethers.provider.getFeeData();
+  const gasPrice = feeData.gasPrice || ethers.parseUnits("20", "gwei");
+  const gasCostWei = gasEstimate * gasPrice;
+  const gasCostEth = Number(ethers.formatEther(gasCostWei.toString()));
+  const ethPrice = await getEthPriceInEuro();
+  console.log(`⛽ Gas stimato: ${gasEstimate.toString()} | Costo: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
 
-    try {
-      console.log("⏳ Invio transazione per aggiornare Merkle Root...");
-      const txResponse = await contract.setMerkleRootUnified(root);
-      const receipt = await txResponse.wait();
-      console.log(`✅ Root aggiornata con successo!`);
-      console.log(`🔗 Tx hash: ${receipt.transactionHash}`);
-      console.log(`Block number: ${receipt.blockNumber}`);
-    } catch (err) {
-      console.error("❌ Errore durante l'invio della transazione:", err);
-    }
-  } else {
-    console.log("⚠️ Dry run attivo: transazione non eseguita.");
-  }
+  console.log("⏳ Invio transazione per aggiornare Merkle Root...");
+  const txResponse = await contract.setMerkleRootUnified(root);
+  const receipt = await txResponse.wait();
+  console.log(`✅ Root aggiornata con successo!`);
+  console.log(`🔗 Tx hash: ${receipt.transactionHash}`);
+  console.log(`Block number: ${receipt.blockNumber}`);
 
+  // Salva batch
   const outputDir = path.join(__dirname, "..", "file-json");
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
   fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(batch, null, 2));
