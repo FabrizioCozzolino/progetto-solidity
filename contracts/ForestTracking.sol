@@ -53,4 +53,10 @@ contract ForestTracking {
     function verifyWoodLogProof(bytes32 leaf, bytes32[] calldata proof) external view returns (bool) {
         return MerkleProof.verifyCalldata(proof, merkleRootWoodLogs, leaf);
     }
+
+    mapping(string => bytes32) public merkleRoots;
+
+    function setMerkleRootUnified(string memory forestUnitKey, bytes32 root) public onlyOwner {
+        merkleRoots[forestUnitKey] = root;
+    }
 }
