@@ -6,18 +6,21 @@ const keccak256 = require("keccak256");
 const fs = require("fs");
 const path = require("path");
 
-const API_URL = "http://localhost:3000/api"; // server mock
-const ACCOUNT = "lorenzo"; // nome account
-const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4ODAwMTg4LCJpYXQiOjE3NTg3OTY1ODgsImp0aSI6IjlmM2YwMTBhZDkyYzRmN2ViNzhkOGVhZTQ0MjU3ZmIzIiwidXNlcl9pZCI6MTE0fQ.2bVQNKNFS0KX0EPzFniPzIoZU7EtGo9-_PCiSKDKtKs"; // token fittizio
+// Postman environment file
+const postmanEnvPath = path.join(__dirname, "ForestTrackingPostmanEnv.json");
 
-// Funzione di hashing unificato (Tree + WoodLog + SawnTimber)
+const API_URL = "http://51.91.111.200:3000/api"; // server mock
+const ACCOUNT = "lorenzo"; // nome account
+const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4ODc3MzEzLCJpYXQiOjE3NTg4NzM3MTMsImp0aSI6IjZkNGNhYTFiMWM4ZTQ1Yjg4MDE4OTU5ZTcyNGMwZGFhIiwidXNlcl9pZCI6MTE0fQ.PaPKJTP7praZ6jlrROqulpftebRuW1yUhhw7GPlCM2w";
+
+// Funzione di hashing unificato
 function hashUnified(obj) {
   return keccak256(
     `${obj.type}|${obj.epc}|${obj.firstReading}|${obj.treeType || ''}|${obj.extra1 || ''}|${obj.extra2 || ''}`
   );
 }
 
-// Recupera tutte le forest units dall’API
+// Recupera forest units
 async function getForestUnits() {
   const resp = await axios.post(`${API_URL}/get-forest-units-by-account`, {
     account: ACCOUNT,
@@ -26,74 +29,59 @@ async function getForestUnits() {
   return resp.data.forestUnits;
 }
 
-// Aggiunge un albero
+// Funzioni per aggiungere dati
 async function addTree(forestUnits, forestUnitKey, tree) {
   const resp = await axios.post(`${API_URL}/add-tree`, { forestUnits, forestUnitKey, tree });
   return resp.data.forestUnits;
 }
 
-// Aggiunge un tronco
 async function addWoodLog(forestUnits, forestUnitKey, treeEpc, woodLog) {
   const resp = await axios.post(`${API_URL}/add-woodlog`, { forestUnits, forestUnitKey, treeEpc, woodLog });
   return resp.data.forestUnits;
 }
 
-// Aggiunge una tavola segata
 async function addSawnTimber(forestUnits, forestUnitKey, woodLogEpc, sawnTimber) {
   const resp = await axios.post(`${API_URL}/add-sawntimber`, { forestUnits, forestUnitKey, woodLogEpc, sawnTimber });
   return resp.data.forestUnits;
 }
 
-// Genera la Merkle root da batch unificato
+// Genera Merkle root
 function generateMerkleRoot(batch) {
   const leaves = batch.map(hashUnified);
   const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
   return merkleTree.getHexRoot();
 }
 
-// Scrive la root sul contratto per una forest unit specifica
+// Scrive root su blockchain
 async function setMerkleRootOnChain(forestUnitKey, merkleRoot) {
   const [deployer] = await hre.ethers.getSigners();
-
   const deployedPath = path.join(__dirname, "../deployed.json");
-  if (!fs.existsSync(deployedPath)) throw new Error("File deployed.json non trovato. Deploya il contratto prima!");
-
   const deployed = JSON.parse(fs.readFileSync(deployedPath, "utf8"));
   const contractAddress = deployed.ForestTracking;
-  if (!contractAddress) throw new Error("Indirizzo contratto non trovato in deployed.json");
 
   const contract = await hre.ethers.getContractAt("ForestTracking", contractAddress, deployer);
-
-  // ✅ chiama la funzione con signature esplicita
   const tx = await contract["setMerkleRootUnified(string,bytes32)"](forestUnitKey, merkleRoot);
   await tx.wait();
-
   console.log(`✅ Merkle root per ${forestUnitKey} scritta su blockchain: ${merkleRoot}`);
   return contract;
 }
 
-
-// Verifica Merkle proof di un elemento
-async function verifyProof(contract, forestUnitKey, element, batch) {
-  const leaves = batch.map(hashUnified);
-  const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
-  const leafHash = hashUnified(element);
-  const proof = merkleTree.getHexProof(leafHash);
-
-  const rootOnChain = await contract.merkleRoots(forestUnitKey);
-  const isValid = merkleTree.verify(proof, leafHash, rootOnChain);
-
-  console.log("🔹 Elemento:", element);
-  console.log("🔹 Leaf hash:", leafHash.toString('hex'));
-  console.log("🔹 Proof:", proof);
-  console.log("🔹 Root on chain:", rootOnChain);
-  console.log("✅ Proof valida?", isValid);
+// Aggiorna Postman environment
+function updatePostmanEnv(forestUnitKey, forestUnits, batch) {
+  const env = JSON.parse(fs.readFileSync(postmanEnvPath, "utf8"));
+  env.values.forEach(v => {
+    if (v.key === "forestUnitKey") v.value = forestUnitKey;
+    if (v.key === "forestUnits") v.value = JSON.stringify(forestUnits, null, 2);
+    if (v.key === "batch") v.value = JSON.stringify(batch, null, 2);
+  });
+  fs.writeFileSync(postmanEnvPath, JSON.stringify(env, null, 2));
+  console.log("✅ Postman environment aggiornato con forestUnitKey, forestUnits e batch");
 }
 
 // Flusso completo
 async function main() {
   let forestUnits = await getForestUnits();
-  const forestUnitKey = Object.keys(forestUnits)[0]; // usa la prima forest unit disponibile
+  const forestUnitKey = Object.keys(forestUnits)[0];
 
   // Aggiungi dati
   const tree = { epc: "TREE123", type: "Tree", firstReading: new Date().toISOString(), treeType: "DOUGLASFIR" };
@@ -118,17 +106,15 @@ async function main() {
     }
   }
 
+  // Aggiorna Postman environment
+  updatePostmanEnv(forestUnitKey, forestUnits, batch);
+
   // Genera Merkle root
   const root = generateMerkleRoot(batch);
   console.log("🌳 Merkle root generata:", root);
 
   // Scrive su blockchain
   const contract = await setMerkleRootOnChain(forestUnitKey, root);
-
-  // Verifica proof per ogni elemento
-  for (const elem of batch) {
-    await verifyProof(contract, forestUnitKey, elem, batch);
-  }
 }
 
 main().catch(console.error);

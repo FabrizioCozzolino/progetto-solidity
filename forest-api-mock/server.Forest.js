@@ -1,4 +1,3 @@
-// server.Forest.js
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -20,16 +19,22 @@ if (!fs.existsSync(deployedPath)) {
   fs.writeFileSync(deployedPath, JSON.stringify({ ForestTracking: "" }, null, 2));
 }
 
-// mock forest units
-let forestUnits = {
-  "unit1": { trees: {} }
-};
+// mock forest units: inizialmente vuote
+let forestUnits = {}; 
 
 // API: recupera forest units per account
 app.post("/api/get-forest-units-by-account", (req, res) => {
   const { account, authToken } = req.body;
   if (!account || !authToken) return res.status(400).json({ error: "Manca account o authToken" });
-  res.json({ forestUnits });
+  
+  // se non ci sono forestUnits per questo account, creane una di default
+  if (!forestUnits[account]) {
+    forestUnits[account] = {
+      [`unit-${Date.now()}`]: { trees: {} } // crea una forest unit dinamica
+    };
+  }
+
+  res.json({ forestUnits: forestUnits[account] });
 });
 
 // API: aggiungi un albero
