@@ -1,0 +1,109 @@
+{
+  "info": {
+    "_postman_id": "f9a3c1d0-7e91-4f5b-8a5f-abcdef123456",
+    "name": "ForestTracking Full API (Updated)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Forest Units",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "url": { "raw": "{{API_URL}}/api/get-forest-units-by-account", "host": ["{{API_URL}}","api","get-forest-units-by-account"] },
+        "description": "Recupera tutte le forest units disponibili tramite account e authToken.",
+        "body": { "mode": "raw", "raw": "{\n  \"account\": \"{{ACCOUNT}}\",\n  \"authToken\": \"{{AUTH_TOKEN}}\"\n}" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  var json = pm.response.json();",
+              "  if (json.forestUnits) pm.globals.set('forestUnits', JSON.stringify(json.forestUnits));",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Generate Merkle Root",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "url": { "raw": "{{API_URL}}/api/merkle-root", "host": ["{{API_URL}}","api","merkle-root"] },
+        "description": "Genera la Merkle Root reale per un batch di dati (trees, woodLogs, sawnTimbers).",
+        "body": { "mode": "raw", "raw": "{\n  \"batch\": {{batch}}\n}" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  var json = pm.response.json();",
+              "  if (json.root) pm.globals.set('root', json.root);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify Merkle Proof",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "url": { "raw": "{{API_URL}}/api/merkle-verify", "host": ["{{API_URL}}","api","merkle-verify"] },
+        "description": "Verifica una Merkle proof con root e leaf.",
+        "body": { "mode": "raw", "raw": "{\n  \"leaf\": \"{{leaf}}\",\n  \"proof\": {{proof}},\n  \"root\": \"{{root}}\"\n}" }
+      }
+    },
+    {
+      "name": "Add Tree",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "url": { "raw": "{{API_URL}}/api/add-tree", "host": ["{{API_URL}}","api","add-tree"] },
+        "description": "Aggiunge un nuovo albero alla forest unit.",
+        "body": { "mode": "raw", "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"tree\": {{tree}}\n}" }
+      }
+    },
+    {
+      "name": "Add WoodLog",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "url": { "raw": "{{API_URL}}/api/add-woodlog", "host": ["{{API_URL}}","api","add-woodlog"] },
+        "description": "Aggiunge un tronco a un albero della forest unit.",
+        "body": { "mode": "raw", "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"treeEpc\": \"{{treeEpc}}\",\n  \"woodLog\": {{woodLog}}\n}" }
+      }
+    },
+    {
+      "name": "Add SawnTimber",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "url": { "raw": "{{API_URL}}/api/add-sawntimber", "host": ["{{API_URL}}","api","add-sawntimber"] },
+        "description": "Aggiunge una tavola segata a un tronco della forest unit.",
+        "body": { "mode": "raw", "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"woodLogEpc\": \"{{woodLogEpc}}\",\n  \"sawnTimber\": {{sawnTimber}}\n}" }
+      }
+    }
+  ]
+}
