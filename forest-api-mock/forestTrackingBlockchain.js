@@ -7,9 +7,9 @@ const fs = require("fs");
 const path = require("path");
 
 // Postman environment file
-const postmanEnvPath = path.join(__dirname, "ForestTrackingPostmanEnv.json");
+const postmanEnvPath = path.join(__dirname, "foresttracking.postman_environment.json");
 
-const API_URL = "http://51.91.111.200:3000/api"; // server mock
+const API_URL = "http://51.91.111.200:3000/api"; // usa l’IP pubblico
 const ACCOUNT = "lorenzo"; // nome account
 const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4ODc3MzEzLCJpYXQiOjE3NTg4NzM3MTMsImp0aSI6IjZkNGNhYTFiMWM4ZTQ1Yjg4MDE4OTU5ZTcyNGMwZGFhIiwidXNlcl9pZCI6MTE0fQ.PaPKJTP7praZ6jlrROqulpftebRuW1yUhhw7GPlCM2w";
 
@@ -81,6 +81,8 @@ function updatePostmanEnv(forestUnitKey, forestUnits, batch) {
 // Flusso completo
 async function main() {
   let forestUnits = await getForestUnits();
+  console.log("🌲 Forest Units recuperate:", JSON.stringify(forestUnits, null, 2));
+
   const forestUnitKey = Object.keys(forestUnits)[0];
 
   // Aggiungi dati
