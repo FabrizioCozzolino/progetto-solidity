@@ -16,7 +16,7 @@
           "mode": "raw",
           "raw": "{\n  \"account\": \"{{account}}\",\n  \"authToken\": \"{{AUTH_TOKEN}}\"\n}"
         },
-        "url": { "raw": "http://localhost:3000/api/get-forest-units-by-account" }
+        "url": { "raw": "{{baseUrl}}/get-forest-units-by-account" }
       }
     },
     {
@@ -28,7 +28,7 @@
           "mode": "raw",
           "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"tree\": {{tree}}\n}"
         },
-        "url": { "raw": "http://localhost:3000/api/add-tree" }
+        "url": { "raw": "{{baseUrl}}/add-tree" }
       }
     },
     {
@@ -40,7 +40,7 @@
           "mode": "raw",
           "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"treeEpc\": \"{{treeEpc}}\",\n  \"woodLog\": {{woodLog}}\n}"
         },
-        "url": { "raw": "http://localhost:3000/api/add-woodlog" }
+        "url": { "raw": "{{baseUrl}}/add-woodlog" }
       }
     },
     {
@@ -52,7 +52,7 @@
           "mode": "raw",
           "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"woodLogEpc\": \"{{woodLogEpc}}\",\n  \"sawnTimber\": {{sawnTimber}}\n}"
         },
-        "url": { "raw": "http://localhost:3000/api/add-sawntimber" }
+        "url": { "raw": "{{baseUrl}}/add-sawntimber" }
       }
     },
     {
@@ -64,7 +64,7 @@
           "mode": "raw",
           "raw": "{\n  \"batch\": {{batch}}\n}"
         },
-        "url": { "raw": "http://localhost:3000/api/merkle-root" }
+        "url": { "raw": "{{baseUrl}}/merkle-root" }
       }
     },
     {
@@ -76,7 +76,7 @@
           "mode": "raw",
           "raw": "{\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"batch\": {{batch}}\n}"
         },
-        "url": { "raw": "http://localhost:3000/api/set-merkle-root-batch" }
+        "url": { "raw": "{{baseUrl}}/set-merkle-root-batch" }
       }
     },
     {
@@ -88,7 +88,7 @@
           "mode": "raw",
           "raw": "{\n  \"leaf\": \"{{leaf}}\",\n  \"proof\": {{proof}},\n  \"root\": \"{{root}}\"\n}"
         },
-        "url": { "raw": "http://localhost:3000/api/merkle-verify" }
+        "url": { "raw": "{{baseUrl}}/merkle-verify" }
       }
     }
   ]
