@@ -1,72 +1,39 @@
 {
   "info": {
-    "_postman_id": "f9a3c1d0-7e91-4f5b-8a5f-abcdef123456",
-    "name": "ForestTracking Full API (Updated)",
+    "name": "ForestTracking API Updated",
+    "_postman_id": "f4a3c5d0-1111-1111-1111-111111111111",
+    "description": "Collezione Postman aggiornata per testare le nuove API del server ForestTracking (Tree, WoodLog, SawnTimber, Merkle root unificata, Blockchain mock).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Get All Forest Units",
+      "name": "Get Forest Units",
       "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
-        ],
-        "url": { "raw": "{{API_URL}}/api/get-forest-units-by-account", "host": ["{{API_URL}}","api","get-forest-units-by-account"] },
-        "description": "Recupera tutte le forest units disponibili tramite account e authToken.",
-        "body": { "mode": "raw", "raw": "{\n  \"account\": \"{{ACCOUNT}}\",\n  \"authToken\": \"{{AUTH_TOKEN}}\"\n}" }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "if (pm.response.code === 200) {",
-              "  var json = pm.response.json();",
-              "  if (json.forestUnits) pm.globals.set('forestUnits', JSON.stringify(json.forestUnits));",
-              "}"
-            ],
-            "type": "text/javascript"
-          }
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/{{account}}",
+          "host": ["{{API_URL}}"],
+          "path": ["api","forest-units","{{account}}"]
         }
-      ]
+      }
     },
     {
-      "name": "Generate Merkle Root",
+      "name": "Create Forest Unit",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
+          { "key": "Content-Type", "value": "application/json" }
         ],
-        "url": { "raw": "{{API_URL}}/api/merkle-root", "host": ["{{API_URL}}","api","merkle-root"] },
-        "description": "Genera la Merkle Root reale per un batch di dati (trees, woodLogs, sawnTimbers).",
-        "body": { "mode": "raw", "raw": "{\n  \"batch\": {{batch}}\n}" }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "if (pm.response.code === 200) {",
-              "  var json = pm.response.json();",
-              "  if (json.root) pm.globals.set('root', json.root);",
-              "}"
-            ],
-            "type": "text/javascript"
-          }
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"accountId\": \"{{account}}\"\n}"
+        },
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units",
+          "host": ["{{API_URL}}"],
+          "path": ["api","forest-units"]
         }
-      ]
-    },
-    {
-      "name": "Verify Merkle Proof",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
-        ],
-        "url": { "raw": "{{API_URL}}/api/merkle-verify", "host": ["{{API_URL}}","api","merkle-verify"] },
-        "description": "Verifica una Merkle proof con root e leaf.",
-        "body": { "mode": "raw", "raw": "{\n  \"leaf\": \"{{leaf}}\",\n  \"proof\": {{proof}},\n  \"root\": \"{{root}}\"\n}" }
       }
     },
     {
@@ -74,11 +41,17 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
+          { "key": "Content-Type", "value": "application/json" }
         ],
-        "url": { "raw": "{{API_URL}}/api/add-tree", "host": ["{{API_URL}}","api","add-tree"] },
-        "description": "Aggiunge un nuovo albero alla forest unit.",
-        "body": { "mode": "raw", "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"tree\": {{tree}}\n}" }
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"epc\": \"{{treeEpc}}\",\n  \"firstReadingTime\": \"{{tree.firstReading}}\",\n  \"treeType\": { \"specie\": \"{{tree.treeType}}\" },\n  \"notes\": \"Nuovo albero\"\n}"
+        },
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/{{forestUnitKey}}/tree",
+          "host": ["{{API_URL}}"],
+          "path": ["api","forest-units","{{forestUnitKey}}","tree"]
+        }
       }
     },
     {
@@ -86,24 +59,82 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
+          { "key": "Content-Type", "value": "application/json" }
         ],
-        "url": { "raw": "{{API_URL}}/api/add-woodlog", "host": ["{{API_URL}}","api","add-woodlog"] },
-        "description": "Aggiunge un tronco a un albero della forest unit.",
-        "body": { "mode": "raw", "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"treeEpc\": \"{{treeEpc}}\",\n  \"woodLog\": {{woodLog}}\n}" }
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"epc\": \"{{woodLogEpc}}\",\n  \"firstReadingTime\": \"{{woodLog.firstReading}}\",\n  \"parentTree\": \"{{treeEpc}}\",\n  \"observations\": []\n}"
+        },
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/{{forestUnitKey}}/woodlog",
+          "host": ["{{API_URL}}"],
+          "path": ["api","forest-units","{{forestUnitKey}}","woodlog"]
+        }
       }
     },
     {
-      "name": "Add SawnTimber",
+      "name": "Add Sawn Timber",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json", "type": "text" }
+          { "key": "Content-Type", "value": "application/json" }
         ],
-        "url": { "raw": "{{API_URL}}/api/add-sawntimber", "host": ["{{API_URL}}","api","add-sawntimber"] },
-        "description": "Aggiunge una tavola segata a un tronco della forest unit.",
-        "body": { "mode": "raw", "raw": "{\n  \"forestUnits\": {{forestUnits}},\n  \"forestUnitKey\": \"{{forestUnitKey}}\",\n  \"woodLogEpc\": \"{{woodLogEpc}}\",\n  \"sawnTimber\": {{sawnTimber}}\n}" }
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"epc\": \"{{sawnTimber.epc}}\",\n  \"firstReadingTime\": \"{{sawnTimber.firstReading}}\",\n  \"parentWoodLog\": \"{{woodLogEpc}}\",\n  \"observations\": []\n}"
+        },
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/{{forestUnitKey}}/sawntimber",
+          "host": ["{{API_URL}}"],
+          "path": ["api","forest-units","{{forestUnitKey}}","sawntimber"]
+        }
+      }
+    },
+    {
+      "name": "Generate Unified Merkle Root",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\"\n}"
+        },
+        "url": {
+          "raw": "{{API_URL}}/api/merkle-root-unified",
+          "host": ["{{API_URL}}"],
+          "path": ["api","merkle-root-unified"]
+        }
+      }
+    },
+    {
+      "name": "Write Blockchain (mock)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{API_URL}}/api/write-blockchain/{{forestUnitKey}}",
+          "host": ["{{API_URL}}"],
+          "path": ["api","write-blockchain","{{forestUnitKey}}"]
+        }
       }
     }
+  ],
+  "variable": [
+    { "key": "API_URL", "value": "http://localhost:3000" },
+    { "key": "account", "value": "lorenzo" },
+    { "key": "forestUnitKey", "value": "unit-1758886025815" },
+    { "key": "treeEpc", "value": "TREE123" },
+    { "key": "woodLogEpc", "value": "WOODLOG123" },
+    { "key": "sawnTimber.epc", "value": "SAWNTIMBER123" },
+    { "key": "tree.firstReading", "value": "2025-09-26T00:00:00.000Z" },
+    { "key": "tree.treeType", "value": "DOUGLASFIR" },
+    { "key": "woodLog.firstReading", "value": "2025-09-26T00:00:00.000Z" },
+    { "key": "sawnTimber.firstReading", "value": "2025-09-26T00:00:00.000Z" }
   ]
 }
