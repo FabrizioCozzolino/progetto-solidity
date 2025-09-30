@@ -1,6 +1,7 @@
 const hre = require("hardhat");
 const fs = require("fs");
 const path = require("path");
+const https = require("https");
 const axios = require("axios");
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
@@ -17,6 +18,12 @@ const deployed = JSON.parse(fs.readFileSync(deployedPath));
 const CONTRACT_ADDRESS = deployed.ForestTracking || deployed.address;
 
 const API_URL_FOREST_UNITS = "https://digimedfor.topview.it/api/get-forest-units/";
+
+// --- Axios instance che ignora certificati scaduti ---
+const axiosInstance = axios.create({
+  httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+  headers: { "Content-Type": "application/json" }
+});
 
 // --- Funzioni di hashing e normalizzazione ---
 function hashUnified(obj) {
@@ -62,7 +69,7 @@ function getObservations(obj) {
 
 async function getEthPriceInEuro() {
   try {
-    const res = await axios.get(
+    const res = await axiosInstance.get(
       "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur"
     );
     return res.data.ethereum.eur;
@@ -75,26 +82,66 @@ async function getEthPriceInEuro() {
 function summarizeForestUnitRaw(unit) {
   let treeCount = 0;
   let woodLogCount = 0;
-  let sawnTimberCount = 0;
+  const sawnSet = new Set();
 
   const treesDict = unit.trees || {};
-  for (const treeId of Object.keys(treesDict)) {
-    const t = treesDict[treeId];
-    treeCount++;
+  const unitWoodLogs = unit.woodLogs || {};
 
-    const treeLogs = t.woodLogs || {};
-    for (const logKey of Object.keys(treeLogs)) {
-      woodLogCount++;
-      const log = treeLogs[logKey];
-      const sawnTimbersObj = log.sawnTimbers || {};
-      sawnTimberCount += Object.keys(sawnTimbersObj).length;
+  function resolveLog(ref) {
+    if (!ref) return null;
+    if (typeof ref === 'string') return unitWoodLogs[ref] || null;
+    if (typeof ref === 'object') return ref;
+    return null;
+  }
+
+  for (const treeKey of Object.keys(treesDict)) {
+    const t = treesDict[treeKey];
+    treeCount++;
+    const treeLogs = t.woodLogs || [];
+    if (Array.isArray(treeLogs)) {
+      for (const logRef of treeLogs) {
+        woodLogCount++;
+        const logObj = resolveLog(logRef);
+        if (logObj && logObj.sawnTimbers) {
+          if (Array.isArray(logObj.sawnTimbers)) {
+            for (const st of logObj.sawnTimbers) {
+              const id = (st && st.EPC) ? st.EPC : (typeof st === 'string' ? st : JSON.stringify(st));
+              sawnSet.add(id);
+            }
+          } else if (typeof logObj.sawnTimbers === 'object') {
+            for (const k of Object.keys(logObj.sawnTimbers)) sawnSet.add(k);
+          }
+        }
+      }
+    } else if (typeof treeLogs === 'object') {
+      for (const k of Object.keys(treeLogs)) {
+        woodLogCount++;
+        const val = treeLogs[k];
+        let logObj = val.EPC || val.logSectionNumber || val.sawnTimbers ? val : unitWoodLogs[k] || null;
+        if (logObj && logObj.sawnTimbers) {
+          if (Array.isArray(logObj.sawnTimbers)) {
+            for (const st of logObj.sawnTimbers) {
+              const id = (st && st.EPC) ? st.EPC : (typeof st === 'string' ? st : JSON.stringify(st));
+              sawnSet.add(id);
+            }
+          } else if (typeof logObj.sawnTimbers === 'object') {
+            for (const kk of Object.keys(logObj.sawnTimbers)) sawnSet.add(kk);
+          }
+        }
+      }
     }
+  }
+
+  if (unit.sawnTimbers && typeof unit.sawnTimbers === 'object') {
+    for (const k of Object.keys(unit.sawnTimbers)) sawnSet.add(k);
   }
 
   console.log(`\n📊 Conteggio reale (RAW) forest unit "${unit.name || unit.forestUnitId || 'Unnamed'}":`);
   console.log(`🌳 Trees: ${treeCount}`);
-  console.log(`🪵 WoodLogs: ${woodLogCount}`);
-  console.log(`🪚 SawnTimbers: ${sawnTimberCount}\n`);
+  console.log(`🪵 WoodLogs (referenziati dagli alberi): ${woodLogCount}`);
+  console.log(`🪚 SawnTimbers (unici): ${sawnSet.size}\n`);
+
+  return { treeCount, woodLogCount, sawnTimberCount: sawnSet.size };
 }
 
 // --- Funzione principale ---
@@ -103,13 +150,12 @@ async function main() {
   const contractJson = require("../artifacts/contracts/ForestTracking.sol/ForestTracking.json");
   const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
 
-  // --- Ottieni access token dal nuovo endpoint ---
+  // --- Ottieni access token ---
   let tokenResponse;
   try {
-    tokenResponse = await axios.post(
+    tokenResponse = await axiosInstance.post(
       "https://digimedfor.topview.it/api/get-token/",
-      LOGIN_CREDENTIALS,
-      { headers: { "Content-Type": "application/json" } }
+      LOGIN_CREDENTIALS
     );
   } catch (e) {
     console.error("❌ Errore login:", e.message);
@@ -120,7 +166,7 @@ async function main() {
   // --- Recupera forest units ---
   let response;
   try {
-    response = await axios.get(API_URL_FOREST_UNITS, { headers: { Authorization: AUTH_TOKEN } });
+    response = await axiosInstance.get(API_URL_FOREST_UNITS, { headers: { Authorization: AUTH_TOKEN } });
   } catch (e) {
     console.error("❌ Errore chiamata API:", e.message);
     process.exit(1);
@@ -178,9 +224,11 @@ async function main() {
     leaves.push(hashUnified(treeObj));
     seenEpcs.add(treeEpc);
 
+    // --- Gestione WoodLogs e SawnTimbers
     const treeLogs = t.woodLogs || {};
     for (const logKey of Object.keys(treeLogs)) {
-      const log = treeLogs[logKey];
+      let log = treeLogs[logKey];
+      if (typeof log === "string") log = (unit.woodLogs && unit.woodLogs[log]) || {};
       const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID, treeEpc);
       if (seenEpcs.has(logEpc)) continue;
       seenEpcs.add(logEpc);
@@ -206,10 +254,10 @@ async function main() {
 
       const sawnTimbersObj = log.sawnTimbers || {};
       for (const stKey of Object.keys(sawnTimbersObj)) {
-        const st = sawnTimbersObj[stKey];
-        const stEpc = typeof st === "string"
-          ? normalizeEpc(st, logEpc)
-          : normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey, logEpc);
+        let st = sawnTimbersObj[stKey];
+        if (typeof st === "string") st = (unit.sawnTimbers && unit.sawnTimbers[st]) || { EPC: st };
+
+        const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey, logEpc);
         if (seenEpcs.has(stEpc)) continue;
         seenEpcs.add(stEpc);
 
@@ -221,12 +269,12 @@ async function main() {
           parentTreeEpc: treeEpc,
           parentWoodLog: logEpc,
           coordinates: st?.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
-          notes: Array.isArray(st?.notes) ? st.notes.map(n => n.description || n).join("; ") : (st?.notes || ""),
+          notes: Array.isArray(st?.notes) ? st.notes.map(n => n.description || n).join("; ") : st?.notes || "",
           observations: getObservations(st || {}),
           forestUnitId: selectedForestKey,
           domainUUID: st?.domainUUID || st?.domainUuid || stEpc,
           deleted: st?.deleted || false,
-          lastModification: st?.lastModification || st?.lastModfication || ""
+          lastModification: st?.lastModification || st?.lastModfication || "",
         };
 
         batch.push(stObj);
@@ -246,7 +294,10 @@ async function main() {
 
   const gasEstimate = await hre.ethers.provider.estimateGas({
     to: CONTRACT_ADDRESS,
-    data: contract.interface.encodeFunctionData("setMerkleRootUnified", [root]),
+    data: contract.interface.encodeFunctionData(
+      "setMerkleRootUnified(string,bytes32)",
+      [selectedForestKey, root]
+    ),
     from: await signer.getAddress()
   });
   const feeData = await hre.ethers.provider.getFeeData();
@@ -257,13 +308,12 @@ async function main() {
   console.log(`⛽ Gas stimato: ${gasEstimate.toString()} | Costo: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
 
   console.log("⏳ Invio transazione per aggiornare Merkle Root...");
-  const txResponse = await contract.setMerkleRootUnified(root);
+  const txResponse = await contract["setMerkleRootUnified(string,bytes32)"](selectedForestKey, root);
   const receipt = await txResponse.wait();
   console.log(`✅ Root aggiornata con successo!`);
   console.log(`🔗 Tx hash: ${receipt.transactionHash}`);
   console.log(`Block number: ${receipt.blockNumber}`);
 
-  // Salva batch
   const outputDir = path.join(__dirname, "..", "file-json");
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
   fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(batch, null, 2));
