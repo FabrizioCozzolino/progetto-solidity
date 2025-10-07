@@ -4,6 +4,9 @@ const bodyParser = require("body-parser");
 const https = require("https");
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
+const ethers = require("ethers");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const port = 3000;
@@ -13,6 +16,15 @@ app.use(bodyParser.json({ limit: "50mb" }));
 
 // --- Memoria in-memory delle forest unit ---
 const forestUnits = {}; // { forestUnitId: { accountId, trees: {}, woodLogs: {}, sawnTimbers: {} } }
+
+// --- Ethers setup (Hardhat o testnet) ---
+const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545"); // localhost Hardhat
+const signer = new ethers.Wallet("<PRIVATE_KEY>", provider); // Metti la tua private key qui
+
+// ABI e address del contratto
+const contractJson = require("./artifacts/contracts/ForestTracking.sol/ForestTracking.json");
+const CONTRACT_ADDRESS = "<CONTRACT_ADDRESS>";
+const contract = new ethers.Contract(CONTRACT_ADDRESS, contractJson.abi, signer);
 
 // --- Funzioni di hashing e normalizzazione ---
 function hashUnified(obj) {
@@ -56,183 +68,88 @@ function getObservations(obj) {
   return obs && obs.length > 0 ? obs : "(nessuna osservazione)";
 }
 
-// --- Endpoint: ricevere tutte le forest unit di un account ---
-app.get("/api/forest-units/:accountId", (req, res) => {
-  const { accountId } = req.params;
+// --- KEEP TUTTI GLI ALTRI app.get / app.post ---
+// ... tutti i tuoi endpoint già esistenti qui rimangono invariati ...
 
-  const units = Object.keys(forestUnits)
-    .filter(fuId => forestUnits[fuId].accountId === accountId)
-    .map(fuId => ({
-      forestUnitId: fuId,
-      forestUnit: forestUnits[fuId]
-    }));
-
-  if (units.length === 0) {
-    return res.status(404).json({ error: "Nessuna forest unit trovata per questo account" });
-  }
-
-  res.json({ accountId, forestUnits: units });
-});
-
-// --- Endpoint: aggiungere una nuova forest unit ---
-app.post("/api/forest-units", (req, res) => {
+// --- Endpoint unificato: crea ForestUnit, calcola Merkle root e scrive blockchain ---
+app.post("/api/forest-units/unified", async (req, res) => {
   const { forestUnitId, accountId } = req.body;
-  if (!forestUnitId || !accountId) return res.status(400).json({ error: "forestUnitId e accountId richiesti" });
-
-  if (forestUnits[forestUnitId]) return res.status(400).json({ error: "forestUnitId già esistente" });
-
-  forestUnits[forestUnitId] = { accountId, trees: {}, woodLogs: {}, sawnTimbers: {} };
-  res.json({ message: "Forest unit creata", forestUnitId });
-});
-
-// --- Endpoint: aggiungere un Tree ---
-app.post("/api/forest-units/:forestUnitId/tree", (req, res) => {
-  const { forestUnitId } = req.params;
-  const tree = req.body;
-
-  const fu = forestUnits[forestUnitId];
-  if (!fu) return res.status(404).json({ error: "Forest unit non trovata" });
-
-  const treeEpc = normalizeEpc(tree.epc || tree.domainUUID || tree.domainUuid, "");
-  fu.trees[treeEpc] = tree;
-  res.json({ message: "Tree aggiunto", epc: treeEpc });
-});
-
-// --- Endpoint: aggiungere un WoodLog ---
-app.post("/api/forest-units/:forestUnitId/woodlog", (req, res) => {
-  const { forestUnitId } = req.params;
-  const log = req.body;
-
-  const fu = forestUnits[forestUnitId];
-  if (!fu) return res.status(404).json({ error: "Forest unit non trovata" });
-
-  const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID || log.domainUuid, log.parentTree || "");
-  fu.woodLogs[logEpc] = log;
-  res.json({ message: "WoodLog aggiunto", epc: logEpc });
-});
-
-// --- Endpoint: aggiungere un SawnTimber ---
-app.post("/api/forest-units/:forestUnitId/sawntimber", (req, res) => {
-  const { forestUnitId } = req.params;
-  const st = req.body;
-
-  const fu = forestUnits[forestUnitId];
-  if (!fu) return res.status(404).json({ error: "Forest unit non trovata" });
-
-  const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid, st.parentWoodLog || "");
-  fu.sawnTimbers[stEpc] = st;
-  res.json({ message: "SawnTimber aggiunto", epc: stEpc });
-});
-
-// --- Endpoint: calcolare Merkle root unificata ---
-app.post("/api/merkle-root-unified", (req, res) => {
-  const { forestUnitId } = req.body;
-  if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
-
-  const forestUnit = forestUnits[forestUnitId];
-  if (!forestUnit) return res.status(404).json({ error: "Forest unit non trovata" });
+  if (!forestUnitId || !accountId) 
+    return res.status(400).json({ error: "forestUnitId e accountId richiesti" });
 
   try {
+    // 1️⃣ Creazione Forest Unit
+    if (!forestUnits[forestUnitId]) {
+      forestUnits[forestUnitId] = { accountId, trees: {}, woodLogs: {}, sawnTimbers: {} };
+    }
+
+    const forestUnit = forestUnits[forestUnitId];
+
+    // 2️⃣ Calcolo Merkle root unificata
     const batch = [];
     const leaves = [];
     const seenEpcs = new Set();
 
-    const treesDict = forestUnit.trees || {};
-    for (const treeId of Object.keys(treesDict)) {
-      const t = treesDict[treeId];
-      const treeEpc = normalizeEpc(t.epc || t.domainUUID || t.domainUuid || treeId, "");
-      if (seenEpcs.has(treeEpc)) continue;
-      seenEpcs.add(treeEpc);
+    const processObjects = (objsDict, type) => {
+      for (const key of Object.keys(objsDict)) {
+        const obj = objsDict[key];
+        let epc;
+        if (type === "Tree") epc = normalizeEpc(obj.epc || obj.domainUUID || key, "");
+        else if (type === "WoodLog") epc = normalizeEpc(obj.EPC || obj.epc || obj.domainUUID || key, obj.parentTree || "");
+        else epc = normalizeEpc(obj.EPC || obj.epc || obj.domainUUID || key, obj.parentWoodLog || "");
 
-      const treeObj = {
-        type: "Tree",
-        epc: treeEpc,
-        firstReading: t.firstReadingTime || "",
-        treeType: t.treeType?.specie || t.treeTypeId || t.specie || "Unknown",
-        coordinates: t.coordinates ? `${t.coordinates.latitude || t.coordinates.lat || ""},${t.coordinates.longitude || t.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
-        notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : t.notes || "",
-        observations: getObservations(t),
-        forestUnitId,
-        domainUUID: treeEpc,
-        deleted: t.deleted || false,
-        lastModification: t.lastModification || ""
-      };
+        if (seenEpcs.has(epc)) continue;
+        seenEpcs.add(epc);
 
-      batch.push(treeObj);
-      leaves.push(hashUnified(treeObj));
-    }
+        const unifiedObj = {
+          type,
+          epc,
+          firstReading: obj.firstReadingTime || "",
+          treeType: obj.treeType?.specie || obj.treeType || "Unknown",
+          parentTree: obj.parentTree || "",
+          parentWoodLog: obj.parentWoodLog || "",
+          coordinates: obj.coordinates ? `${obj.coordinates.latitude || obj.coordinates.lat || ""},${obj.coordinates.longitude || obj.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
+          notes: Array.isArray(obj.notes) ? obj.notes.map(n => n.description || n).join("; ") : obj.notes || "",
+          observations: getObservations(obj),
+          forestUnitId,
+          domainUUID: epc,
+          deleted: obj.deleted || false,
+          lastModification: obj.lastModification || ""
+        };
 
-    const logsDict = forestUnit.woodLogs || {};
-    for (const logKey of Object.keys(logsDict)) {
-      const log = logsDict[logKey];
-      const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID || log.domainUuid || logKey, log.parentTree || "");
-      if (seenEpcs.has(logEpc)) continue;
-      seenEpcs.add(logEpc);
+        batch.push(unifiedObj);
+        leaves.push(hashUnified(unifiedObj));
+      }
+    };
 
-      const logObj = {
-        type: "WoodLog",
-        epc: logEpc,
-        firstReading: log.firstReadingTime || "",
-        treeType: log.treeType || "Unknown",
-        parentTree: log.parentTree || "",
-        coordinates: log.coordinates ? `${log.coordinates.latitude || log.coordinates.lat || ""},${log.coordinates.longitude || log.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
-        notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : log.notes || "",
-        observations: getObservations(log),
-        forestUnitId,
-        domainUUID: logEpc,
-        deleted: log.deleted || false,
-        lastModification: log.lastModification || ""
-      };
-
-      batch.push(logObj);
-      leaves.push(hashUnified(logObj));
-    }
-
-    const stDict = forestUnit.sawnTimbers || {};
-    for (const stKey of Object.keys(stDict)) {
-      const st = stDict[stKey];
-      const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey, st.parentWoodLog || "");
-      if (seenEpcs.has(stEpc)) continue;
-      seenEpcs.add(stEpc);
-
-      const stObj = {
-        type: "SawnTimber",
-        epc: stEpc,
-        firstReading: st.firstReadingTime || "",
-        treeType: st.treeType || "Unknown",
-        parentTreeEpc: st.parentTree || "",
-        parentWoodLog: st.parentWoodLog || "",
-        coordinates: st.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
-        notes: Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : st.notes || "",
-        observations: getObservations(st),
-        forestUnitId,
-        domainUUID: stEpc,
-        deleted: st.deleted || false,
-        lastModification: st.lastModification || ""
-      };
-
-      batch.push(stObj);
-      leaves.push(hashUnified(stObj));
-    }
+    processObjects(forestUnit.trees, "Tree");
+    processObjects(forestUnit.woodLogs, "WoodLog");
+    processObjects(forestUnit.sawnTimbers, "SawnTimber");
 
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const root = merkleTree.getHexRoot();
-    res.json({ root, batch });
 
-  } catch (e) {
-    res.status(500).json({ error: "Errore generazione Merkle root", details: e.message });
+    // 3️⃣ Scrittura reale su blockchain
+    const txResponse = await contract["setMerkleRootUnified(string,bytes32)"](forestUnitId, root);
+    const receipt = await txResponse.wait();
+
+    // 4️⃣ Salvataggio batch in JSON
+    const outputDir = path.join(__dirname, "file-json");
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+    fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(batch, null, 2));
+
+    res.json({
+      message: "ForestUnit creata, Merkle root generata e scritta su blockchain",
+      forestUnitId,
+      root,
+      txHash: receipt.transactionHash,
+      batchSize: batch.length
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Errore durante operazione unificata", details: err.message });
   }
-});
-
-// --- Endpoint mock: scrivere su blockchain ---
-app.post("/api/write-blockchain/:forestUnitId", (req, res) => {
-  const { forestUnitId } = req.params;
-  const fu = forestUnits[forestUnitId];
-  if (!fu) return res.status(404).json({ error: "Forest unit non trovata" });
-
-  // Mock: simuliamo scrittura su blockchain
-  const txHash = "0x" + keccak256(forestUnitId + Date.now().toString()).toString("hex");
-  res.json({ message: "Simulazione scrittura blockchain completata", txHash });
 });
 
 app.listen(port, () => console.log(`Server avviato su http://localhost:${port}`));

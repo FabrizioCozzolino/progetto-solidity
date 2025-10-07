@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "ForestTracking API Updated",
-    "_postman_id": "f4a3c5d0-1111-1111-1111-111111111111",
-    "description": "Collezione Postman aggiornata per testare le nuove API del server ForestTracking (Tree, WoodLog, SawnTimber, Merkle root unificata, Blockchain mock).",
+    "name": "ForestTracking API Updated Unified",
+    "_postman_id": "f4a3c5d0-2222-2222-2222-222222222222",
+    "description": "Collezione Postman aggiornata per testare le nuove API del server ForestTracking con endpoint unificato (creazione Forest Unit, Merkle root unificata, blockchain mock).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -15,24 +15,6 @@
           "raw": "{{API_URL}}/api/forest-units/{{account}}",
           "host": ["{{API_URL}}"],
           "path": ["api","forest-units","{{account}}"]
-        }
-      }
-    },
-    {
-      "name": "Create Forest Unit",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"accountId\": \"{{account}}\"\n}"
-        },
-        "url": {
-          "raw": "{{API_URL}}/api/forest-units",
-          "host": ["{{API_URL}}"],
-          "path": ["api","forest-units"]
         }
       }
     },
@@ -91,7 +73,7 @@
       }
     },
     {
-      "name": "Generate Unified Merkle Root",
+      "name": "Unified Forest Unit Operation",
       "request": {
         "method": "POST",
         "header": [
@@ -99,28 +81,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\"\n}"
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"accountId\": \"{{account}}\"\n}"
         },
         "url": {
-          "raw": "{{API_URL}}/api/merkle-root-unified",
+          "raw": "{{API_URL}}/api/forest-units/unified",
           "host": ["{{API_URL}}"],
-          "path": ["api","merkle-root-unified"]
-        }
-      }
-    },
-    {
-      "name": "Write Blockchain (mock)",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{}"
-        },
-        "url": {
-          "raw": "{{API_URL}}/api/write-blockchain/{{forestUnitKey}}",
-          "host": ["{{API_URL}}"],
-          "path": ["api","write-blockchain","{{forestUnitKey}}"]
+          "path": ["api","forest-units","unified"]
         }
       }
     }
