@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "ForestTracking API Updated Unified",
-    "_postman_id": "f4a3c5d0-2222-2222-2222-222222222222",
-    "description": "Collezione Postman aggiornata per testare le nuove API del server ForestTracking con endpoint unificato (creazione Forest Unit, Merkle root unificata, blockchain mock).",
+    "name": "ForestTracking API Coerente",
+    "_postman_id": "12345678-0000-0000-0000-000000000000",
+    "description": "Collezione Postman aggiornata per testare Trees, WoodLogs, SawnTimbers e Merkle root unificata",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -14,7 +14,7 @@
         "url": {
           "raw": "{{API_URL}}/api/forest-units/{{account}}",
           "host": ["{{API_URL}}"],
-          "path": ["api","forest-units","{{account}}"]
+          "path": ["api", "forest-units", "{{account}}"]
         }
       }
     },
@@ -22,17 +22,15 @@
       "name": "Add Tree",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"epc\": \"{{treeEpc}}\",\n  \"firstReadingTime\": \"{{tree.firstReading}}\",\n  \"treeType\": { \"specie\": \"{{tree.treeType}}\" },\n  \"notes\": \"Nuovo albero\"\n}"
+          "raw": "{\n  \"epc\": \"{{treeEpc}}\",\n  \"firstReadingTime\": \"{{firstReading}}\",\n  \"treeType\": { \"specie\": \"{{treeType}}\" },\n  \"notes\": \"Nuovo albero\",\n  \"observations\": [\n    {\"phenomenonName\": \"Crescita\", \"quantity\": 5, \"unit\": {\"unitName\": \"cm\"}}\n  ]\n}"
         },
         "url": {
           "raw": "{{API_URL}}/api/forest-units/{{forestUnitKey}}/tree",
           "host": ["{{API_URL}}"],
-          "path": ["api","forest-units","{{forestUnitKey}}","tree"]
+          "path": ["api", "forest-units", "{{forestUnitKey}}", "tree"]
         }
       }
     },
@@ -40,17 +38,15 @@
       "name": "Add WoodLog",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"epc\": \"{{woodLogEpc}}\",\n  \"firstReadingTime\": \"{{woodLog.firstReading}}\",\n  \"parentTree\": \"{{treeEpc}}\",\n  \"observations\": []\n}"
+          "raw": "{\n  \"epc\": \"{{woodLogEpc}}\",\n  \"firstReadingTime\": \"{{firstReading}}\",\n  \"parentTree\": \"{{treeEpc}}\",\n  \"observations\": [\n    {\"phenomenonName\": \"Taglio\", \"quantity\": 1, \"unit\": {\"unitName\": \"pezzo\"}}\n  ]\n}"
         },
         "url": {
           "raw": "{{API_URL}}/api/forest-units/{{forestUnitKey}}/woodlog",
           "host": ["{{API_URL}}"],
-          "path": ["api","forest-units","{{forestUnitKey}}","woodlog"]
+          "path": ["api", "forest-units", "{{forestUnitKey}}", "woodlog"]
         }
       }
     },
@@ -58,17 +54,15 @@
       "name": "Add Sawn Timber",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"epc\": \"{{sawnTimber.epc}}\",\n  \"firstReadingTime\": \"{{sawnTimber.firstReading}}\",\n  \"parentWoodLog\": \"{{woodLogEpc}}\",\n  \"observations\": []\n}"
+          "raw": "{\n  \"epc\": \"{{sawnTimberEpc}}\",\n  \"firstReadingTime\": \"{{firstReading}}\",\n  \"parentWoodLog\": \"{{woodLogEpc}}\",\n  \"observations\": [\n    {\"phenomenonName\": \"Sezionatura\", \"quantity\": 2, \"unit\": {\"unitName\": \"pezzi\"}}\n  ]\n}"
         },
         "url": {
           "raw": "{{API_URL}}/api/forest-units/{{forestUnitKey}}/sawntimber",
           "host": ["{{API_URL}}"],
-          "path": ["api","forest-units","{{forestUnitKey}}","sawntimber"]
+          "path": ["api", "forest-units", "{{forestUnitKey}}", "sawntimber"]
         }
       }
     },
@@ -76,9 +70,7 @@
       "name": "Unified Forest Unit Operation",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"accountId\": \"{{account}}\"\n}"
@@ -86,7 +78,7 @@
         "url": {
           "raw": "{{API_URL}}/api/forest-units/unified",
           "host": ["{{API_URL}}"],
-          "path": ["api","forest-units","unified"]
+          "path": ["api", "forest-units", "unified"]
         }
       }
     }
@@ -94,13 +86,11 @@
   "variable": [
     { "key": "API_URL", "value": "http://localhost:3000" },
     { "key": "account", "value": "lorenzo" },
-    { "key": "forestUnitKey", "value": "unit-1758886025815" },
+    { "key": "forestUnitKey", "value": "FU001" },
     { "key": "treeEpc", "value": "TREE123" },
     { "key": "woodLogEpc", "value": "WOODLOG123" },
-    { "key": "sawnTimber.epc", "value": "SAWNTIMBER123" },
-    { "key": "tree.firstReading", "value": "2025-09-26T00:00:00.000Z" },
-    { "key": "tree.treeType", "value": "DOUGLASFIR" },
-    { "key": "woodLog.firstReading", "value": "2025-09-26T00:00:00.000Z" },
-    { "key": "sawnTimber.firstReading", "value": "2025-09-26T00:00:00.000Z" }
+    { "key": "sawnTimberEpc", "value": "SAWNTIMBER123" },
+    { "key": "firstReading", "value": "2025-09-26T00:00:00.000Z" },
+    { "key": "treeType", "value": "DOUGLASFIR" }
   ]
 }
