@@ -15,8 +15,8 @@ contract ForestTracking {
         owner = msg.sender;
     }
 
+    // --- Merkle root unificata ---
     bytes32 public merkleRootUnified;
-
     event MerkleRootUnifiedUpdated(bytes32 newRoot);
 
     function setMerkleRootUnified(bytes32 _root) external onlyOwner {
@@ -37,11 +37,15 @@ contract ForestTracking {
         return computedHash == merkleRootUnified;
     }
 
-    function verifyUnifiedProofWithRoot(bytes32 leaf, bytes32[] calldata proof, bytes32 root) external pure returns (bool) {
+    function verifyUnifiedProofWithRoot(
+        bytes32 leaf,
+        bytes32[] calldata proof,
+        bytes32 root
+    ) external pure returns (bool) {
         return MerkleProof.verifyCalldata(proof, root, leaf);
     }
 
-     // --- Merkle root specifica per i wood logs ---
+    // --- Merkle root specifica per i wood logs ---
     bytes32 public merkleRootWoodLogs;
     event MerkleRootWoodLogsUpdated(bytes32 newRoot);
 
@@ -54,9 +58,40 @@ contract ForestTracking {
         return MerkleProof.verifyCalldata(proof, merkleRootWoodLogs, leaf);
     }
 
-    mapping(string => bytes32) public merkleRoots;
+    // --- Struttura per salvare dati off-chain verificabili ---
+    struct ForestData {
+        bytes32 merkleRoot;   // Merkle root del batch (trees + logs + timbers)
+        string ipfsHash;      // Hash o URL IPFS del JSON completo
+        uint256 timestamp;    // Momento del salvataggio
+    }
 
-    function setMerkleRootUnified(string memory forestUnitKey, bytes32 root) public onlyOwner {
-        merkleRoots[forestUnitKey] = root;
+    // Mappatura forestUnitKey → ForestData
+    mapping(string => ForestData) public forestRegistry;
+
+    event ForestDataRegistered(string forestUnitKey, bytes32 merkleRoot, string ipfsHash, uint256 timestamp);
+
+    // --- Registrazione dati forestali on-chain ---
+    function registerForestData(
+        string memory forestUnitKey,
+        bytes32 merkleRoot,
+        string memory ipfsHash
+    ) external onlyOwner {
+        forestRegistry[forestUnitKey] = ForestData({
+            merkleRoot: merkleRoot,
+            ipfsHash: ipfsHash,
+            timestamp: block.timestamp
+        });
+
+        emit ForestDataRegistered(forestUnitKey, merkleRoot, ipfsHash, block.timestamp);
+    }
+
+    // --- Recupero dati ---
+    function getForestData(string memory forestUnitKey)
+        external
+        view
+        returns (bytes32, string memory, uint256)
+    {
+        ForestData memory data = forestRegistry[forestUnitKey];
+        return (data.merkleRoot, data.ipfsHash, data.timestamp);
     }
 }
