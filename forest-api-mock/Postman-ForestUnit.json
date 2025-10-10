@@ -81,7 +81,23 @@
           "path": ["api", "forest-units", "unified"]
         }
       }
+    },
+    {
+  "name": "Verify Merkle Root from IPFS",
+  "request": {
+    "method": "POST",
+    "header": [{ "key": "Content-Type", "value": "application/json" }],
+    "body": {
+      "mode": "raw",
+      "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\"\n}"
+    },
+    "url": {
+      "raw": "{{API_URL}}/api/forest-units/verify",
+      "host": ["{{API_URL}}"],
+      "path": ["api", "forest-units", "verify"]
     }
+  }
+}
   ],
   "variable": [
     { "key": "API_URL", "value": "http://localhost:3000" },

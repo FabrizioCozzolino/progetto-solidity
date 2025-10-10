@@ -6,6 +6,10 @@ const keccak256 = require("keccak256");
 const ethers = require("ethers");
 const fs = require("fs");
 const path = require("path");
+const { create } = require("ipfs-http-client");
+
+const ipfs = create({ url: "http://127.0.0.1:5002" });
+
 
 const app = express();
 const port = 3000;
@@ -70,6 +74,35 @@ function getObservations(obj) {
   return obs && obs.length > 0 ? obs : "(nessuna osservazione)";
 }
 
+// --- Funzione helper: scarica JSON da IPFS con fallback gateway/protocollo
+async function fetchFromIPFS(ipfsHash) {
+  const gateways = [
+    "ipfs.io",
+    "cloudflare-ipfs.com",
+    "dweb.link",
+    "gateway.pinata.cloud",
+    "infura-ipfs.io"
+  ];
+
+  let lastError = null;
+  for (const gateway of gateways) {
+    for (const protocol of ["https", "http"]) {
+      const url = `${protocol}://${gateway}/ipfs/${ipfsHash}`;
+      try {
+        console.log(`⬇️  Tentativo download da IPFS: ${url}`);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        const data = await response.json();
+        return data; // ritorna al primo download riuscito
+      } catch (err) {
+        console.warn(`⚠️ Fallito da ${url}: ${err.message}`);
+        lastError = err;
+      }
+    }
+  }
+  throw new Error(`Impossibile scaricare il file da IPFS con nessun gateway: ${lastError?.message}`);
+}
+
 // --- ENDPOINTS ---
 
 // 1️⃣ GET: ottieni forest units per account
@@ -125,30 +158,32 @@ app.post("/api/forest-units/:forestUnitId/sawntimber", (req, res) => {
   res.json({ message: "SawnTimber aggiunto", key });
 });
 
-// 5️⃣ POST: unificato migliorato
+// POST: unifica forest unit, upload su IPFS e registra on-chain
 app.post("/api/forest-units/unified", async (req, res) => {
-  const { forestUnitId: selectedForestKey, accountId } = req.body;
-  if (!selectedForestKey || !accountId)
+  const { forestUnitId, accountId } = req.body;
+
+  if (!forestUnitId || !accountId) {
     return res.status(400).json({ error: "forestUnitId e accountId richiesti" });
+  }
 
   try {
-    // crea o aggiorna Forest Unit in memoria
-    if (!forestUnits[selectedForestKey]) {
-      forestUnits[selectedForestKey] = { accountId, trees: {}, woodLogs: {}, sawnTimbers: {} };
+    // --- Creazione/aggiornamento forest unit in memoria
+    if (!forestUnits[forestUnitId]) {
+      forestUnits[forestUnitId] = { accountId, trees: {}, woodLogs: {}, sawnTimbers: {} };
     } else {
-      forestUnits[selectedForestKey].accountId = accountId; // aggiorna accountId esistente
+      forestUnits[forestUnitId].accountId = accountId;
     }
 
-    const unit = forestUnits[selectedForestKey];
-    const treesDict = unit.trees || {};
+    const unit = forestUnits[forestUnitId];
     const batch = [];
     const leaves = [];
     const seenEpcs = new Set();
 
     const processObservations = obj => getObservations(obj);
 
-    for (const treeId of Object.keys(treesDict)) {
-      const t = treesDict[treeId];
+    // --- Batch completo (Trees + WoodLogs + SawnTimbers)
+    for (const treeId of Object.keys(unit.trees)) {
+      const t = unit.trees[treeId];
       const treeEpc = t.domainUUID || t.domainUuid || t.epc || treeId;
 
       const treeObj = {
@@ -159,7 +194,7 @@ app.post("/api/forest-units/unified", async (req, res) => {
         coordinates: t.coordinates ? `${t.coordinates.latitude || t.coordinates.lat || ""},${t.coordinates.longitude || t.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
         notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : t.notes || "",
         observations: processObservations(t),
-        forestUnitId: selectedForestKey,
+        forestUnitId,
         domainUUID: treeEpc,
         deleted: t.deleted || false,
         lastModification: t.lastModification || t.lastModfication || ""
@@ -169,7 +204,7 @@ app.post("/api/forest-units/unified", async (req, res) => {
       leaves.push(hashUnified(treeObj));
       seenEpcs.add(treeEpc);
 
-      // --- Gestione WoodLogs e SawnTimbers annidati
+      // WoodLogs
       const treeLogs = t.woodLogs || {};
       for (const logKey of Object.keys(treeLogs)) {
         let log = treeLogs[logKey];
@@ -188,7 +223,7 @@ app.post("/api/forest-units/unified", async (req, res) => {
           coordinates: log.coordinates ? `${log.coordinates.latitude || log.coordinates.lat || ""},${log.coordinates.longitude || log.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
           notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : log.notes || "",
           observations: processObservations(log),
-          forestUnitId: selectedForestKey,
+          forestUnitId,
           domainUUID: log.domainUUID || log.domainUuid || logEpc,
           deleted: log.deleted || false,
           lastModification: log.lastModification || log.lastModfication || ""
@@ -197,6 +232,7 @@ app.post("/api/forest-units/unified", async (req, res) => {
         batch.push(logObj);
         leaves.push(hashUnified(logObj));
 
+        // SawnTimbers
         const sawnTimbersObj = log.sawnTimbers || {};
         for (const stKey of Object.keys(sawnTimbersObj)) {
           let st = sawnTimbersObj[stKey];
@@ -216,7 +252,7 @@ app.post("/api/forest-units/unified", async (req, res) => {
             coordinates: st?.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
             notes: Array.isArray(st?.notes) ? st.notes.map(n => n.description || n).join("; ") : st?.notes || "",
             observations: processObservations(st || {}),
-            forestUnitId: selectedForestKey,
+            forestUnitId,
             domainUUID: st?.domainUUID || st?.domainUuid || stEpc,
             deleted: st?.deleted || false,
             lastModification: st?.lastModification || st?.lastModfication || ""
@@ -229,33 +265,140 @@ app.post("/api/forest-units/unified", async (req, res) => {
     }
 
     if (leaves.length === 0) {
-      return res.status(400).json({ error: "Impossibile generare Merkle root: nessun elemento valido nella ForestUnit" });
+      return res.status(400).json({ error: "Impossibile generare Merkle root: nessun elemento valido" });
     }
 
-    // --- Generazione Merkle root
+    // --- Generazione Merkle root unificata
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const root = "0x" + merkleTree.getRoot().toString("hex");
 
-    // --- Scrittura su contratto Solidity
-    const txResponse = await contract["setMerkleRootUnified(string,bytes32)"](selectedForestKey, root);
-    const receipt = await txResponse.wait();
-
-    // --- Salvataggio su file JSON
+    // --- Salvataggio JSON locale
     const outputDir = path.join(__dirname, "file-json");
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-    fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(batch, null, 2));
+    const filePath = path.join(outputDir, `${forestUnitId}-unified-batch.json`);
+    fs.writeFileSync(filePath, JSON.stringify(batch, null, 2));
+
+    // --- Upload su IPFS
+    const ipfsResult = await ipfs.add(fs.readFileSync(filePath));
+    const ipfsHash = ipfsResult.path;
+
+    console.log(`✅ File caricato su IPFS: ${ipfsHash}`);
+
+    // --- Registrazione su blockchain
+    const tx = await contract.registerForestData(forestUnitId, root, ipfsHash);
+    const receipt = await tx.wait();
 
     res.json({
-      message: "ForestUnit creata, Merkle root generata e scritta su blockchain",
-      forestUnitId: selectedForestKey,
-      root,
+      message: "ForestUnit registrata correttamente su blockchain",
+      forestUnitId,
+      merkleRoot: root,
+      ipfsHash,
       txHash: receipt.transactionHash,
       batchSize: batch.length
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Errore durante operazione unificata", details: err.message });
+    console.error("❌ Errore durante unificazione forestUnit:", err);
+    res.status(500).json({ error: "Errore durante unificazione forestUnit", details: err.message });
+  }
+});
+
+// 6️⃣ POST: verifica integrità batch da IPFS e on-chain (versione robusta)
+app.post("/api/forest-units/verify", async (req, res) => {
+  try {
+    const { forestUnitId, ipfsHash: providedIpfsHash } = req.body;
+    if (!forestUnitId) {
+      return res.status(400).json({ error: "Parametro 'forestUnitId' richiesto" });
+    }
+
+    // --- Recupera dati on-chain
+    let merkleRootOnChain = null;
+    let ipfsHashOnChain = null;
+    try {
+      const result = await contract.getForestData(forestUnitId);
+      // ethers v6 restituisce valori default se non registrato
+      if (result[2] && result[2] !== 0) {
+        merkleRootOnChain = result[0];
+        ipfsHashOnChain = result[1];
+      } else {
+        console.warn(`⚠️ ForestUnit ${forestUnitId} non registrata on-chain`);
+      }
+    } catch (err) {
+      console.warn("⚠️ Errore recupero dati on-chain:", err.message);
+    }
+
+    const finalIpfsHash = providedIpfsHash || ipfsHashOnChain;
+    let batch = null;
+
+    if (finalIpfsHash) {
+      const gateways = [
+        `https://ipfs.io/ipfs/${finalIpfsHash}`,
+        `http://ipfs.io/ipfs/${finalIpfsHash}`,
+        `https://cloudflare-ipfs.com/ipfs/${finalIpfsHash}`,
+        `http://cloudflare-ipfs.com/ipfs/${finalIpfsHash}`,
+        `https://dweb.link/ipfs/${finalIpfsHash}`
+      ];
+
+      // --- Prova tutti i gateway
+      for (const url of gateways) {
+        try {
+          console.log(`⬇️  Tentativo download da IPFS: ${url}`);
+          const response = await fetch(url);
+          if (response.ok) {
+            batch = await response.json();
+            break; // successo
+          } else {
+            console.warn(`⚠️ Fallito da ${url}: HTTP ${response.status}`);
+          }
+        } catch (err) {
+          console.warn(`⚠️ Fallito da ${url}: ${err.message}`);
+        }
+      }
+    }
+
+    // --- Se IPFS fallisce, prova lettura locale
+    if (!batch) {
+      try {
+        const localPath = path.join(__dirname, "batches", `${forestUnitId}.json`);
+        console.log(`⬇️  Tentativo download locale: ${localPath}`);
+        const data = fs.readFileSync(localPath, "utf-8");
+        batch = JSON.parse(data);
+      } catch (err) {
+        return res.status(404).json({ error: `Impossibile recuperare il batch da IPFS o localmente: ${err.message}` });
+      }
+    }
+
+    if (!Array.isArray(batch) || batch.length === 0) {
+      return res.status(400).json({ error: "Batch vuoto o non valido" });
+    }
+
+    // --- Ricostruisci gli hash locali
+    const leaves = batch.map(item => hashUnified(item));
+    const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+    const recalculatedRoot = "0x" + merkleTree.getRoot().toString("hex");
+
+    // --- Confronta con root on-chain se presente
+    let verified = null;
+    let message = "⚠️ ForestUnit non ancora registrata on-chain, impossibile verificare root.";
+    if (merkleRootOnChain) {
+      verified = recalculatedRoot.toLowerCase() === merkleRootOnChain.toLowerCase();
+      message = verified
+        ? "✅ Merkle Root verificata con successo: i dati sono integri."
+        : "⚠️ Discrepanza tra Merkle Root IPFS/local e quella on-chain!";
+    }
+
+    res.json({
+      forestUnitId,
+      ipfsHash: finalIpfsHash,
+      recalculatedRoot,
+      merkleRootOnChain,
+      verified,
+      message
+    });
+
+  } catch (err) {
+    console.error("❌ Errore verifica Merkle Root:", err);
+    res.status(500).json({ error: "Errore durante la verifica Merkle Root", details: err.message });
   }
 });
 
