@@ -7,6 +7,22 @@
   },
   "item": [
     {
+      "name": "Add Forest Unit",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"forestUnitId\": \"FU001\",\n    \"accountId\": \"lorenzo\",\n    \"trees\": {\n      \"TREE123\": {\n        \"epc\": \"TREE123\",\n        \"firstReadingTime\": \"2025-09-26T00:00:00.000Z\",\n        \"treeType\": {\"specie\": \"DOUGLASFIR\"},\n        \"notes\": \"Nuovo albero\",\n        \"observations\": [{\"phenomenonName\": \"Crescita\", \"quantity\": 5, \"unit\": {\"unitName\": \"cm\"}}],\n        \"woodLogs\": {\n          \"WOODLOG123\": {\n            \"epc\": \"WOODLOG123\",\n            \"firstReadingTime\": \"2025-09-26T00:00:00.000Z\",\n            \"parentTree\": \"TREE123\",\n            \"observations\": [{\"phenomenonName\": \"Taglio\", \"quantity\": 1, \"unit\": {\"unitName\": \"pezzo\"}}],\n            \"sawnTimbers\": {\n              \"SAWNTIMBER123\": {\n                \"epc\": \"SAWNTIMBER123\",\n                \"firstReadingTime\": \"2025-09-26T00:00:00.000Z\",\n                \"parentWoodLog\": \"WOODLOG123\",\n                \"observations\": [{\"phenomenonName\": \"Sezionatura\", \"quantity\": 2, \"unit\": {\"unitName\": \"pezzi\"}}]\n              }\n            }\n          }\n        }\n      }\n    },\n    \"woodLogs\": {\n      \"WOODLOG123\": {\n        \"epc\": \"WOODLOG123\",\n        \"firstReadingTime\": \"2025-09-26T00:00:00.000Z\",\n        \"parentTree\": \"TREE123\",\n        \"observations\": [{\"phenomenonName\": \"Taglio\", \"quantity\": 1, \"unit\": {\"unitName\": \"pezzo\"}}],\n        \"sawnTimbers\": {\n          \"SAWNTIMBER123\": {\n            \"epc\": \"SAWNTIMBER123\",\n            \"firstReadingTime\": \"2025-09-26T00:00:00.000Z\",\n            \"parentWoodLog\": \"WOODLOG123\",\n            \"observations\": [{\"phenomenonName\": \"Sezionatura\", \"quantity\": 2, \"unit\": {\"unitName\": \"pezzi\"}}]\n          }\n        }\n      }\n    },\n    \"sawnTimbers\": {\n      \"SAWNTIMBER123\": {\n        \"epc\": \"SAWNTIMBER123\",\n        \"firstReadingTime\": \"2025-09-26T00:00:00.000Z\",\n        \"parentWoodLog\": \"WOODLOG123\",\n        \"observations\": [{\"phenomenonName\": \"Sezionatura\", \"quantity\": 2, \"unit\": {\"unitName\": \"pezzi\"}}]\n      }\n    }\n  }\n]"
+        },
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/addForestUnit",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "forest-units", "addForestUnit"]
+        }
+      }
+    },
+    {
       "name": "Get Forest Units",
       "request": {
         "method": "GET",
@@ -15,6 +31,18 @@
           "raw": "{{API_URL}}/api/forest-units/{{account}}",
           "host": ["{{API_URL}}"],
           "path": ["api", "forest-units", "{{account}}"]
+        }
+      }
+    },
+    {
+      "name": "Get Full Forest Unit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/full/{{forestUnitKey}}",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "forest-units", "full", "{{forestUnitKey}}"]
         }
       }
     },
@@ -97,6 +125,19 @@
       "path": ["api", "forest-units", "verify"]
     }
   }
+},
+{
+  "name": "Check Blockchain Integrity",
+  "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+      "raw": "{{API_URL}}/api/check-integrity/{{forestUnitKey}}",
+      "host": ["{{API_URL}}"],
+      "path": ["api", "check-integrity", "{{forestUnitKey}}"]
+    }
+  },
+  "response": []
 }
   ],
   "variable": [
