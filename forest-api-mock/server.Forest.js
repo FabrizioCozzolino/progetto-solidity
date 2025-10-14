@@ -104,6 +104,99 @@ async function fetchFromIPFS(ipfsHash) {
 }
 
 // --- ENDPOINTS ---
+// 0️⃣ POST: aggiungi un'intera forest unit (con alberi, tronchi e tavole)
+app.post("/api/forest-units/addForestUnit", (req, res) => {
+  try {
+    let data = req.body;
+
+    // Se arriva un singolo oggetto, trasformalo in array
+    if (!Array.isArray(data)) {
+      data = [data];
+    }
+
+    if (data.length === 0) {
+      return res.status(400).json({ error: "Il body deve contenere almeno una forest unit valida" });
+    }
+
+    const addedUnits = [];
+
+    for (const unit of data) {
+      const { forestUnitId, accountId, trees = {}, woodLogs = {}, sawnTimbers = {} } = unit;
+
+      if (!forestUnitId || !accountId) {
+        console.warn("⚠️ Forest unit ignorata: manca forestUnitId o accountId");
+        continue;
+      }
+
+      // Se non esiste ancora, inizializza la forest unit
+      if (!forestUnits[forestUnitId]) {
+        forestUnits[forestUnitId] = { accountId, trees: {}, woodLogs: {}, sawnTimbers: {} };
+      }
+
+      const current = forestUnits[forestUnitId];
+      current.accountId = accountId;
+
+      // Funzione per agganciare sawnTimbers a tronchi
+      const attachSawnTimbers = (log, stList) => {
+        for (const [stId, st] of Object.entries(stList)) {
+          current.sawnTimbers[stId] = st;
+          if (!log.sawnTimbers) log.sawnTimbers = {};
+          log.sawnTimbers[stId] = st;
+        }
+      };
+
+      // Aggiungi alberi e i loro woodLogs e sawnTimbers
+      for (const [treeId, tree] of Object.entries(trees)) {
+        current.trees[treeId] = tree;
+
+        if (tree.woodLogs) {
+          for (const [logId, log] of Object.entries(tree.woodLogs)) {
+            current.woodLogs[logId] = log;
+            if (!current.trees[treeId].woodLogs) current.trees[treeId].woodLogs = {};
+            current.trees[treeId].woodLogs[logId] = log;
+
+            if (log.sawnTimbers) attachSawnTimbers(log, log.sawnTimbers);
+          }
+        }
+      }
+
+      // Aggiungi woodLogs di primo livello
+      for (const [logId, log] of Object.entries(woodLogs)) {
+        current.woodLogs[logId] = log;
+
+        // Aggancia a parentTree se presente
+        if (log.parentTree && current.trees[log.parentTree]) {
+          if (!current.trees[log.parentTree].woodLogs) current.trees[log.parentTree].woodLogs = {};
+          current.trees[log.parentTree].woodLogs[logId] = log;
+        }
+
+        if (log.sawnTimbers) attachSawnTimbers(log, log.sawnTimbers);
+      }
+
+      // Aggiungi sawnTimbers di primo livello
+      for (const [stId, st] of Object.entries(sawnTimbers)) {
+        current.sawnTimbers[stId] = st;
+
+        // Aggancia al parentWoodLog se presente
+        if (st.parentWoodLog && current.woodLogs[st.parentWoodLog]) {
+          if (!current.woodLogs[st.parentWoodLog].sawnTimbers) current.woodLogs[st.parentWoodLog].sawnTimbers = {};
+          current.woodLogs[st.parentWoodLog].sawnTimbers[stId] = st;
+        }
+      }
+
+      addedUnits.push(forestUnitId);
+    }
+
+    res.json({
+      message: "✅ Forest unit aggiunte correttamente",
+      addedUnits,
+      total: addedUnits.length
+    });
+  } catch (err) {
+    console.error("❌ Errore durante addForestUnit:", err);
+    res.status(500).json({ error: "Errore durante addForestUnit", details: err.message });
+  }
+});
 
 // 1️⃣ GET: ottieni forest units per account
 app.get("/api/forest-units/:account", (req, res) => {
@@ -113,6 +206,14 @@ app.get("/api/forest-units/:account", (req, res) => {
     .map(key => ({ forestUnitId: key, ...forestUnits[key] }));
   res.json(units);
 });
+
+app.get("/api/forest-units/full/:forestUnitId", (req, res) => {
+  const { forestUnitId } = req.params;
+  const unit = forestUnits[forestUnitId];
+  if (!unit) return res.status(404).json({ error: "ForestUnit non trovata" });
+  res.json(unit);
+});
+
 
 // 2️⃣ POST: aggiungi albero
 app.post("/api/forest-units/:forestUnitId/tree", (req, res) => {
@@ -303,7 +404,7 @@ app.post("/api/forest-units/unified", async (req, res) => {
   }
 });
 
-// 6️⃣ POST: verifica integrità batch da IPFS e on-chain (versione robusta)
+// 6️⃣ POST: verifica integrità batch da IPFS e on-chain (versione robusta migliorata)
 app.post("/api/forest-units/verify", async (req, res) => {
   try {
     const { forestUnitId, ipfsHash: providedIpfsHash } = req.body;
@@ -316,37 +417,43 @@ app.post("/api/forest-units/verify", async (req, res) => {
     let ipfsHashOnChain = null;
     try {
       const result = await contract.getForestData(forestUnitId);
-      // ethers v6 restituisce valori default se non registrato
-      if (result[2] && result[2] !== 0) {
+      if (result && result[0] && result[0] !== ethers.ZeroHash) {
         merkleRootOnChain = result[0];
         ipfsHashOnChain = result[1];
       } else {
-        console.warn(`⚠️ ForestUnit ${forestUnitId} non registrata on-chain`);
+        console.warn(`⚠️ Nessun dato on-chain trovato per ${forestUnitId}`);
       }
     } catch (err) {
-      console.warn("⚠️ Errore recupero dati on-chain:", err.message);
+      console.warn(`⚠️ Errore recupero dati on-chain: ${err.message}`);
     }
 
     const finalIpfsHash = providedIpfsHash || ipfsHashOnChain;
     let batch = null;
 
+    // --- 1️⃣ Tentativo download da IPFS
     if (finalIpfsHash) {
       const gateways = [
         `https://ipfs.io/ipfs/${finalIpfsHash}`,
-        `http://ipfs.io/ipfs/${finalIpfsHash}`,
         `https://cloudflare-ipfs.com/ipfs/${finalIpfsHash}`,
-        `http://cloudflare-ipfs.com/ipfs/${finalIpfsHash}`,
-        `https://dweb.link/ipfs/${finalIpfsHash}`
+        `https://dweb.link/ipfs/${finalIpfsHash}`,
+        `https://gateway.pinata.cloud/ipfs/${finalIpfsHash}`
       ];
 
-      // --- Prova tutti i gateway
       for (const url of gateways) {
         try {
           console.log(`⬇️  Tentativo download da IPFS: ${url}`);
           const response = await fetch(url);
           if (response.ok) {
             batch = await response.json();
-            break; // successo
+
+            // 🔽 Salva il batch in locale per uso futuro
+            const localDir = path.join(__dirname, "batches");
+            if (!fs.existsSync(localDir)) fs.mkdirSync(localDir);
+            const localFile = path.join(localDir, `${forestUnitId}.json`);
+            fs.writeFileSync(localFile, JSON.stringify(batch, null, 2));
+            console.log(`💾 Batch salvato localmente in ${localFile}`);
+
+            break; // download riuscito, esci dal ciclo
           } else {
             console.warn(`⚠️ Fallito da ${url}: HTTP ${response.status}`);
           }
@@ -356,15 +463,29 @@ app.post("/api/forest-units/verify", async (req, res) => {
       }
     }
 
-    // --- Se IPFS fallisce, prova lettura locale
+    // --- 2️⃣ Se IPFS fallisce, prova lettura locale
     if (!batch) {
-      try {
-        const localPath = path.join(__dirname, "batches", `${forestUnitId}.json`);
-        console.log(`⬇️  Tentativo download locale: ${localPath}`);
-        const data = fs.readFileSync(localPath, "utf-8");
+      const possiblePaths = [
+        path.join(__dirname, "batches", `${forestUnitId}.json`),
+        path.join(__dirname, "file-json", `${forestUnitId}-unified-batch.json`)
+      ];
+
+      let foundPath = null;
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+          foundPath = p;
+          break;
+        }
+      }
+
+      if (foundPath) {
+        console.log(`📂 Lettura batch locale da: ${foundPath}`);
+        const data = fs.readFileSync(foundPath, "utf-8");
         batch = JSON.parse(data);
-      } catch (err) {
-        return res.status(404).json({ error: `Impossibile recuperare il batch da IPFS o localmente: ${err.message}` });
+      } else {
+        return res.status(404).json({
+          error: `Impossibile recuperare il batch da IPFS o localmente: file non trovato (${forestUnitId}.json)`
+        });
       }
     }
 
@@ -372,12 +493,12 @@ app.post("/api/forest-units/verify", async (req, res) => {
       return res.status(400).json({ error: "Batch vuoto o non valido" });
     }
 
-    // --- Ricostruisci gli hash locali
+    // --- 3️⃣ Ricostruisci gli hash locali
     const leaves = batch.map(item => hashUnified(item));
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const recalculatedRoot = "0x" + merkleTree.getRoot().toString("hex");
 
-    // --- Confronta con root on-chain se presente
+    // --- 4️⃣ Confronto con root on-chain
     let verified = null;
     let message = "⚠️ ForestUnit non ancora registrata on-chain, impossibile verificare root.";
     if (merkleRootOnChain) {
@@ -398,8 +519,104 @@ app.post("/api/forest-units/verify", async (req, res) => {
 
   } catch (err) {
     console.error("❌ Errore verifica Merkle Root:", err);
-    res.status(500).json({ error: "Errore durante la verifica Merkle Root", details: err.message });
+    res.status(500).json({
+      error: "Errore durante la verifica Merkle Root",
+      details: err.message
+    });
   }
 });
+
+// 7️⃣ Verifica automatica periodica di integrità delle forest unit
+async function verifyBatchIntegrity(forestUnitId) {
+  try {
+    console.log(`🔍 Avvio controllo integrità per ${forestUnitId}...`);
+
+    // --- Recupera dati on-chain
+    const result = await contract.getForestData(forestUnitId);
+    const merkleRootOnChain = result[0];
+    const ipfsHashOnChain = result[1];
+
+    if (!merkleRootOnChain || merkleRootOnChain === ethers.ZeroHash) {
+      console.warn(`⚠️ Nessuna root registrata on-chain per ${forestUnitId}`);
+      return { forestUnitId, verified: false, message: "ForestUnit non registrata on-chain" };
+    }
+
+    // --- Recupera batch (locale o IPFS)
+    const localPaths = [
+      path.join(__dirname, "batches", `${forestUnitId}.json`),
+      path.join(__dirname, "file-json", `${forestUnitId}-unified-batch.json`)
+    ];
+
+    let batch = null;
+    for (const p of localPaths) {
+      if (fs.existsSync(p)) {
+        const raw = fs.readFileSync(p, "utf-8");
+        batch = JSON.parse(raw);
+        console.log(`📂 Batch locale trovato: ${p}`);
+        break;
+      }
+    }
+
+    if (!batch) {
+      console.log(`⬇️ Nessun batch locale trovato, tentativo download da IPFS (${ipfsHashOnChain})...`);
+      batch = await fetchFromIPFS(ipfsHashOnChain);
+      const dir = path.join(__dirname, "batches");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+      fs.writeFileSync(path.join(dir, `${forestUnitId}.json`), JSON.stringify(batch, null, 2));
+      console.log("💾 Batch scaricato e salvato localmente.");
+    }
+
+    // --- Ricostruisci Merkle Root locale
+    const leaves = batch.map(item => hashUnified(item));
+    const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+    const localRoot = "0x" + merkleTree.getRoot().toString("hex");
+
+    // --- Confronto
+    const verified = localRoot.toLowerCase() === merkleRootOnChain.toLowerCase();
+
+    const resultObj = {
+      forestUnitId,
+      ipfsHash: ipfsHashOnChain,
+      localRoot,
+      merkleRootOnChain,
+      verified,
+      message: verified
+        ? "✅ Dati integri: Merkle Root locale e on-chain coincidono."
+        : "⚠️ Discrepanza rilevata! Merkle Root differente da quella on-chain."
+    };
+
+    console.log(resultObj.message);
+    return resultObj;
+
+  } catch (err) {
+    console.error(`❌ Errore nella verifica di ${forestUnitId}:`, err.message);
+    return { forestUnitId, verified: false, message: "Errore durante verifica: " + err.message };
+  }
+}
+
+// API per controllo integrità (manuale)
+app.get("/api/check-integrity/:forestUnitId", async (req, res) => {
+  const { forestUnitId } = req.params;
+  const result = await verifyBatchIntegrity(forestUnitId);
+  res.json(result);
+});
+
+// ⏱️ Verifica automatica ogni 10 minuti per tutte le forest unit note
+setInterval(async () => {
+  console.log("⏱️ Avvio controllo automatico integrità di tutte le forest unit note...");
+  const allUnits = Object.keys(forestUnits);
+  if (allUnits.length === 0) {
+    console.log("ℹ️ Nessuna forest unit presente in memoria, skip.");
+    return;
+  }
+
+  for (const fid of allUnits) {
+    const result = await verifyBatchIntegrity(fid);
+    if (!result.verified) {
+      console.log(`🚨 ALERT: Dati alterati o non coerenti per ${fid}!`);
+    }
+  }
+}, 10 * 60 * 1000); // ogni 10 minuti
+
 
 app.listen(port, () => console.log(`Server avviato su http://localhost:${port}`));
