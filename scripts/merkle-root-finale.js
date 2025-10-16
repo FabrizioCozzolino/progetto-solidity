@@ -201,21 +201,22 @@ async function main() {
   const batch = [];
   const leaves = [];
   const seenEpcs = new Set();
+   const formatDate = d => d ? new Date(d).toISOString() : "";
 
   for (const treeId of Object.keys(treesDict)) {
     const t = treesDict[treeId];
-    const treeEpc = t.domainUUID || t.domainUuid || t.epc || treeId;
+    const treeEpc = t.EPC || t.epc || t.domainUUID || t.domainUuid || treeKey;
 
     const treeObj = {
       type: "Tree",
       epc: treeEpc,
-      firstReading: t.firstReadingTime ? Math.floor(new Date(t.firstReadingTime).getTime() / 1000) : 0,
+      firstReading: formatDate(t.firstReadingTime),
       treeType: t.treeType?.specie || t.treeTypeId || t.specie || "Unknown",
       coordinates: t.coordinates ? `${t.coordinates.latitude || t.coordinates.lat || ""},${t.coordinates.longitude || t.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
       notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : t.notes || "",
       observations: getObservations(t),
       forestUnitId: selectedForestKey,
-      domainUUID: treeEpc,
+      domainUUID: t.domainUUID || t.domainUuid,
       deleted: t.deleted || false,
       lastModification: t.lastModification || t.lastModfication || ""
     };
@@ -236,7 +237,7 @@ async function main() {
       const logObj = {
         type: "WoodLog",
         epc: logEpc,
-        firstReading: log.firstReadingTime ? Math.floor(new Date(log.firstReadingTime).getTime() / 1000) : 0,
+        firstReading: formatDate(log.firstReadingTime),
         treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
         logSectionNumber: log.logSectionNumber || 1,
         parentTree: treeEpc,
@@ -244,7 +245,7 @@ async function main() {
         notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : log.notes || "",
         observations: getObservations(log),
         forestUnitId: selectedForestKey,
-        domainUUID: log.domainUUID || log.domainUuid || logEpc,
+        domainUUID: log.domainUUID || log.domainUuid,
         deleted: log.deleted || false,
         lastModification: log.lastModification || log.lastModfication || ""
       };
@@ -264,7 +265,7 @@ async function main() {
         const stObj = {
           type: "SawnTimber",
           epc: stEpc,
-          firstReading: st?.firstReadingTime ? Math.floor(new Date(st.firstReadingTime).getTime() / 1000) : 0,
+          firstReading: formatDate(st.firstReadingTime),
           treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
           parentTreeEpc: treeEpc,
           parentWoodLog: logEpc,
@@ -272,7 +273,7 @@ async function main() {
           notes: Array.isArray(st?.notes) ? st.notes.map(n => n.description || n).join("; ") : st?.notes || "",
           observations: getObservations(st || {}),
           forestUnitId: selectedForestKey,
-          domainUUID: st?.domainUUID || st?.domainUuid || stEpc,
+          domainUUID: st?.domainUUID || st?.domainUuid,
           deleted: st?.deleted || false,
           lastModification: st?.lastModification || st?.lastModfication || "",
         };
@@ -289,35 +290,39 @@ async function main() {
   }
 
   const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
-  const root = merkleTree.getHexRoot();
-  console.log(`\n🔑 Merkle Root: ${root}`);
+const root = merkleTree.getHexRoot();
+console.log(`\n🔑 Merkle Root: ${root}`);
 
-  const gasEstimate = await hre.ethers.provider.estimateGas({
-    to: CONTRACT_ADDRESS,
-    data: contract.interface.encodeFunctionData(
-      "setMerkleRootUnified(string,bytes32)",
-      [selectedForestKey, root]
-    ),
-    from: await signer.getAddress()
-  });
-  const feeData = await hre.ethers.provider.getFeeData();
-  const gasPrice = feeData.gasPrice || ethers.parseUnits("20", "gwei");
-  const gasCostWei = gasEstimate * gasPrice;
-  const gasCostEth = Number(ethers.formatEther(gasCostWei.toString()));
-  const ethPrice = await getEthPriceInEuro();
-  console.log(`⛽ Gas stimato: ${gasEstimate.toString()} | Costo: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
+// --- Stima del gas usando registerForestData (non setMerkleRootUnified) ---
+const gasEstimate = await hre.ethers.provider.estimateGas({
+  to: CONTRACT_ADDRESS,
+  data: contract.interface.encodeFunctionData(
+    "registerForestData",
+    [selectedForestKey, root, ""] // IPFS vuoto se non vuoi salvare il JSON
+  ),
+  from: await signer.getAddress()
+});
 
-  console.log("⏳ Invio transazione per aggiornare Merkle Root...");
-  const txResponse = await contract["setMerkleRootUnified(string,bytes32)"](selectedForestKey, root);
-  const receipt = await txResponse.wait();
-  console.log(`✅ Root aggiornata con successo!`);
-  console.log(`🔗 Tx hash: ${receipt.transactionHash}`);
-  console.log(`Block number: ${receipt.blockNumber}`);
+const feeData = await hre.ethers.provider.getFeeData();
+const gasPrice = feeData.gasPrice || ethers.parseUnits("20", "gwei");
+const gasCostWei = gasEstimate * gasPrice;
+const gasCostEth = Number(ethers.formatEther(gasCostWei.toString()));
+const ethPrice = await getEthPriceInEuro();
+console.log(`⛽ Gas stimato: ${gasEstimate.toString()} | Costo: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`);
 
-  const outputDir = path.join(__dirname, "..", "file-json");
-  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-  fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(batch, null, 2));
-  console.log("💾 Salvato: forest-unified-batch.json");
+console.log("⏳ Invio transazione per registrare la Forest Data...");
+const txResponse = await contract.registerForestData(selectedForestKey, root, "");
+const receipt = await txResponse.wait();
+
+console.log(`✅ Forest Data registrata con successo!`);
+console.log(`🔗 Tx hash: ${receipt.transactionHash}`);
+console.log(`Block number: ${receipt.blockNumber}`);
+
+// --- Salvataggio batch JSON ---
+const outputDir = path.join(__dirname, "..", "file-json");
+if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+fs.writeFileSync(path.join(outputDir, "forest-unified-batch.json"), JSON.stringify(batch, null, 2));
+console.log("💾 Salvato: forest-unified-batch.json");
 }
 
 main().catch(e => {
