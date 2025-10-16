@@ -259,7 +259,6 @@ app.post("/api/forest-units/:forestUnitId/sawntimber", (req, res) => {
   res.json({ message: "SawnTimber aggiunto", key });
 });
 
-// POST: unifica forest unit, upload su IPFS e registra on-chain
 app.post("/api/forest-units/unified", async (req, res) => {
   const { forestUnitId, accountId } = req.body;
 
@@ -281,43 +280,53 @@ app.post("/api/forest-units/unified", async (req, res) => {
     const seenEpcs = new Set();
 
     const processObservations = obj => getObservations(obj);
+    const formatDate = d => d ? new Date(d).toISOString() : "";
 
-    // --- Batch completo (Trees + WoodLogs + SawnTimbers)
-    for (const treeId of Object.keys(unit.trees)) {
-      const t = unit.trees[treeId];
-      const treeEpc = t.domainUUID || t.domainUuid || t.epc || treeId;
+    // --- Funzione per fissare forestUnitId su ogni elemento
+    const fixForestUnitId = obj => {
+      if (obj.forestUnitId && obj.forestUnitId !== forestUnitId) {
+        console.warn(`⚠️ Correzione forestUnitId per ${obj.type || "elemento"}: ${obj.forestUnitId} → ${forestUnitId}`);
+      }
+      obj.forestUnitId = forestUnitId;
+    };
+
+    // --- Ciclo su Trees
+    for (const treeKey of Object.keys(unit.trees)) {
+      const t = unit.trees[treeKey];
+      const treeEpc = t.EPC || t.epc || t.domainUUID || t.domainUuid || treeKey;
 
       const treeObj = {
         type: "Tree",
         epc: treeEpc,
-        firstReading: t.firstReadingTime ? Math.floor(new Date(t.firstReadingTime).getTime() / 1000) : 0,
+        firstReading: formatDate(t.firstReadingTime),
         treeType: t.treeType?.specie || t.treeTypeId || t.specie || "Unknown",
         coordinates: t.coordinates ? `${t.coordinates.latitude || t.coordinates.lat || ""},${t.coordinates.longitude || t.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
         notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : t.notes || "",
         observations: processObservations(t),
-        forestUnitId,
-        domainUUID: treeEpc,
+        forestUnitId, // sarà corretto se necessario
+        domainUUID: t.domainUUID || t.domainUuid || treeEpc,
         deleted: t.deleted || false,
-        lastModification: t.lastModification || t.lastModfication || ""
+        lastModification: formatDate(t.lastModification)
       };
 
+      fixForestUnitId(treeObj);
       batch.push(treeObj);
       leaves.push(hashUnified(treeObj));
       seenEpcs.add(treeEpc);
 
-      // WoodLogs
+      // --- Ciclo su WoodLogs figli
       const treeLogs = t.woodLogs || {};
       for (const logKey of Object.keys(treeLogs)) {
         let log = treeLogs[logKey];
         if (typeof log === "string") log = (unit.woodLogs && unit.woodLogs[log]) || {};
-        const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID, treeEpc);
+        const logEpc = log.EPC || log.epc || log.domainUUID || log.domainUuid || logKey;
         if (seenEpcs.has(logEpc)) continue;
         seenEpcs.add(logEpc);
 
         const logObj = {
           type: "WoodLog",
           epc: logEpc,
-          firstReading: log.firstReadingTime ? Math.floor(new Date(log.firstReadingTime).getTime() / 1000) : 0,
+          firstReading: formatDate(log.firstReadingTime),
           treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
           logSectionNumber: log.logSectionNumber || 1,
           parentTree: treeEpc,
@@ -327,38 +336,39 @@ app.post("/api/forest-units/unified", async (req, res) => {
           forestUnitId,
           domainUUID: log.domainUUID || log.domainUuid || logEpc,
           deleted: log.deleted || false,
-          lastModification: log.lastModification || log.lastModfication || ""
+          lastModification: formatDate(log.lastModification)
         };
 
+        fixForestUnitId(logObj);
         batch.push(logObj);
         leaves.push(hashUnified(logObj));
 
-        // SawnTimbers
+        // --- Ciclo su SawnTimbers figli del WoodLog
         const sawnTimbersObj = log.sawnTimbers || {};
         for (const stKey of Object.keys(sawnTimbersObj)) {
           let st = sawnTimbersObj[stKey];
           if (typeof st === "string") st = (unit.sawnTimbers && unit.sawnTimbers[st]) || { EPC: st };
-
-          const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey, logEpc);
+          const stEpc = st.EPC || st.epc || st.domainUUID || st.domainUuid || stKey;
           if (seenEpcs.has(stEpc)) continue;
           seenEpcs.add(stEpc);
 
           const stObj = {
             type: "SawnTimber",
             epc: stEpc,
-            firstReading: st?.firstReadingTime ? Math.floor(new Date(st.firstReadingTime).getTime() / 1000) : 0,
+            firstReading: formatDate(st.firstReadingTime),
             treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
             parentTreeEpc: treeEpc,
             parentWoodLog: logEpc,
-            coordinates: st?.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
-            notes: Array.isArray(st?.notes) ? st.notes.map(n => n.description || n).join("; ") : st?.notes || "",
-            observations: processObservations(st || {}),
+            coordinates: st.coordinates ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "") : "",
+            notes: Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : st.notes || "",
+            observations: processObservations(st),
             forestUnitId,
-            domainUUID: st?.domainUUID || st?.domainUuid || stEpc,
-            deleted: st?.deleted || false,
-            lastModification: st?.lastModification || st?.lastModfication || ""
+            domainUUID: st.domainUUID || st.domainUuid || stEpc,
+            deleted: st.deleted || false,
+            lastModification: formatDate(st.lastModification)
           };
 
+          fixForestUnitId(stObj);
           batch.push(stObj);
           leaves.push(hashUnified(stObj));
         }
@@ -369,11 +379,18 @@ app.post("/api/forest-units/unified", async (req, res) => {
       return res.status(400).json({ error: "Impossibile generare Merkle root: nessun elemento valido" });
     }
 
-    // --- Generazione Merkle root unificata
+    // --- Controllo finale di forestUnitId su tutti gli elementi (extra sicurezza)
+    const checkAndFixForestUnitId = batch => {
+      const mismatches = batch.filter(item => item.forestUnitId && item.forestUnitId !== forestUnitId);
+      mismatches.forEach(item => (item.forestUnitId = forestUnitId));
+      console.log(`ℹ️ Totale elementi controllati/corretti: ${mismatches.length}`);
+    };
+    checkAndFixForestUnitId(batch);
+
+    // --- Generazione Merkle Tree
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const root = "0x" + merkleTree.getRoot().toString("hex");
 
-    // --- Salvataggio JSON locale
     const outputDir = path.join(__dirname, "file-json");
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
     const filePath = path.join(outputDir, `${forestUnitId}-unified-batch.json`);
@@ -382,19 +399,17 @@ app.post("/api/forest-units/unified", async (req, res) => {
     // --- Upload su IPFS
     const ipfsResult = await ipfs.add(fs.readFileSync(filePath));
     const ipfsHash = ipfsResult.path;
-
     console.log(`✅ File caricato su IPFS: ${ipfsHash}`);
 
     // --- Registrazione su blockchain
     const tx = await contract.registerForestData(forestUnitId, root, ipfsHash);
-    const receipt = await tx.wait();
+    await tx.wait();
 
     res.json({
-      message: "ForestUnit registrata correttamente su blockchain",
+      message: "ForestUnit unificata correttamente",
       forestUnitId,
       merkleRoot: root,
-      ipfsHash,
-      txHash: receipt.transactionHash,
+      batchFile: filePath,
       batchSize: batch.length
     });
 
@@ -430,40 +445,6 @@ app.post("/api/forest-units/verify", async (req, res) => {
     const finalIpfsHash = providedIpfsHash || ipfsHashOnChain;
     let batch = null;
 
-    // --- 1️⃣ Tentativo download da IPFS
-    if (finalIpfsHash) {
-      const gateways = [
-        `https://ipfs.io/ipfs/${finalIpfsHash}`,
-        `https://cloudflare-ipfs.com/ipfs/${finalIpfsHash}`,
-        `https://dweb.link/ipfs/${finalIpfsHash}`,
-        `https://gateway.pinata.cloud/ipfs/${finalIpfsHash}`
-      ];
-
-      for (const url of gateways) {
-        try {
-          console.log(`⬇️  Tentativo download da IPFS: ${url}`);
-          const response = await fetch(url);
-          if (response.ok) {
-            batch = await response.json();
-
-            // 🔽 Salva il batch in locale per uso futuro
-            const localDir = path.join(__dirname, "batches");
-            if (!fs.existsSync(localDir)) fs.mkdirSync(localDir);
-            const localFile = path.join(localDir, `${forestUnitId}.json`);
-            fs.writeFileSync(localFile, JSON.stringify(batch, null, 2));
-            console.log(`💾 Batch salvato localmente in ${localFile}`);
-
-            break; // download riuscito, esci dal ciclo
-          } else {
-            console.warn(`⚠️ Fallito da ${url}: HTTP ${response.status}`);
-          }
-        } catch (err) {
-          console.warn(`⚠️ Fallito da ${url}: ${err.message}`);
-        }
-      }
-    }
-
-    // --- 2️⃣ Se IPFS fallisce, prova lettura locale
     if (!batch) {
       const possiblePaths = [
         path.join(__dirname, "batches", `${forestUnitId}.json`),
