@@ -4997,5 +4997,48 @@
     "domainUUID": "E280689120000000618C3143",
     "deleted": false,
     "lastModification": ""
+  },
+  {
+    "type": "Tree",
+    "epc": "TREE123",
+    "firstReading": "2025-09-26T00:00:00.000Z",
+    "treeType": "DOUGLASFIR",
+    "coordinates": "",
+    "notes": "Nuovo albero",
+    "observations": "Crescita: 5 cm",
+    "forestUnitId": "FU001",
+    "domainUUID": "TREE123",
+    "deleted": false,
+    "lastModification": ""
+  },
+  {
+    "type": "WoodLog",
+    "epc": "WOODLOG123",
+    "firstReading": "2025-09-26T00:00:00.000Z",
+    "treeType": "DOUGLASFIR",
+    "logSectionNumber": 1,
+    "parentTree": "TREE123",
+    "coordinates": "",
+    "notes": "",
+    "observations": "Taglio: 1 pezzo",
+    "forestUnitId": "FU001",
+    "domainUUID": "WOODLOG123",
+    "deleted": false,
+    "lastModification": ""
+  },
+  {
+    "type": "SawnTimber",
+    "epc": "SAWNTIMBER123",
+    "firstReading": "2025-09-26T00:00:00.000Z",
+    "treeType": "DOUGLASFIR",
+    "parentTreeEpc": "TREE123",
+    "parentWoodLog": "WOODLOG123",
+    "coordinates": "",
+    "notes": "",
+    "observations": "Sezionatura: 2 pezzi",
+    "forestUnitId": "FU001",
+    "domainUUID": "SAWNTIMBER123",
+    "deleted": false,
+    "lastModification": ""
   }
 ]
