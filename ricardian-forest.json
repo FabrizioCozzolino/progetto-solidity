@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "type": "RicardianForestTracking",
+  "jurisdiction": [
+    "IT",
+    "EU"
+  ],
+  "actors": {
+    "dataOwner": "TopView Srl",
+    "dataProducer": "Operatore drone",
+    "dataConsumer": "Cliente finale"
+  },
+  "purpose": "Tracciabilità e prova di integrità dei dati forestali",
+  "scope": {
+    "forestUnitKey": "Vallombrosa",
+    "includedData": [
+      "trees",
+      "wood_logs",
+      "sawn_timbers"
+    ]
+  },
+  "technical": {
+    "merkleRootUnified": "0x02dd4b3cbb8606e5e99268ebb51ee62bd8e48d78b4e9037d70174a477f18b7f1",
+    "batchFormat": "JSON",
+    "storage": "IPFS"
+  },
+  "legal": {
+    "legalValue": "Probatorio",
+    "statement": "L'hash on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+  },
+  "timestamps": {
+    "createdAt": "2026-01-19T12:46:22.017Z"
+  }
+}

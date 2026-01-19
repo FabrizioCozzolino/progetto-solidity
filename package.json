@@ -18,9 +18,11 @@
     "@ethersproject/signing-key": "^5.8.0",
     "@noble/secp256k1": "^2.3.0",
     "@openzeppelin/contracts": "^5.4.0",
-    "dotenv": "^17.2.1",
-    "ethers": "^6.15.0",
+    "dotenv": "^17.2.3",
+    "ethers": "^6.16.0",
+    "ipfs-http-client": "^56.0.2",
     "keccak256": "^1.0.6",
-    "merkletreejs": "^0.5.2"
+    "merkletreejs": "^0.5.2",
+    "web3.storage": "^4.5.5"
   }
 }
