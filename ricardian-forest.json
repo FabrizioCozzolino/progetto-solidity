@@ -5,6 +5,7 @@
     "IT",
     "EU"
   ],
+  "governingLaw": "Diritto italiano ed europeo",
   "actors": {
     "dataOwner": "TopView Srl",
     "dataProducer": "Operatore drone",
@@ -19,16 +20,30 @@
       "sawn_timbers"
     ]
   },
+  "humanReadableAgreement": {
+    "language": "it",
+    "text": "Il presente accordo disciplina la raccolta, la registrazione, la conservazione\ne la verifica dell’integrità dei dati forestali relativi all’unità forestale\n\"Vallombrosa\".\n\nLe parti riconoscono che il dataset è memorizzato off-chain e che l’hash\ncrittografico registrato su blockchain costituisce prova di esistenza,\nimmutabilità e integrità dei dati alla data di registrazione.\n\nIl presente documento è strutturato come contratto ricardiano, essendo\ninterpretabile sia da esseri umani sia da sistemi automatici."
+  },
+  "rightsAndDuties": {
+    "dataOwner": "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
+    "dataProducer": "Garantisce la correttezza della raccolta e l'origine dei dati",
+    "dataConsumer": "Può verificare l’integrità dei dati ma non modificarli"
+  },
   "technical": {
     "merkleRootUnified": "0x02dd4b3cbb8606e5e99268ebb51ee62bd8e48d78b4e9037d70174a477f18b7f1",
     "batchFormat": "JSON",
-    "storage": "IPFS"
+    "storage": "IPFS",
+    "hashAlgorithm": "keccak256"
   },
   "legal": {
     "legalValue": "Probatorio",
-    "statement": "L'hash on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+    "statement": "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+  },
+  "hashBinding": {
+    "bindsHumanReadableText": true,
+    "bindsDatasetMerkleRoot": true
   },
   "timestamps": {
-    "createdAt": "2026-01-19T12:46:22.017Z"
+    "createdAt": "2026-01-26T12:26:45.615Z"
   }
 }

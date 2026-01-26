@@ -213,33 +213,75 @@ async function main() {
   console.log("\n🔑 Merkle Root:", root);
 
   // --------------------
-  // 4) RICARDIAN JSON
-  // --------------------
-  const ricardianForest = {
-    version: "1.0",
-    type: "RicardianForestTracking",
-    jurisdiction: ["IT", "EU"],
-    actors: {
-      dataOwner: "TopView Srl",
-      dataProducer: "Operatore drone",
-      dataConsumer: "Cliente finale"
-    },
-    purpose: "Tracciabilità e prova di integrità dei dati forestali",
-    scope: {
-      forestUnitKey: selectedForestKey,
-      includedData: ["trees", "wood_logs", "sawn_timbers"]
-    },
-    technical: {
-      merkleRootUnified: root,
-      batchFormat: "JSON",
-      storage: "IPFS"
-    },
-    legal: {
-      legalValue: "Probatorio",
-      statement: "L'hash on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
-    },
-    timestamps: { createdAt: new Date().toISOString() }
-  };
+// 4) RICARDIAN JSON
+// --------------------
+const ricardianForest = {
+  version: "1.0",
+  type: "RicardianForestTracking",
+
+  jurisdiction: ["IT", "EU"],
+  governingLaw: "Diritto italiano ed europeo",
+
+  actors: {
+    dataOwner: "TopView Srl",
+    dataProducer: "Operatore drone",
+    dataConsumer: "Cliente finale"
+  },
+
+  purpose: "Tracciabilità e prova di integrità dei dati forestali",
+
+  scope: {
+    forestUnitKey: selectedForestKey,
+    includedData: ["trees", "wood_logs", "sawn_timbers"]
+  },
+
+  // ---- TESTO LEGALE HUMAN-READABLE (fondamentale)
+  humanReadableAgreement: {
+    language: "it",
+    text: `
+Il presente accordo disciplina la raccolta, la registrazione, la conservazione
+e la verifica dell’integrità dei dati forestali relativi all’unità forestale
+"${selectedForestKey}".
+
+Le parti riconoscono che il dataset è memorizzato off-chain e che l’hash
+crittografico registrato su blockchain costituisce prova di esistenza,
+immutabilità e integrità dei dati alla data di registrazione.
+
+Il presente documento è strutturato come contratto ricardiano, essendo
+interpretabile sia da esseri umani sia da sistemi automatici.
+`.trim()
+  },
+
+  // ---- DIRITTI E DOVERI (chi fa cosa)
+  rightsAndDuties: {
+    dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
+    dataProducer: "Garantisce la correttezza della raccolta e l'origine dei dati",
+    dataConsumer: "Può verificare l’integrità dei dati ma non modificarli"
+  },
+
+  technical: {
+    merkleRootUnified: root,
+    batchFormat: "JSON",
+    storage: "IPFS",
+    hashAlgorithm: "keccak256"
+  },
+
+  legal: {
+    legalValue: "Probatorio",
+    statement:
+      "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+  },
+
+  // ---- COLLEGAMENTO CRITTOGRAFICO TESTO ↔ DATI
+  hashBinding: {
+    bindsHumanReadableText: true,
+    bindsDatasetMerkleRoot: true
+  },
+
+  timestamps: {
+    createdAt: new Date().toISOString()
+  }
+};
 
   // --------------------
   // 5) UPLOAD SU IPFS (solo se USE_IPFS=true)
