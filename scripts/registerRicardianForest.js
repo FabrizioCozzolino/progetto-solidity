@@ -6,6 +6,7 @@ const IPFS = require("ipfs-http-client");
 const axios = require("axios");
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
+const PDFDocument = require("pdfkit");
 
 // --------------------
 // FLAG IPFS (env)
@@ -69,6 +70,77 @@ async function fetchFromIPFS(ipfsUri) {
   const fileContent = Buffer.concat(chunks).toString();
   return JSON.parse(fileContent);
 }
+
+async function getEthPriceInEuro() {
+  try {
+    const res = await axios.get(
+      "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur"
+    );
+    return res.data.ethereum.eur;
+  } catch {
+    console.warn("⚠️ Errore recupero ETH/EUR, uso default 3000");
+    return 3000;
+  }
+}
+
+function generateRicardianPdf(ricardian, outPath) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    const stream = fs.createWriteStream(outPath);
+    doc.pipe(stream);
+
+    doc.fontSize(18).text("Ricardian Contract - Forest Tracking", { align: "center" });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Type: ${ricardian.type}`);
+    doc.text(`Version: ${ricardian.version}`);
+    doc.text(`Jurisdiction: ${(ricardian.jurisdiction || []).join(", ")}`);
+    if (ricardian.governingLaw) doc.text(`Governing law: ${ricardian.governingLaw}`);
+    doc.moveDown();
+
+    doc.fontSize(14).text("Actors", { underline: true });
+    doc.fontSize(12).text(`Data owner: ${ricardian.actors?.dataOwner || ""}`);
+    doc.text(`Data producer: ${ricardian.actors?.dataProducer || ""}`);
+    doc.text(`Data consumer: ${ricardian.actors?.dataConsumer || ""}`);
+    doc.moveDown();
+
+    doc.fontSize(14).text("Scope", { underline: true });
+    doc.fontSize(12).text(`Forest unit key: ${ricardian.scope?.forestUnitKey || ""}`);
+    doc.text(`Included data: ${(ricardian.scope?.includedData || []).join(", ")}`);
+    doc.moveDown();
+
+    doc.fontSize(14).text("Human-readable agreement", { underline: true });
+    doc.fontSize(12).text(ricardian.humanReadableAgreement?.text || "", {
+      align: "left"
+    });
+    doc.moveDown();
+
+    doc.fontSize(14).text("Technical bindings", { underline: true });
+    doc.fontSize(12).text(`Merkle root: ${ricardian.technical?.merkleRootUnified || ""}`);
+    doc.text(`Hash algorithm: ${ricardian.technical?.hashAlgorithm || ""}`);
+    doc.text(`Storage: ${ricardian.technical?.storage || ""}`);
+    if (ricardian.ipfsUri) doc.text(`IPFS URI: ${ricardian.ipfsUri}`);
+    if (ricardian.ricardianHash) doc.text(`Ricardian hash (base): ${ricardian.ricardianHash}`);
+    doc.moveDown();
+
+    if (ricardian.signature?.eip712) {
+      doc.fontSize(14).text("EIP-712 Signature", { underline: true });
+      doc.fontSize(12).text(`Signer: ${ricardian.signature.eip712.signer}`);
+      doc.text(`Signature: ${ricardian.signature.eip712.signature}`);
+      doc.text(`ChainId: ${ricardian.signature.eip712.domain?.chainId}`);
+      doc.text(`Verifying contract: ${ricardian.signature.eip712.domain?.verifyingContract}`);
+      doc.moveDown();
+    }
+
+    doc.fontSize(10).text(`Created at: ${ricardian.timestamps?.createdAt || ""}`, { align: "right" });
+
+    doc.end();
+
+    stream.on("finish", resolve);
+    stream.on("error", reject);
+  });
+}
+
 
 // --------------------
 // MAIN
@@ -212,33 +284,42 @@ async function main() {
   const root = merkleTree.getHexRoot();
   console.log("\n🔑 Merkle Root:", root);
 
+    // --------------------
+  // 3.5) EIP-712 DOMAIN INFO
   // --------------------
-// 4) RICARDIAN JSON
-// --------------------
-const ricardianForest = {
-  version: "1.0",
-  type: "RicardianForestTracking",
+  const network = await ethers.provider.getNetwork();
+  const chainId = Number(network.chainId);
 
-  jurisdiction: ["IT", "EU"],
-  governingLaw: "Diritto italiano ed europeo",
+  const verifyingContract = process.env.FOREST_CONTRACT_ADDRESS;
+  console.log("🆔 Chain ID:", chainId);
+  console.log("🏛️ Verifying Contract:", verifyingContract);
 
-  actors: {
-    dataOwner: "TopView Srl",
-    dataProducer: "Operatore drone",
-    dataConsumer: "Cliente finale"
-  },
+    // --------------------
+  // 4) RICARDIAN JSON (base, poi firma EIP-712)
+  // --------------------
+  const ricardianBase = {
+    version: "1.0",
+    type: "RicardianForestTracking",
 
-  purpose: "Tracciabilità e prova di integrità dei dati forestali",
+    jurisdiction: ["IT", "EU"],
+    governingLaw: "Diritto italiano ed europeo",
 
-  scope: {
-    forestUnitKey: selectedForestKey,
-    includedData: ["trees", "wood_logs", "sawn_timbers"]
-  },
+    actors: {
+      dataOwner: "TopView Srl",
+      dataProducer: "Operatore drone",
+      dataConsumer: "Cliente finale"
+    },
 
-  // ---- TESTO LEGALE HUMAN-READABLE (fondamentale)
-  humanReadableAgreement: {
-    language: "it",
-    text: `
+    purpose: "Tracciabilità e prova di integrità dei dati forestali",
+
+    scope: {
+      forestUnitKey: selectedForestKey,
+      includedData: ["trees", "wood_logs", "sawn_timbers"]
+    },
+
+    humanReadableAgreement: {
+      language: "it",
+      text: `
 Il presente accordo disciplina la raccolta, la registrazione, la conservazione
 e la verifica dell’integrità dei dati forestali relativi all’unità forestale
 "${selectedForestKey}".
@@ -250,67 +331,165 @@ immutabilità e integrità dei dati alla data di registrazione.
 Il presente documento è strutturato come contratto ricardiano, essendo
 interpretabile sia da esseri umani sia da sistemi automatici.
 `.trim()
-  },
+    },
 
-  // ---- DIRITTI E DOVERI (chi fa cosa)
-  rightsAndDuties: {
-    dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
-    dataProducer: "Garantisce la correttezza della raccolta e l'origine dei dati",
-    dataConsumer: "Può verificare l’integrità dei dati ma non modificarli"
-  },
+    rightsAndDuties: {
+      dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
+      dataProducer: "Garantisce la correttezza della raccolta e l'origine dei dati",
+      dataConsumer: "Può verificare l’integrità dei dati ma non modificarli"
+    },
 
-  technical: {
-    merkleRootUnified: root,
-    batchFormat: "JSON",
-    storage: "IPFS",
-    hashAlgorithm: "keccak256"
-  },
+    technical: {
+      merkleRootUnified: root,
+      batchFormat: "JSON",
+      storage: useIPFS ? "IPFS" : "LOCAL_FILE",
+      hashAlgorithm: "keccak256"
+    },
 
-  legal: {
-    legalValue: "Probatorio",
-    statement:
-      "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
-  },
+    legal: {
+      legalValue: "Probatorio",
+      statement:
+        "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+    },
 
-  // ---- COLLEGAMENTO CRITTOGRAFICO TESTO ↔ DATI
-  hashBinding: {
-    bindsHumanReadableText: true,
-    bindsDatasetMerkleRoot: true
-  },
+    hashBinding: {
+      bindsHumanReadableText: true,
+      bindsDatasetMerkleRoot: true
+    },
 
-  timestamps: {
-    createdAt: new Date().toISOString()
-  }
-};
+    timestamps: {
+      createdAt: new Date().toISOString()
+    }
+  };
+
+  // Hash "base" (senza firma, stabile)
+  const ricardianHash = toKeccak256(ricardianBase);
+  console.log("Ricardian hash (base):", ricardianHash);
 
   // --------------------
-  // 5) UPLOAD SU IPFS (solo se USE_IPFS=true)
+  // 4.5) FIRMA EIP-712 (off-chain)
+  // --------------------
+  const domain = {
+    name: "RicardianForestTracking",
+    version: "1",
+    chainId,
+    verifyingContract
+  };
+
+  const types = {
+    RicardianForest: [
+      { name: "forestUnitKey", type: "string" },
+      { name: "ricardianHash", type: "bytes32" },
+      { name: "merkleRoot", type: "bytes32" },
+      { name: "createdAt", type: "string" }
+    ]
+  };
+
+  const message = {
+    forestUnitKey: selectedForestKey,
+    ricardianHash,
+    merkleRoot: root,
+    createdAt: ricardianBase.timestamps.createdAt
+  };
+
+  const eip712Signature = await signer.signTypedData(domain, types, message);
+
+  // Verifica (debug utile)
+  const recovered = ethers.verifyTypedData(domain, types, message, eip712Signature);
+  if (recovered.toLowerCase() !== signer.address.toLowerCase()) {
+    throw new Error("❌ Firma EIP-712 non valida: recovered diverso dal signer");
+  }
+  console.log("✅ EIP-712 signature ok. Signer:", signer.address);
+
+  // Ora il Ricardian completo (base + firma)
+  const ricardianForest = {
+    ...ricardianBase,
+    ricardianHash, // mettiamo anche dentro al JSON per leggibilità
+    signature: {
+      eip712: {
+        signer: signer.address,
+        domain,
+        types,
+        message,
+        signature: eip712Signature
+      }
+    }
+  };
+
+
+    // --------------------
+  // 5) SALVA JSON (e opzionale IPFS) + GENERA PDF
   // --------------------
   let ipfsPath = null;
+
+  // Salvo sempre localmente (comodo per PDF / debug)
+  fs.writeFileSync("ricardian-forest.json", JSON.stringify(ricardianForest, null, 2));
+  console.log("Saved Ricardian locally: ricardian-forest.json");
+
   if (useIPFS) {
     ipfsPath = await uploadToIPFS(ricardianForest, "ricardian-forest.json");
     console.log("Uploaded Ricardian to:", ipfsPath);
-  } else {
+
+    // utile anche nel PDF / JSON
+    ricardianForest.ipfsUri = ipfsPath;
     fs.writeFileSync("ricardian-forest.json", JSON.stringify(ricardianForest, null, 2));
-    console.log("Saved Ricardian locally: ricardian-forest.json");
   }
 
-  const ricardianHash = toKeccak256(ricardianForest);
-  console.log("Ricardian hash:", ricardianHash);
+  // PDF
+  const pdfPath = "ricardian-forest.pdf";
+  await generateRicardianPdf(ricardianForest, pdfPath);
+  console.log("📄 PDF generato:", pdfPath);
+
 
   // --------------------
-  // 6) REGISTRA ON-CHAIN
-  // --------------------
-  const ForestTracking = await ethers.getContractAt("ForestTracking", process.env.FOREST_CONTRACT_ADDRESS);
+// 6) REGISTRA ON-CHAIN (con stima gas)
+// --------------------
+const ForestTracking = await ethers.getContractAt(
+  "ForestTracking",
+  process.env.FOREST_CONTRACT_ADDRESS
+);
 
-  const tx = await ForestTracking.registerRicardianForest(
-    selectedForestKey,
-    ricardianHash,
-    root,
-    ipfsPath || "file://ricardian-forest.json"
-  );
-  await tx.wait();
-  console.log("✅ Ricardian Forest registered on-chain");
+// --- STIMA GAS ---
+const gasEstimate = await ethers.provider.estimateGas({
+  to: process.env.FOREST_CONTRACT_ADDRESS,
+  data: ForestTracking.interface.encodeFunctionData(
+    "registerRicardianForest",
+    [
+      selectedForestKey,
+      ricardianHash,
+      root,
+      ipfsPath || "file://ricardian-forest.json"
+    ]
+  ),
+  from: signer.address
+});
+
+const feeData = await ethers.provider.getFeeData();
+const gasPrice = feeData.gasPrice || ethers.parseUnits("20", "gwei");
+const gasCostWei = gasEstimate * gasPrice;
+const gasCostEth = Number(ethers.formatEther(gasCostWei));
+const ethPrice = await getEthPriceInEuro();
+
+console.log(
+  `⛽ Gas stimato: ${gasEstimate.toString()} | ` +
+  `Costo: ${gasCostEth.toFixed(6)} ETH ≈ €${(gasCostEth * ethPrice).toFixed(2)}`
+);
+
+// --- INVIO TRANSAZIONE ---
+console.log("⏳ Invio transazione per registrare il Ricardian Contract...");
+
+const tx = await ForestTracking.registerRicardianForest(
+  selectedForestKey,
+  ricardianHash,
+  root,
+  ipfsPath || "file://ricardian-forest.json"
+);
+
+const receipt = await tx.wait();
+
+console.log("✅ Ricardian Forest registered on-chain");
+console.log("🔗 Tx hash:", receipt.transactionHash || tx.hash);
+console.log("📦 Block number:", receipt.blockNumber);
 
   // --------------------
   // 7) VERIFICA HASH IPFS (solo se USE_IPFS=true)
