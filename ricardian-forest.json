@@ -32,7 +32,7 @@
   "technical": {
     "merkleRootUnified": "0x02dd4b3cbb8606e5e99268ebb51ee62bd8e48d78b4e9037d70174a477f18b7f1",
     "batchFormat": "JSON",
-    "storage": "IPFS",
+    "storage": "LOCAL_FILE",
     "hashAlgorithm": "keccak256"
   },
   "legal": {
@@ -44,6 +44,45 @@
     "bindsDatasetMerkleRoot": true
   },
   "timestamps": {
-    "createdAt": "2026-01-26T12:26:45.615Z"
+    "createdAt": "2026-01-27T11:04:41.344Z"
+  },
+  "ricardianHash": "0xff63440b91b204a090189500e739cadbecdad8a2ed82e459fa10316d64330c6c",
+  "signature": {
+    "eip712": {
+      "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "domain": {
+        "name": "RicardianForestTracking",
+        "version": "1",
+        "chainId": 31337,
+        "verifyingContract": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      },
+      "types": {
+        "RicardianForest": [
+          {
+            "name": "forestUnitKey",
+            "type": "string"
+          },
+          {
+            "name": "ricardianHash",
+            "type": "bytes32"
+          },
+          {
+            "name": "merkleRoot",
+            "type": "bytes32"
+          },
+          {
+            "name": "createdAt",
+            "type": "string"
+          }
+        ]
+      },
+      "message": {
+        "forestUnitKey": "Vallombrosa",
+        "ricardianHash": "0xff63440b91b204a090189500e739cadbecdad8a2ed82e459fa10316d64330c6c",
+        "merkleRoot": "0x02dd4b3cbb8606e5e99268ebb51ee62bd8e48d78b4e9037d70174a477f18b7f1",
+        "createdAt": "2026-01-27T11:04:41.344Z"
+      },
+      "signature": "0x84fa7a698baf84f953eef7af56166b0f82b2e88ccfdc15bc7fdbb779df8557e73ea6333ce5a43d4a449006dcfab7c26dd2053d7691eb543e0a3aa47fe4796d891b"
+    }
   }
 }

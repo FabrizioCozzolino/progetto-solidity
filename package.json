@@ -23,6 +23,7 @@
     "ipfs-http-client": "^56.0.2",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.5.2",
+    "pdfkit": "^0.17.2",
     "web3.storage": "^4.5.5"
   }
 }
