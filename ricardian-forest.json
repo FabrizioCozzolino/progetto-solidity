@@ -1,11 +1,14 @@
 {
   "version": "1.0",
   "type": "RicardianForestTracking",
-  "jurisdiction": [
-    "IT",
-    "EU"
-  ],
-  "governingLaw": "Diritto italiano ed europeo",
+  "jurisdiction": {
+    "courts": "Foro competente italiano",
+    "regulatoryFramework": [
+      "IT",
+      "EU"
+    ]
+  },
+  "governingLaw": "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
   "actors": {
     "dataOwner": "TopView Srl",
     "dataProducer": "Operatore drone",
@@ -36,17 +39,22 @@
     "hashAlgorithm": "keccak256"
   },
   "legal": {
-    "legalValue": "Probatorio",
+    "legalValue": "Valore probatorio ai sensi della normativa vigente",
     "statement": "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
   },
   "hashBinding": {
     "bindsHumanReadableText": true,
     "bindsDatasetMerkleRoot": true
   },
-  "timestamps": {
-    "createdAt": "2026-01-27T11:04:41.344Z"
+  "canonicalization": {
+    "format": "UTF-8",
+    "ordering": "lexicographic",
+    "whitespace": "normalized"
   },
-  "ricardianHash": "0xff63440b91b204a090189500e739cadbecdad8a2ed82e459fa10316d64330c6c",
+  "timestamps": {
+    "createdAt": "2026-02-10T10:45:07.450Z"
+  },
+  "ricardianHash": "0x31a34d3a151e2d9aa9033c052a323d3d0e7708bd76f9c10310f4050f54833839",
   "signature": {
     "eip712": {
       "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -78,11 +86,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0xff63440b91b204a090189500e739cadbecdad8a2ed82e459fa10316d64330c6c",
+        "ricardianHash": "0x31a34d3a151e2d9aa9033c052a323d3d0e7708bd76f9c10310f4050f54833839",
         "merkleRoot": "0x02dd4b3cbb8606e5e99268ebb51ee62bd8e48d78b4e9037d70174a477f18b7f1",
-        "createdAt": "2026-01-27T11:04:41.344Z"
+        "createdAt": "2026-02-10T10:45:07.450Z"
       },
-      "signature": "0x84fa7a698baf84f953eef7af56166b0f82b2e88ccfdc15bc7fdbb779df8557e73ea6333ce5a43d4a449006dcfab7c26dd2053d7691eb543e0a3aa47fe4796d891b"
+      "signature": "0xfd84195daae3cd34946ab4c7e297a57693d19e48501a67056df3c247ab84cf4a65d15295a8b3364780fd07306fd51e0eb3a212916d7c0fdb56152af5e60177a31c"
     }
   }
 }
