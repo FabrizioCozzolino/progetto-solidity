@@ -1,0 +1,221 @@
+{
+  "info": {
+    "name": "Register Ricardian Forest - TOPVIEW + FULL SCRIPT FLOW",
+    "_postman_id": "f1f1f1f1-aaaa-bbbb-cccc-343434343434",
+    "description": "Flow completo: TopView login -> import latest forestUnit -> build batch+merkle -> build/sign ricardian json+pdf -> upload ricardian to ipfs -> estimate gas -> register on-chain -> verify ipfs hash -> verify merkle proofs. Auto-popola le collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0) Health",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{API_URL}}/health",
+          "host": ["{{API_URL}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "1) TopView Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/topview/login",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "topview", "login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"operator\",\n  \"password\": \"1234567!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2) TopView Import Latest Forest Unit -> sets {{forestUnitKey}}",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/topview/import-latest",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "topview", "import-latest"]
+        },
+        "body": { "mode": "raw", "raw": "{\n  \"accountId\": \"{{account}}\"\n}" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "if (j && j.forestUnitKey) pm.collectionVariables.set('forestUnitKey', j.forestUnitKey);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3) Build Unified Batch + Merkle Root (script step 2-3)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/buildUnifiedBatch",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "forest-units", "buildUnifiedBatch"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"accountId\": \"{{account}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const j = pm.response.json();",
+            "pm.collectionVariables.set('merkleRoot', j.merkleRoot);",
+            "pm.collectionVariables.set('batchFilePath', j.batchFile);"
+          ]}
+        }
+      ]
+    },
+    {
+      "name": "4) Build + Sign Ricardian (JSON+PDF) (script step 4-5)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/ricardian/buildAndSign",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "ricardian", "buildAndSign"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"merkleRoot\": \"{{merkleRoot}}\",\n  \"useIPFS\": true\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const j = pm.response.json();",
+            "pm.collectionVariables.set('ricardianHash', j.ricardianHash);",
+            "if (j.files && j.files.ricardianJson) pm.collectionVariables.set('ricardianJsonPath', j.files.ricardianJson);"
+          ]}
+        }
+      ]
+    },
+    {
+  "name": "4.5) View Ricardian PDF",
+  "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+      "raw": "{{API_URL}}/api/ricardian/pdf/{{forestUnitKey}}",
+      "host": ["{{API_URL}}"],
+      "path": ["api", "ricardian", "pdf", "{{forestUnitKey}}"]
+    }
+  }
+},
+    {
+      "name": "5) Upload Ricardian JSON to IPFS (script step 5 ipfs) -> sets {{ricardianCid}} + {{storageUri}}",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/ipfs/uploadRicardian",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "ipfs", "uploadRicardian"]
+        },
+        "body": { "mode": "raw", "raw": "{\n  \"ricardianJsonPath\": \"{{ricardianJsonPath}}\"\n}" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [
+            "const j = pm.response.json();",
+            "pm.collectionVariables.set('ricardianCid', j.cid);",
+            "pm.collectionVariables.set('storageUri', j.ipfsUri);"
+          ]}
+        }
+      ]
+    },
+    {
+      "name": "6) Estimate Gas + EUR (script step 6 estimate)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/chain/estimateRegisterRicardianForest",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "chain", "estimateRegisterRicardianForest"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"ricardianHash\": \"{{ricardianHash}}\",\n  \"merkleRoot\": \"{{merkleRoot}}\",\n  \"storageUri\": \"{{storageUri}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7) Register Ricardian Forest On-Chain (script step 6 send tx)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/chain/registerRicardianForest",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "chain", "registerRicardianForest"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\",\n  \"ricardianHash\": \"{{ricardianHash}}\",\n  \"merkleRoot\": \"{{merkleRoot}}\",\n  \"storageUri\": \"{{storageUri}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "8) Verify IPFS Ricardian JSON hash (script step 7)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/ricardian/verifyIpfsHash",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "ricardian", "verifyIpfsHash"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ipfsCid\": \"{{ricardianCid}}\",\n  \"expectedRicardianHash\": \"{{ricardianHash}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "9) Verify Merkle Proofs for all leaves (script step 8)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{API_URL}}/api/forest-units/verifyMerkleProofs",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "forest-units", "verifyMerkleProofs"]
+        },
+        "body": { "mode": "raw", "raw": "{\n  \"forestUnitId\": \"{{forestUnitKey}}\"\n}" }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "API_URL", "value": "http://localhost:3000" },
+    { "key": "account", "value": "operator" },
+    { "key": "forestUnitKey", "value": "" },
+    { "key": "batchFilePath", "value": "" },
+    { "key": "merkleRoot", "value": "" },
+    { "key": "ricardianJsonPath", "value": "ricardian-forest.json" },
+    { "key": "ricardianHash", "value": "" },
+    { "key": "ricardianCid", "value": "" },
+    { "key": "storageUri", "value": "" }
+  ]
+}
