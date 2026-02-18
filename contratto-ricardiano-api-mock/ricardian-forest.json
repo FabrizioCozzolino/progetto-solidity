@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "type": "RicardianForestTracking",
+  "jurisdiction": {
+    "courts": "Foro competente italiano",
+    "regulatoryFramework": [
+      "IT",
+      "EU"
+    ]
+  },
+  "governingLaw": "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
+  "actors": {
+    "dataOwner": "TopView Srl",
+    "dataProducer": "Operatore drone",
+    "dataConsumer": "Cliente finale"
+  },
+  "purpose": "Tracciabilità e prova di integrità dei dati forestali",
+  "scope": {
+    "forestUnitKey": "Vallombrosa",
+    "includedData": [
+      "trees",
+      "wood_logs",
+      "sawn_timbers"
+    ]
+  },
+  "humanReadableAgreement": {
+    "language": "it",
+    "text": "Il presente accordo disciplina la raccolta, la registrazione, la conservazione\ne la verifica dell’integrità dei dati forestali relativi all’unità forestale\n\"Vallombrosa\".\n\nLe parti riconoscono che il dataset è memorizzato off-chain e che l’hash\ncrittografico registrato su blockchain costituisce prova di esistenza,\nimmutabilità e integrità dei dati alla data di registrazione.\n\nIl presente documento è strutturato come contratto ricardiano, essendo\ninterpretabile sia da esseri umani sia da sistemi automatici."
+  },
+  "rightsAndDuties": {
+    "dataOwner": "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
+    "dataProducer": "Garantisce la correttezza della raccolta e l'origine dei dati",
+    "dataConsumer": "Può verificare l’integrità dei dati ma non modificarli"
+  },
+  "technical": {
+    "merkleRootUnified": "0xb1d85362a52d647f1f303a33f928bf2253b4cff012de80fc0647cd87f474d9a0",
+    "batchFormat": "JSON",
+    "storage": "IPFS",
+    "hashAlgorithm": "keccak256"
+  },
+  "legal": {
+    "legalValue": "Valore probatorio ai sensi della normativa vigente",
+    "statement": "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+  },
+  "hashBinding": {
+    "bindsHumanReadableText": true,
+    "bindsDatasetMerkleRoot": true
+  },
+  "canonicalization": {
+    "format": "UTF-8",
+    "ordering": "lexicographic",
+    "whitespace": "normalized"
+  },
+  "timestamps": {
+    "createdAt": "2026-02-18T17:42:24.306Z"
+  },
+  "ricardianHash": "0x21b1f356019f999495564e0271b0f5e5277a1e31ee30c2a60577c9f92a213e90",
+  "signature": {
+    "eip712": {
+      "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "domain": {
+        "name": "RicardianForestTracking",
+        "version": "1",
+        "chainId": 31337,
+        "verifyingContract": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      },
+      "types": {
+        "RicardianForest": [
+          {
+            "name": "forestUnitKey",
+            "type": "string"
+          },
+          {
+            "name": "ricardianHash",
+            "type": "bytes32"
+          },
+          {
+            "name": "merkleRoot",
+            "type": "bytes32"
+          },
+          {
+            "name": "createdAt",
+            "type": "string"
+          }
+        ]
+      },
+      "message": {
+        "forestUnitKey": "Vallombrosa",
+        "ricardianHash": "0x21b1f356019f999495564e0271b0f5e5277a1e31ee30c2a60577c9f92a213e90",
+        "merkleRoot": "0xb1d85362a52d647f1f303a33f928bf2253b4cff012de80fc0647cd87f474d9a0",
+        "createdAt": "2026-02-18T17:42:24.306Z"
+      },
+      "signature": "0x4c6c57d7da7556ae6bb23efa6761417ae89d24fb1aaa618436d16506f39fbbac7398e4c16d4535a05b10363baeae547694faebc08202d7dea7087697da99271d1c"
+    }
+  }
+}
