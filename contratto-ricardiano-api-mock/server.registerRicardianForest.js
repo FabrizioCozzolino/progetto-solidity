@@ -11,8 +11,8 @@
  * 8) verify ipfs hash == ricardianHash
  * 9) verify merkle proofs
  */
-
-require("dotenv").config({ path: "./environment_variables.env" });
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../environment_variables.env") });
 
 const express = require("express");
 const cors = require("cors");
@@ -25,8 +25,7 @@ const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
 const ethers = require("ethers");
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("fs");;
 const PDFDocument = require("pdfkit");
 
 const { create } = require("ipfs-http-client");

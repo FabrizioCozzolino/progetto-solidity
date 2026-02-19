@@ -132,7 +132,7 @@
           "host": ["{{API_URL}}"],
           "path": ["api", "ipfs", "uploadRicardian"]
         },
-        "body": { "mode": "raw", "raw": "{\n  \"ricardianJsonPath\": \"{{ricardianJsonPath}}\"\n}" }
+        "body": { "mode": "raw", "raw": "{}" }
       },
       "event": [
         {

@@ -33,7 +33,7 @@
     "dataConsumer": "Può verificare l’integrità dei dati ma non modificarli"
   },
   "technical": {
-    "merkleRootUnified": "0x02dd4b3cbb8606e5e99268ebb51ee62bd8e48d78b4e9037d70174a477f18b7f1",
+    "merkleRootUnified": "0x3c726e725faf4e95b1dc6bbc6e179355200033b6d5893b187342a5eff5332bf3",
     "batchFormat": "JSON",
     "storage": "LOCAL_FILE",
     "hashAlgorithm": "keccak256"
@@ -52,17 +52,17 @@
     "whitespace": "normalized"
   },
   "timestamps": {
-    "createdAt": "2026-02-10T11:49:22.916Z"
+    "createdAt": "2026-02-19T10:56:43.625Z"
   },
-  "ricardianHash": "0x2fe2ef059c5f9ac76c196ba82d3bece32cd4d4bf34159873dac597e72d6994da",
+  "ricardianHash": "0xdf95020045e3f4dcd23aef09c3da82c618c69add2ba04da702791055206b8910",
   "signature": {
     "eip712": {
-      "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "signer": "0x01F9A2dd10aBCB6824c3dd75c89995dB6aeC5C79",
       "domain": {
         "name": "RicardianForestTracking",
         "version": "1",
-        "chainId": 31337,
-        "verifyingContract": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+        "chainId": 11155111,
+        "verifyingContract": "0x44f700182AB4852585594920cc4213d92b4CcAc8"
       },
       "types": {
         "RicardianForest": [
@@ -86,11 +86,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x2fe2ef059c5f9ac76c196ba82d3bece32cd4d4bf34159873dac597e72d6994da",
-        "merkleRoot": "0x02dd4b3cbb8606e5e99268ebb51ee62bd8e48d78b4e9037d70174a477f18b7f1",
-        "createdAt": "2026-02-10T11:49:22.916Z"
+        "ricardianHash": "0xdf95020045e3f4dcd23aef09c3da82c618c69add2ba04da702791055206b8910",
+        "merkleRoot": "0x3c726e725faf4e95b1dc6bbc6e179355200033b6d5893b187342a5eff5332bf3",
+        "createdAt": "2026-02-19T10:56:43.625Z"
       },
-      "signature": "0xf7d5f2886b421d3e8abe83f314126ac1517a958c38256603392dc0104441fad2526aa7fac9d39776d33ceb678c92d6c833cfa925b3129df4f2ddbb6c9f524d031c"
+      "signature": "0xd8132878df56d5cfc416218f932227e88ae1218bdfb0721ccd7db18f26d7553a094865b7892ec3dc3dff7389fe1f7ae1673ce74ba22602361a13f519914570c91c"
     }
   }
 }
