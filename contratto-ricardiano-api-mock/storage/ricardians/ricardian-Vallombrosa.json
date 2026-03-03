@@ -35,7 +35,7 @@
   "technical": {
     "merkleRootUnified": "0x2cf1571a58407a4be15bf23c268c7b00ede0b2473cf23220042103a459382452",
     "batchFormat": "JSON",
-    "storage": "IPFS",
+    "storage": "LOCAL_FILE",
     "hashAlgorithm": "keccak256"
   },
   "legal": {
@@ -52,9 +52,9 @@
     "whitespace": "normalized"
   },
   "timestamps": {
-    "createdAt": "2026-03-03T11:14:33.128Z"
+    "createdAt": "2026-03-03T12:45:57.889Z"
   },
-  "ricardianHash": "0x6c2d2e9ef543b2fc6046a87869edd3d59c2939c3ac73e449f47aace6a9b28f7f",
+  "ricardianHash": "0xb6b512b855c8533f4d94cd6e2c74102bf70cac08d228ec41d5ed5945bb04b8f1",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -86,11 +86,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x6c2d2e9ef543b2fc6046a87869edd3d59c2939c3ac73e449f47aace6a9b28f7f",
+        "ricardianHash": "0xb6b512b855c8533f4d94cd6e2c74102bf70cac08d228ec41d5ed5945bb04b8f1",
         "merkleRoot": "0x2cf1571a58407a4be15bf23c268c7b00ede0b2473cf23220042103a459382452",
-        "createdAt": "2026-03-03T11:14:33.128Z"
+        "createdAt": "2026-03-03T12:45:57.889Z"
       },
-      "signature": "0x962fc7c93c623fe288c9496d014c0fd8d70fd05b48a72d7397b7279098bc26c40e74c2a1bbc4182ecb3f8aeaed4416272558e238c14b74ec19e2fe3eb14044fb1c"
+      "signature": "0xbe15f11251a38d64009fa14d5ec62102c62a4121301a74e538f9828a1afbe91472ce16d2256ae2d6c23447a94e860b11e52bb43705d4e8846d469aca262163d41c"
     }
   }
 }
