@@ -1,3 +1,5 @@
+PROCEDURA PER RUNNARE IN LOCALE
+
 APRIRE LE PAGINE DEL TERMINALE QUI: PS C:\progetto-solidity>
 
 PAGINA TERMINALE 1
@@ -35,3 +37,20 @@ COMANDI PER I SERVER PER PROVARE LE RICHIESTE POSTMAN:
 PS C:\progetto-solidity\droni-api-mock> node server-droni.js
 
 PS C:\progetto-solidity\forest-api-mock> node server.Forest.js
+
+
+PROCEDURA PER RUNNARE CON SEPOLIA
+
+APRIRE LE PAGINE DEL TERMINALE QUI: C:\progetto-solidity\contratto-ricardiano-api-mock
+
+PAGINA TERMINALE 1
+
+Step 1: AVVIO DEL SERVER
+
+node .\server.registerRicardianForest.js
+
+PAGINA TERMINALE 2
+
+Step 2: AVVIO HARDHAT NODE
+
+npx hardhat node
