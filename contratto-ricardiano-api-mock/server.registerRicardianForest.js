@@ -41,7 +41,10 @@ const TOPVIEW_FOREST_UNITS_URL = process.env.TOPVIEW_FOREST_UNITS_URL || "https:
 const TOPVIEW_USERNAME = process.env.TOPVIEW_USERNAME || "operator";
 const TOPVIEW_PASSWORD = process.env.TOPVIEW_PASSWORD || "1234567!";
 const TOPVIEW_HTTPS_INSECURE = (process.env.TOPVIEW_HTTPS_INSECURE || "true") === "true";
-
+const RICARDIAN_DIR = process.env.RICARDIAN_DIR || path.join(__dirname, "storage", "ricardians");
+if (!fs.existsSync(RICARDIAN_DIR)) {
+  fs.mkdirSync(RICARDIAN_DIR, { recursive: true });
+}
 // EVM / Contract
 const RPC_URL = process.env.RPC_URL || "http://127.0.0.1:8545";
 const PRIVATE_KEY =
@@ -75,7 +78,21 @@ const contractJson = require(path.resolve(
   __dirname,
   "../artifacts/contracts/ForestTracking.sol/ForestTracking.json"
 ));
+const ForestTrackingAbi = contractJson.abi; // ✅ ora esiste
 const contract = new ethers.Contract(deployed.ForestTracking, contractJson.abi, signer);
+
+// ✅ DEBUG CHAIN INFO (mettilo qui)
+(async () => {
+  const net = await provider.getNetwork();
+  const addr = await signer.getAddress();
+  const bal = await provider.getBalance(addr);
+
+  console.log("[CHAIN] RPC_URL:", RPC_URL);
+  console.log("[CHAIN] chainId:", net.chainId.toString());
+  console.log("[CHAIN] signer:", addr);
+  console.log("[CHAIN] balance:", ethers.formatEther(bal), "ETH");
+  console.log("[CHAIN] contract:", deployed.ForestTracking);
+})().catch(console.error);
 
 // --------------------
 // IN-MEMORY STORE
@@ -93,6 +110,15 @@ const state = {
   }
 };
 
+// --------------------
+// WRITE RECEIPTS (persist minimo in-memory)
+// --------------------
+state.writes = {
+  // [forestUnitId]: {
+  //   forestUnitId, merkleRoot, ricardianHash, storageUri, ipfsUri, cid,
+  //   txHash, blockNumber, createdAt
+  // }
+};
 // --------------------
 // UTILS
 // --------------------
@@ -157,6 +183,421 @@ async function getEthPriceInEuro() {
   }
 }
 
+function toFileUri(p) {
+  const abs = path.resolve(p).replace(/\\/g, "/");
+  // Windows: file:///C:/...
+  if (/^[A-Za-z]:\//.test(abs)) return `file:///${abs}`;
+  // Linux/Mac: file:///home/...
+  return `file://${abs.startsWith("/") ? "" : "/"}${abs}`;
+}
+
+// --------------------
+// FLOW HELPERS (per 3 chiamate ufficiali)
+// --------------------
+function safeJsonClone(x) {
+  return JSON.parse(JSON.stringify(x));
+}
+
+function stripRicardianToBase(ricardianJson) {
+  const base = safeJsonClone(ricardianJson);
+  delete base.signature;
+  delete base.ipfsUri;
+  delete base.ricardianHash;
+  return base;
+}
+
+async function topviewEnsureLogin(username, password) {
+  if (state.topview.token) return { token: state.topview.token, lastLoginAt: state.topview.lastLoginAt };
+
+  const httpsAgent = new https.Agent({ rejectUnauthorized: !TOPVIEW_HTTPS_INSECURE });
+  const r = await axios.post(TOPVIEW_TOKEN_URL, {
+    username: username || TOPVIEW_USERNAME,
+    password: password || TOPVIEW_PASSWORD
+  }, { httpsAgent });
+
+  state.topview.token = r.data.access;
+  state.topview.lastLoginAt = new Date().toISOString();
+  return { token: state.topview.token, lastLoginAt: state.topview.lastLoginAt };
+}
+
+async function topviewImportLatest() {
+  const token = state.topview.token;
+  if (!token) throw new Error("Token mancante (TopView login non eseguito)");
+
+  const httpsAgent = new https.Agent({ rejectUnauthorized: !TOPVIEW_HTTPS_INSECURE });
+  const r = await axios.get(TOPVIEW_FOREST_UNITS_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+    httpsAgent
+  });
+
+  const forestUnits = r.data.forestUnits || {};
+  const keys = Object.keys(forestUnits);
+  if (!keys.length) throw new Error("Nessuna forest unit disponibile su TopView");
+
+  // ATTENZIONE: nel tuo codice usi -2
+  const selectedForestKey = keys[keys.length - 2];
+  const unit = forestUnits[selectedForestKey];
+
+  state.forestUnitsRemote = forestUnits;
+  state.lastImportedForestUnitKey = selectedForestKey;
+  state._importedUnit = unit;
+
+  return { forestUnitId: selectedForestKey, unit };
+}
+
+async function buildUnifiedBatchInternal(forestUnitId) {
+  const unit = state._importedUnit;
+  if (!unit) throw new Error("Nessuna forest unit importata: serve import-latest prima");
+
+  const leaves = [];
+  const batchWithProof = [];
+  const seenEpcs = new Set();
+
+  const formatDate = (d) => (d ? new Date(d).toISOString() : "");
+
+  function addToBatch(obj) {
+    const leafHash = hashUnified(obj);
+    leaves.push(leafHash);
+    batchWithProof.push({ ...obj });
+    if (obj?.epc) seenEpcs.add(obj.epc);
+  }
+
+  // TREES
+  const trees = unit.trees || {};
+  for (const treeId of Object.keys(trees)) {
+    const t = trees[treeId];
+    const treeEpc = t.EPC || t.epc || t.domainUUID || treeId;
+
+    addToBatch({
+      type: "Tree",
+      epc: treeEpc,
+      firstReading: formatDate(t.firstReadingTime),
+      treeType: t.treeType?.specie || t.treeTypeId || t.specie || "Unknown",
+      coordinates: t.coordinates
+        ? `${t.coordinates.latitude ?? t.coordinates.lat ?? ""},${t.coordinates.longitude ?? t.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
+        : "",
+      notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : (t.notes || ""),
+      observations: getObservations(t),
+      forestUnitId,
+      domainUUID: t.domainUUID || t.domainUuid,
+      deleted: !!t.deleted,
+      lastModification: t.lastModification || t.lastModfication || ""
+    });
+  }
+
+  // WOOD LOGS
+  const unitWoodLogs = unit.woodLogs || {};
+  for (const logId of Object.keys(unitWoodLogs)) {
+    const log = unitWoodLogs[logId] || {};
+    const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID || logId);
+    if (seenEpcs.has(logEpc)) continue;
+
+    const parentTree = log.treeID || log.treeId || log.parentTree || "";
+
+    addToBatch({
+      type: "WoodLog",
+      epc: logEpc,
+      firstReading: formatDate(log.firstReadingTime),
+      treeType: log.treeType?.specie || log.treeTypeId || "Unknown",
+      logSectionNumber: log.logSectionNumber || 1,
+      parentTree,
+      coordinates: log.coordinates
+        ? `${log.coordinates.latitude ?? log.coordinates.lat ?? ""},${log.coordinates.longitude ?? log.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
+        : "",
+      notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : (log.notes || ""),
+      observations: getObservations(log),
+      forestUnitId,
+      domainUUID: log.domainUUID || log.domainUuid,
+      deleted: !!log.deleted,
+      lastModification: log.lastModification || log.lastModfication || ""
+    });
+  }
+
+  // SAWN TIMBERS
+  const unitSawnTimbers = unit.sawnTimbers || {};
+  for (const stId of Object.keys(unitSawnTimbers)) {
+    const st = unitSawnTimbers[stId] || {};
+    const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || stId);
+    if (seenEpcs.has(stEpc)) continue;
+
+    addToBatch({
+      type: "SawnTimber",
+      epc: stEpc,
+      firstReading: formatDate(st.firstReadingTime),
+      treeType: st.treeType?.specie || st.treeTypeId || "Unknown",
+      parentTreeEpc: st.parentTreeEpc || st.treeID || st.treeId || "",
+      parentWoodLog: st.parentWoodLog || st.woodLogID || st.woodLogId || "",
+      coordinates: st.coordinates
+        ? `${st.coordinates.latitude ?? st.coordinates.lat ?? ""},${st.coordinates.longitude ?? st.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
+        : "",
+      notes: Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : (st.notes || ""),
+      observations: getObservations(st),
+      forestUnitId,
+      domainUUID: st.domainUUID || st.domainUuid,
+      deleted: !!st.deleted,
+      lastModification: st.lastModification || st.lastModfication || ""
+    });
+  }
+
+  const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+  const root = merkleTree.getHexRoot();
+
+  const outputDir = path.join(__dirname, "file-json");
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+
+  const batchFile = path.join(outputDir, "forest-unified-batch.json");
+  fs.writeFileSync(batchFile, JSON.stringify(batchWithProof, null, 2));
+
+  state.batches[forestUnitId] = { batch: batchWithProof, leaves, merkleTree, root, batchFilePath: batchFile };
+
+  return { forestUnitId, merkleRoot: root, batchFile, leavesCount: leaves.length };
+}
+
+async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, useIPFS) {
+  const network = await provider.getNetwork();
+  const chainId = Number(network.chainId);
+  const verifyingContract = deployed.ForestTracking;
+
+  const ricardianBase = {
+    version: "1.0",
+    type: "RicardianForestTracking",
+    jurisdiction: { courts: "Foro competente italiano", regulatoryFramework: ["IT", "EU"] },
+    governingLaw: "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
+    actors: { dataOwner: "TopView Srl", dataProducer: "Operatore drone", dataConsumer: "Cliente finale" },
+    purpose: "Tracciabilità e prova di integrità dei dati forestali",
+    scope: { forestUnitKey: forestUnitId, includedData: ["trees", "wood_logs", "sawn_timbers"] },
+    humanReadableAgreement: {
+      language: "it",
+      text: `
+Il presente accordo disciplina la raccolta, la registrazione, la conservazione
+e la verifica dell’integrità dei dati forestali relativi all’unità forestale
+"${forestUnitId}".
+
+Le parti riconoscono che il dataset è memorizzato off-chain e che l’hash
+crittografico registrato su blockchain costituisce prova di esistenza,
+immutabilità e integrità dei dati alla data di registrazione.
+
+Il presente documento è strutturato come contratto ricardiano, essendo
+interpretabile sia da esseri umani sia da sistemi automatici.
+`.trim()
+    },
+    rightsAndDuties: {
+      dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
+      dataProducer: "Garantisce la correttezza della raccolta e l'origine dei dati",
+      dataConsumer: "Può verificare l’integrità dei dati ma non modificarli"
+    },
+    technical: {
+      merkleRootUnified: merkleRoot,
+      batchFormat: "JSON",
+      storage: useIPFS ? "IPFS" : "LOCAL_FILE",
+      hashAlgorithm: "keccak256"
+    },
+    legal: {
+      legalValue: "Valore probatorio ai sensi della normativa vigente",
+      statement: "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+    },
+    hashBinding: { bindsHumanReadableText: true, bindsDatasetMerkleRoot: true },
+    canonicalization: { format: "UTF-8", ordering: "lexicographic", whitespace: "normalized" },
+    timestamps: { createdAt: new Date().toISOString() }
+  };
+
+  const ricardianHash = toKeccak256Json(ricardianBase);
+
+  const domain = { name: "RicardianForestTracking", version: "1", chainId, verifyingContract };
+  const types = {
+    RicardianForest: [
+      { name: "forestUnitKey", type: "string" },
+      { name: "ricardianHash", type: "bytes32" },
+      { name: "merkleRoot", type: "bytes32" },
+      { name: "createdAt", type: "string" }
+    ]
+  };
+  const message = { forestUnitKey: forestUnitId, ricardianHash, merkleRoot, createdAt: ricardianBase.timestamps.createdAt };
+
+  const eip712Signature = await signer.signTypedData(domain, types, message);
+  const recovered = ethers.verifyTypedData(domain, types, message, eip712Signature);
+  const signerAddress = (await signer.getAddress()).toLowerCase();
+  if (recovered.toLowerCase() !== signerAddress) throw new Error("Firma EIP-712 non valida (recovered != signer)");
+
+  const ricardianForest = {
+    ...ricardianBase,
+    ricardianHash,
+    signature: { eip712: { signer: signerAddress, domain, types, message, signature: eip712Signature } }
+  };
+
+  const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const ricardianJson = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
+  fs.writeFileSync(ricardianJson, JSON.stringify(ricardianForest, null, 2));
+
+  const ricardianPdf = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
+  await generateRicardianPdf(ricardianForest, ricardianPdf);
+
+  state.ricardians[forestUnitId] = {
+    ricardianBase,
+    ricardianForest,
+    ricardianHash,
+    jsonPath: ricardianJson,
+    pdfPath: ricardianPdf,
+    ipfsUri: null,
+    cid: null,
+    storageUri: null
+  };
+
+  return { forestUnitId, ricardianHash, jsonPath: ricardianJson, pdfPath: ricardianPdf, ricardianForest };
+}
+
+async function persistRicardianLocalInternal(forestUnitId) {
+  const r = state.ricardians?.[forestUnitId];
+  if (!r?.ricardianForest) throw new Error("Ricardian non trovato (buildAndSign non eseguito)");
+
+  const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const outPath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
+  fs.writeFileSync(outPath, JSON.stringify(r.ricardianForest, null, 2));
+
+  r.jsonPath = outPath;
+  r.storageUri = toFileUri(outPath);
+  return { storageUri: r.storageUri, jsonPath: outPath };
+}
+
+// Crea ipfs://CID/ricardian-forest.json (directory wrapper)
+async function uploadRicardianToIpfsInternal(forestUnitId) {
+  const r = state.ricardians?.[forestUnitId];
+  if (!r?.ricardianForest) throw new Error("Ricardian non trovato (buildAndSign non eseguito)");
+
+  const fileName = "ricardian-forest.json";
+  const content = Buffer.from(JSON.stringify(r.ricardianForest, null, 2), "utf-8");
+
+  const added = [];
+  for await (const entry of ipfs.addAll([{ path: fileName, content }], { wrapWithDirectory: true })) {
+    added.push(entry);
+  }
+
+  // entry con path "" o simile = dir root (cid directory)
+  const dir = added.find(x => x.path === "") || added[added.length - 1];
+  const cid = dir.cid.toString();
+  const ipfsUri = `ipfs://${cid}/${fileName}`;
+
+  // prova pin (se disponibile)
+  try { await ipfs.pin.add(cid); } catch {}
+
+  r.cid = cid;
+  r.ipfsUri = ipfsUri;
+  r.storageUri = ipfsUri;
+
+  // riflette ipfsUri nel json in memoria (opzionale)
+  r.ricardianForest.ipfsUri = ipfsUri;
+
+  return { cid, ipfsUri, storageUri: ipfsUri };
+}
+
+async function estimateRegisterInternal({ forestUnitId, ricardianHash, merkleRoot, storageUri }) {
+  const contractAddress = deployed.ForestTracking;
+  const from = await signer.getAddress();
+
+  const data = contract.interface.encodeFunctionData("registerRicardianForest", [
+    forestUnitId,
+    ricardianHash,
+    merkleRoot,
+    storageUri
+  ]);
+
+  const gasEstimate = await provider.estimateGas({ to: contractAddress, data, from });
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? ethers.parseUnits("20", "gwei");
+
+  const gasCostWei = gasEstimate * gasPrice;
+  const gasCostEth = Number(ethers.formatEther(gasCostWei));
+  const ethPrice = await getEthPriceInEuro();
+
+  return {
+    to: contractAddress,
+    from,
+    gasEstimate: gasEstimate.toString(),
+    gasPriceWei: gasPrice.toString(),
+    gasCostWei: gasCostWei.toString(),
+    gasCostEth,
+    ethEur: ethPrice,
+    eur: Number((gasCostEth * ethPrice).toFixed(2))
+  };
+}
+
+async function registerOnChainInternal({ forestUnitId, ricardianHash, merkleRoot, storageUri }) {
+  const runner = await contract.runner;
+  const signerAddress = await runner.getAddress();
+  const balance = await runner.provider.getBalance(signerAddress);
+
+  const gas = await contract.registerRicardianForest.estimateGas(forestUnitId, ricardianHash, merkleRoot, storageUri);
+  const feeData = await runner.provider.getFeeData();
+  const price = feeData.maxFeePerGas ?? feeData.gasPrice;
+  const estimatedCost = gas * price;
+
+  if (balance < estimatedCost) {
+    const e = new Error("Insufficient funds");
+    e.meta = { signerAddress, balanceWei: balance.toString(), estimatedCostWei: estimatedCost.toString() };
+    throw e;
+  }
+
+  const tx = await contract.registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri);
+  const receipt = await tx.wait();
+
+  return {
+    txHash: receipt.transactionHash || tx.hash,
+    blockNumber: receipt.blockNumber,
+    signerAddress
+  };
+}
+
+async function verifyIpfsHashInternal(forestUnitId, expectedRicardianHash) {
+  const r = state.ricardians?.[forestUnitId];
+  if (!r?.ipfsUri || !r?.cid) {
+    return { skipped: true, reason: "ipfsUri/cid non presenti" };
+  }
+
+  const fileName = "ricardian-forest.json";
+  const chunks = [];
+  for await (const chunk of ipfs.cat(`${r.cid}/${fileName}`)) chunks.push(chunk);
+  const content = Buffer.concat(chunks).toString("utf-8");
+
+  const json = JSON.parse(content);
+  const base = stripRicardianToBase(json);
+  const fetchedHash = toKeccak256Json(base);
+
+  return {
+    skipped: false,
+    ok: fetchedHash.toLowerCase() === expectedRicardianHash.toLowerCase(),
+    fetchedHash,
+    expectedRicardianHash,
+    ipfsUri: r.ipfsUri
+  };
+}
+
+async function verifyMerkleProofsInternal(forestUnitId) {
+  const cached = state.batches[forestUnitId];
+  if (!cached) throw new Error("Batch non trovato in cache");
+
+  const { leaves, merkleTree } = cached;
+
+  const onchainRic = await contract.forestRicardians(forestUnitId);
+  const onchainRoot = onchainRic.merkleRoot;
+
+  const localRoot = merkleTree.getHexRoot();
+  const rootMatches = localRoot.toLowerCase() === onchainRoot.toLowerCase();
+
+  let valid = 0;
+  let invalid = 0;
+
+  for (let i = 0; i < leaves.length; i++) {
+    const leaf = leaves[i];
+    const proof = merkleTree.getProof(leaf).map(x => "0x" + x.data.toString("hex"));
+    const leafHex = "0x" + leaf.toString("hex");
+
+    const isValid = await contract.verifyUnifiedProofWithRoot(leafHex, proof, onchainRoot);
+    if (isValid) valid++;
+    else invalid++;
+  }
+
+  return { total: leaves.length, valid, invalid, onchainRoot, localRoot, rootMatches };
+}
 // --------------------
 // PDF (IDENTICO al tuo script)
 // --------------------
@@ -438,18 +879,23 @@ app.post("/api/topview/import-latest", async (req, res) => {
     const keys = Object.keys(forestUnits);
     if (!keys.length) return res.status(404).json({ error: "Nessuna forest unit disponibile su TopView" });
 
-    const selectedForestKey = keys[keys.length - 1];
+    const selectedForestKey = keys[keys.length - 2];
     const unit = forestUnits[selectedForestKey];
 
     state.forestUnitsRemote = forestUnits;
     state.lastImportedForestUnitKey = selectedForestKey;
-    // Salvo "unit" per build batch
     state._importedUnit = unit;
 
+    // LOG completo lato server (così la vedi in console)
+    // console.log("[TopView] selectedForestKey:", selectedForestKey);
+    // console.log("[TopView] unit (FULL):", JSON.stringify(unit, null, 2));
+
+    // Rispondo includendo TUTTA la unit
     res.json({
       forestUnitKey: selectedForestKey,
       name: unit?.name || selectedForestKey,
-      totalKeys: keys.length
+      totalKeys: keys.length,
+      // unit // <-- TUTTA la forest unit
     });
   } catch (err) {
     res.status(500).json({ error: "Import latest forest unit failed", details: err.message });
@@ -471,17 +917,21 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
     const batchWithProof = [];
     const seenEpcs = new Set();
 
-    const formatDate = d => (d ? new Date(d).toISOString() : "");
+    const formatDate = (d) => (d ? new Date(d).toISOString() : "");
 
     function addToBatch(obj) {
       const leafHash = hashUnified(obj);
       leaves.push(leafHash);
       batchWithProof.push({ ...obj });
-      seenEpcs.add(obj.epc);
+      if (obj?.epc) seenEpcs.add(obj.epc);
     }
 
-    for (const treeId of Object.keys(unit.trees || {})) {
-      const t = unit.trees[treeId];
+    // --------------------
+    // 1) TREES (da unit.trees)
+    // --------------------
+    const trees = unit.trees || {};
+    for (const treeId of Object.keys(trees)) {
+      const t = trees[treeId];
       const treeEpc = t.EPC || t.epc || t.domainUUID || treeId;
 
       const treeObj = {
@@ -490,85 +940,110 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
         firstReading: formatDate(t.firstReadingTime),
         treeType: t.treeType?.specie || t.treeTypeId || t.specie || "Unknown",
         coordinates: t.coordinates
-          ? `${t.coordinates.latitude || t.coordinates.lat || ""},${t.coordinates.longitude || t.coordinates.lon || ""}`.replace(/(^,|,$)/g, "")
+          ? `${t.coordinates.latitude ?? t.coordinates.lat ?? ""},${t.coordinates.longitude ?? t.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
           : "",
-        notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : t.notes || "",
+        notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : (t.notes || ""),
         observations: getObservations(t),
         forestUnitId,
         domainUUID: t.domainUUID || t.domainUuid,
-        deleted: t.deleted || false,
+        deleted: !!t.deleted,
         lastModification: t.lastModification || t.lastModfication || ""
       };
+
       addToBatch(treeObj);
-
-      for (const logKey of Object.keys(t.woodLogs || {})) {
-        let log = t.woodLogs[logKey];
-        if (typeof log === "string") log = (unit.woodLogs && unit.woodLogs[log]) || {};
-        const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID, treeEpc);
-        if (seenEpcs.has(logEpc)) continue;
-
-        const logObj = {
-          type: "WoodLog",
-          epc: logEpc,
-          firstReading: formatDate(log.firstReadingTime),
-          treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
-          logSectionNumber: log.logSectionNumber || 1,
-          parentTree: treeEpc,
-          coordinates: log.coordinates
-            ? `${log.coordinates.latitude || log.coordinates.lat || ""},${log.coordinates.longitude || log.coordinates.lon || ""}`.replace(/(^,|,$)/g, "")
-            : "",
-          notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : log.notes || "",
-          observations: getObservations(log),
-          forestUnitId,
-          domainUUID: log.domainUUID || log.domainUuid,
-          deleted: log.deleted || false,
-          lastModification: log.lastModification || log.lastModfication || ""
-        };
-        addToBatch(logObj);
-
-        for (const stKey of Object.keys(log.sawnTimbers || {})) {
-          let st = log.sawnTimbers[stKey];
-          if (typeof st === "string") st = (unit.sawnTimbers && unit.sawnTimbers[st]) || { EPC: st };
-
-          const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || stKey, logEpc);
-          if (seenEpcs.has(stEpc)) continue;
-
-          const stObj = {
-            type: "SawnTimber",
-            epc: stEpc,
-            firstReading: formatDate(st.firstReadingTime),
-            treeType: t.treeType?.specie || t.treeTypeId || "Unknown",
-            parentTreeEpc: treeEpc,
-            parentWoodLog: logEpc,
-            coordinates: st?.coordinates
-              ? `${st.coordinates.latitude || st.coordinates.lat || ""},${st.coordinates.longitude || st.coordinates.lon || ""}`.replace(/(^,|,$)/g, "")
-              : "",
-            notes: Array.isArray(st?.notes) ? st.notes.map(n => n.description || n).join("; ") : st?.notes || "",
-            observations: getObservations(st),
-            forestUnitId,
-            domainUUID: st?.domainUUID || st?.domainUuid,
-            deleted: st?.deleted || false,
-            lastModification: st?.lastModification || st?.lastModfication || ""
-          };
-          addToBatch(stObj);
-        }
-      }
     }
 
+    // --------------------
+    // 2) WOOD LOGS (da unit.woodLogs)  <-- QUI stavi perdendo tutto
+    // --------------------
+    const unitWoodLogs = unit.woodLogs || {};
+    for (const logId of Object.keys(unitWoodLogs)) {
+      const log = unitWoodLogs[logId] || {};
+      const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID || logId);
+
+      if (seenEpcs.has(logEpc)) continue;
+
+      // prova a derivare parentTree (se TopView lo fornisce)
+      // nel tuo dump: treeID è null, quindi rimarrà vuoto
+      const parentTree = log.treeID || log.treeId || log.parentTree || "";
+
+      const logObj = {
+        type: "WoodLog",
+        epc: logEpc,
+        firstReading: formatDate(log.firstReadingTime),
+        treeType: log.treeType?.specie || log.treeTypeId || "Unknown",
+        logSectionNumber: log.logSectionNumber || 1,
+        parentTree: parentTree,
+        coordinates: log.coordinates
+          ? `${log.coordinates.latitude ?? log.coordinates.lat ?? ""},${log.coordinates.longitude ?? log.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
+          : "",
+        notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : (log.notes || ""),
+        observations: getObservations(log),
+        forestUnitId,
+        domainUUID: log.domainUUID || log.domainUuid,
+        deleted: !!log.deleted,
+        lastModification: log.lastModification || log.lastModfication || ""
+      };
+
+      addToBatch(logObj);
+    }
+
+    // --------------------
+    // 3) SAWN TIMBERS (da unit.sawnTimbers) <-- idem
+    // --------------------
+    const unitSawnTimbers = unit.sawnTimbers || {};
+    for (const stId of Object.keys(unitSawnTimbers)) {
+      const st = unitSawnTimbers[stId] || {};
+      const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || stId);
+
+      if (seenEpcs.has(stEpc)) continue;
+
+      const stObj = {
+        type: "SawnTimber",
+        epc: stEpc,
+        firstReading: formatDate(st.firstReadingTime),
+        treeType: st.treeType?.specie || st.treeTypeId || "Unknown",
+        parentTreeEpc: st.parentTreeEpc || st.treeID || st.treeId || "",
+        parentWoodLog: st.parentWoodLog || st.woodLogID || st.woodLogId || "",
+        coordinates: st.coordinates
+          ? `${st.coordinates.latitude ?? st.coordinates.lat ?? ""},${st.coordinates.longitude ?? st.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
+          : "",
+        notes: Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : (st.notes || ""),
+        observations: getObservations(st),
+        forestUnitId,
+        domainUUID: st.domainUUID || st.domainUuid,
+        deleted: !!st.deleted,
+        lastModification: st.lastModification || st.lastModfication || ""
+      };
+
+      addToBatch(stObj);
+    }
+
+    // Merkle
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
-    const root = merkleTree.getHexRoot(); // uguale allo script
+    const root = merkleTree.getHexRoot();
+
     const outputDir = path.join(__dirname, "file-json");
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+
     const batchFile = path.join(outputDir, "forest-unified-batch.json");
     fs.writeFileSync(batchFile, JSON.stringify(batchWithProof, null, 2));
 
     state.batches[forestUnitId] = { batch: batchWithProof, leaves, merkleTree, root, batchFilePath: batchFile };
 
+    // debug counts (utilissimo per capire se “perdi”)
+    const counts = {
+      trees: Object.keys(unit.trees || {}).length,
+      woodLogs: Object.keys(unit.woodLogs || {}).length,
+      sawnTimbers: Object.keys(unit.sawnTimbers || {}).length,
+      batchSize: batchWithProof.length
+    };
+
     res.json({
       forestUnitId,
       merkleRoot: root,
       batchFile,
-      batchSize: batchWithProof.length
+      ...counts
     });
   } catch (err) {
     res.status(500).json({ error: "Build unified batch failed", details: err.message });
@@ -653,20 +1128,37 @@ interpretabile sia da esseri umani sia da sistemi automatici.
 
     const eip712Signature = await signer.signTypedData(domain, types, message);
     const recovered = ethers.verifyTypedData(domain, types, message, eip712Signature);
-    if (recovered.toLowerCase() !== signer.address.toLowerCase()) {
-      return res.status(500).json({ error: "Firma EIP-712 non valida (recovered != signer)" });
+    const signerAddress = (await signer.getAddress()).toLowerCase();
+
+    if (recovered.toLowerCase() !== signerAddress) {
+      return res.status(500).json({
+        error: "Firma EIP-712 non valida (recovered != signer)",
+        recovered,
+        signerAddress
+      });
     }
 
+    // ✅ costruisci ricardianForest usando signerAddress
     const ricardianForest = {
       ...ricardianBase,
       ricardianHash,
-      signature: { eip712: { signer: signer.address, domain, types, message, signature: eip712Signature } }
+      signature: {
+        eip712: {
+          signer: signerAddress,
+          domain,
+          types,
+          message,
+          signature: eip712Signature
+        }
+      }
     };
 
-    const ricardianJson = path.join(__dirname, "ricardian-forest.json");
+    const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+    const ricardianJson = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
     fs.writeFileSync(ricardianJson, JSON.stringify(ricardianForest, null, 2));
 
-    const ricardianPdf = path.join(__dirname, "ricardian-forest.pdf");
+    // (se vuoi anche PDF nello stesso folder)
+    const ricardianPdf = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
     await generateRicardianPdf(ricardianForest, ricardianPdf);
 
     state.ricardians[forestUnitId] = {
@@ -682,7 +1174,10 @@ interpretabile sia da esseri umani sia da sistemi automatici.
     res.json({
       forestUnitId,
       ricardianHash,
-      files: { ricardianJson, ricardianPdf }
+      files: {
+        ricardianJsonPath: ricardianJson,
+        ricardianPdfPath: ricardianPdf
+      }
     });
   } catch (err) {
     res.status(500).json({ error: "Build/sign Ricardian failed", details: err.message });
@@ -690,36 +1185,36 @@ interpretabile sia da esseri umani sia da sistemi automatici.
 });
 
 // --------------------
-// 5) Upload Ricardian JSON to IPFS (ipfs://CID/ricardian-forest.json)
+// 5) Persist Ricardian JSON locally (NO IPFS)
 // --------------------
-app.post("/api/ipfs/uploadRicardian", async (req, res) => {
+app.post("/api/storage/persistRicardian", async (req, res) => {
   try {
-    // se non lo passi, usa default
-    let ricardianJsonPath = req.body?.ricardianJsonPath || path.join(__dirname, "ricardian-forest.json");
+    const forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
 
-    // normalizza path (accetta anche "C:\foo\bar" se ti arriva già parseato)
-    if (typeof ricardianJsonPath === "string") {
-      ricardianJsonPath = ricardianJsonPath.trim();
+    const r = state.ricardians?.[forestUnitId];
+    if (!r?.ricardianForest) {
+      return res.status(404).json({ error: "Ricardian non trovato: chiama /api/ricardian/buildAndSign prima" });
     }
 
-    if (!fs.existsSync(ricardianJsonPath)) {
-      return res.status(404).json({ error: "File ricardianJsonPath non trovato", ricardianJsonPath });
-    }
+    const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+    const outPath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
 
-    const filename = path.basename(ricardianJsonPath);
-    const fileContent = fs.readFileSync(ricardianJsonPath);
+    fs.writeFileSync(outPath, JSON.stringify(r.ricardianForest, null, 2));
 
-    const { cid } = await ipfs.add({ path: filename, content: fileContent });
-    const ipfsUri = `ipfs://${cid}/${filename}`;
+    // salva path nello state (comodo per step 6/7)
+    r.jsonPath = outPath;
+    r.storageUri = toFileUri(outPath);
 
-    try { await ipfs.pin.add(cid); } catch { /* ok */ }
-
-    res.json({ cid: cid.toString(), ipfsUri, filename });
+    return res.json({
+      forestUnitId,
+      ricardianJsonPath: outPath,
+      storageUri: r.storageUri
+    });
   } catch (err) {
-    res.status(500).json({ error: "IPFS upload failed", details: err.message });
+    return res.status(500).json({ error: "Persist Ricardian failed", details: err.message });
   }
 });
-
 
 // --------------------
 // 6) Estimate gas + EUR (identico allo script)
@@ -731,32 +1226,47 @@ app.post("/api/chain/estimateRegisterRicardianForest", async (req, res) => {
   }
 
   try {
+    const contractAddress = deployed.ForestTracking; // ✅ UNA SOLA fonte, coerente col resto
+    const from = await signer.getAddress();
+
+    // encode identico allo script
+    const data = contract.interface.encodeFunctionData("registerRicardianForest", [
+      forestUnitId,
+      ricardianHash,
+      merkleRoot,
+      storageUri || "file://ricardian-forest.json"
+    ]);
+
     const gasEstimate = await provider.estimateGas({
-      to: deployed.ForestTracking,
-      data: contract.interface.encodeFunctionData("registerRicardianForest", [
-        forestUnitId,
-        ricardianHash,
-        merkleRoot,
-        storageUri
-      ]),
-      from: signer.address
+      to: contractAddress,
+      data,
+      from
     });
 
     const feeData = await provider.getFeeData();
-    const gasPrice = feeData.gasPrice || ethers.parseUnits("20", "gwei");
+    const gasPrice = feeData.gasPrice ?? ethers.parseUnits("20", "gwei");
+
     const gasCostWei = gasEstimate * gasPrice;
     const gasCostEth = Number(ethers.formatEther(gasCostWei));
     const ethPrice = await getEthPriceInEuro();
 
-    res.json({
+    return res.json({
+      to: contractAddress,
+      from,
       gasEstimate: gasEstimate.toString(),
       gasPriceWei: gasPrice.toString(),
+      gasCostWei: gasCostWei.toString(),
       gasCostEth,
-      eur: Number((gasCostEth * ethPrice).toFixed(2)),
-      ethEur: ethPrice
+      ethEur: ethPrice,
+      eur: Number((gasCostEth * ethPrice).toFixed(2))
     });
   } catch (err) {
-    res.status(500).json({ error: "Estimate gas failed", details: err.message });
+    return res.status(500).json({
+      error: "Estimate gas failed",
+      details: err.message,
+      short: err.shortMessage,
+      code: err.code
+    });
   }
 });
 
@@ -770,62 +1280,86 @@ app.post("/api/chain/registerRicardianForest", async (req, res) => {
   }
 
   try {
+    const signer = await contract.runner; // ethers v6: il signer/provider attaccato al contract
+    const signerAddress = await signer.getAddress();
+    const balance = await signer.provider.getBalance(signerAddress);
+
+    // stima costo (gas * fee)
+    const gas = await contract.registerRicardianForest.estimateGas(
+      forestUnitId, ricardianHash, merkleRoot, storageUri
+    );
+    const feeData = await signer.provider.getFeeData();
+
+    // per EIP-1559: maxFeePerGas / maxPriorityFeePerGas (se null, fallback a gasPrice)
+    const price = feeData.maxFeePerGas ?? feeData.gasPrice;
+    const estimatedCost = gas * price;
+
+    if (balance < estimatedCost) {
+      return res.status(400).json({
+        error: "Insufficient funds",
+        signerAddress,
+        balanceWei: balance.toString(),
+        estimatedCostWei: estimatedCost.toString(),
+        note: "Ricarica ETH su questa rete (es. Sepolia) oppure usa un signer con fondi."
+      });
+    }
+
     const tx = await contract.registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri);
     const receipt = await tx.wait();
 
     res.json({
       txHash: receipt.transactionHash || tx.hash,
-      blockNumber: receipt.blockNumber
+      blockNumber: receipt.blockNumber,
+      signerAddress
     });
   } catch (err) {
-    res.status(500).json({ error: "Register on-chain failed", details: err.message });
+    res.status(500).json({
+      error: "Register on-chain failed",
+      details: err.message,
+      short: err.shortMessage,
+      code: err.code
+    });
   }
 });
 
 // --------------------
-// 8) Verify IPFS Ricardian JSON hash == expected
+// 8) Verify LOCAL Ricardian JSON hash == expected (NO IPFS)
 // --------------------
-app.post("/api/ricardian/verifyIpfsHash", async (req, res) => {
-  const { ipfsCid, expectedRicardianHash } = req.body || {};
-  if (!ipfsCid || !expectedRicardianHash) {
-    return res.status(400).json({ error: "ipfsCid e expectedRicardianHash richiesti" });
+app.post("/api/ricardian/verifyLocalHashByForestUnit", async (req, res) => {
+  const { forestUnitId, expectedRicardianHash } = req.body || {};
+  if (!forestUnitId || !expectedRicardianHash) {
+    return res.status(400).json({ error: "forestUnitId e expectedRicardianHash richiesti" });
   }
 
   try {
-    // 1) scarica da daemon ipfs: cat(cid)
-    const chunks = [];
-    for await (const chunk of ipfs.cat(ipfsCid)) chunks.push(chunk);
-    const fileContent = Buffer.concat(chunks).toString("utf-8");
+    const r = state.ricardians?.[forestUnitId];
+    const ricardianJsonPath = r?.jsonPath;
+
+    if (!ricardianJsonPath || !fs.existsSync(ricardianJsonPath)) {
+      return res.status(404).json({ error: "File non trovato", forestUnitId, ricardianJsonPath });
+    }
+
+    const fileContent = fs.readFileSync(ricardianJsonPath, "utf-8");
     const json = JSON.parse(fileContent);
 
-    // 2) ricostruisci il "base" (quello su cui fai ricardianHash nello script)
-    //    eliminando i campi che NON fanno parte del base
-    const base = JSON.parse(JSON.stringify(json)); // deep clone semplice e stabile
+    const base = JSON.parse(JSON.stringify(json));
     delete base.signature;
     delete base.ipfsUri;
-    delete base.ricardianHash; // se nel file è stato scritto dentro per leggibilità
+    delete base.ricardianHash;
 
-    // (opzionale) se in futuro aggiungi altri campi runtime, eliminali qui.
-
-    // 3) hash del base
     const fetchedBaseHash = toKeccak256Json(base);
-
-    // 4) confronto
     const ok = fetchedBaseHash.toLowerCase() === expectedRicardianHash.toLowerCase();
 
-    res.json({
-      ok,
-      fetchedBaseHash,
-      expectedRicardianHash
-    });
+    return res.json({ ok, fetchedBaseHash, expectedRicardianHash, forestUnitId, ricardianJsonPath });
   } catch (err) {
-    res.status(500).json({ error: "Verify IPFS hash failed", details: err.message });
+    return res.status(500).json({ error: "Verify LOCAL hash failed", details: err.message });
   }
 });
 
-
 // --------------------
-// 9) Verify Merkle proofs for all leaves
+// 9) Verify Merkle proofs for all leaves (ON-CHAIN)
+// - legge root dal mapping forestRicardians
+// - verifica in EVM via verifyUnifiedProofWithRoot (eth_call)
 // --------------------
 app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
   const { forestUnitId } = req.body || {};
@@ -833,23 +1367,49 @@ app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
 
   try {
     const cached = state.batches[forestUnitId];
-    if (!cached) return res.status(404).json({ error: "Batch non trovato: chiama buildUnifiedBatch prima" });
+    if (!cached) {
+      return res.status(404).json({ error: "Batch non trovato: chiama buildUnifiedBatch prima" });
+    }
 
     const { leaves, merkleTree } = cached;
+
+    // 1) Leggi la root registrata ON-CHAIN nella sezione Ricardian
+    // mapping(string => RicardianForestContract) public forestRicardians;
+    const onchainRic = await contract.forestRicardians(forestUnitId);
+    const onchainRoot = onchainRic.merkleRoot; // bytes32
+
+    // sanity: root locale (solo debug)
+    const localRoot = merkleTree.getHexRoot();
+    const rootMatches = localRoot.toLowerCase() === onchainRoot.toLowerCase();
+
     let validCount = 0;
     let invalidCount = 0;
 
     for (let i = 0; i < leaves.length; i++) {
-      const leaf = leaves[i];
+      const leaf = leaves[i]; // Buffer (32 bytes)
       const proof = merkleTree.getProof(leaf).map(x => "0x" + x.data.toString("hex"));
-      const isValid = merkleTree.verify(proof, leaf, merkleTree.getRoot());
+      const leafHex = "0x" + leaf.toString("hex");
+
+      // 2) Verifica "on-chain" via eth_call a funzione Solidity
+      // function verifyUnifiedProofWithRoot(bytes32 leaf, bytes32[] proof, bytes32 root) external pure returns (bool)
+      const isValid = await contract.verifyUnifiedProofWithRoot(leafHex, proof, onchainRoot);
+
       if (isValid) validCount++;
       else invalidCount++;
     }
 
-    res.json({ forestUnitId, total: leaves.length, valid: validCount, invalid: invalidCount });
+    return res.json({
+      forestUnitId,
+      total: leaves.length,
+      valid: validCount,
+      invalid: invalidCount,
+      onchainRoot,
+      localRoot,
+      rootMatches,
+      note: "Verifica eseguita via eth_call su verifyUnifiedProofWithRoot usando la root letta dal contratto (forestRicardians[forestUnitId].merkleRoot)."
+    });
   } catch (err) {
-    res.status(500).json({ error: "Verify proofs failed", details: err.message });
+    return res.status(500).json({ error: "Verify proofs failed", details: err.message });
   }
 });
 
@@ -897,6 +1457,157 @@ app.get("/api/ricardian/pdf/:forestUnitId", (req, res) => {
     return res.sendFile(pdfPath);
   } catch (err) {
     return res.status(500).json({ error: "Errore lettura PDF", details: err.message });
+  }
+});
+
+// --------------------
+// ✅ OFFICIAL #1: WRITE CONTRACT ON-CHAIN (fa 1→9 internamente)
+// POST /api/contract/write
+// body opzionale: { username, password, forestUnitId?, useIPFS?: true/false }
+// --------------------
+app.post("/api/contract/write", async (req, res) => {
+  try {
+    const useIPFS = !!req.body?.useIPFS;
+
+    // 1) login (se già loggato non rifà)
+    const login = await topviewEnsureLogin(req.body?.username, req.body?.password);
+
+    // 2) import latest (oppure usa forestUnitId passato)
+    let forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) {
+      const imported = await topviewImportLatest();
+      forestUnitId = imported.forestUnitId;
+    } else {
+      // se l'utente passa forestUnitId, comunque importiamo latest per avere unit in state
+      // (se vuoi: qui potresti cercare proprio quello specifico nel JSON TopView)
+      await topviewImportLatest();
+    }
+
+    // 3) batch+merkle
+    const batch = await buildUnifiedBatchInternal(forestUnitId);
+
+    // 4) ricardian + pdf (generato, ma “stampa” la fai con GET /pdf)
+    const ric = await buildAndSignRicardianInternal(forestUnitId, batch.merkleRoot, useIPFS);
+
+    // 5) storage uri: IPFS (se useIPFS) altrimenti file://
+    let storage;
+    if (useIPFS) storage = await uploadRicardianToIpfsInternal(forestUnitId);
+    else storage = await persistRicardianLocalInternal(forestUnitId);
+
+    // 6) estimate
+    const estimate = await estimateRegisterInternal({
+      forestUnitId,
+      ricardianHash: ric.ricardianHash,
+      merkleRoot: batch.merkleRoot,
+      storageUri: storage.storageUri
+    });
+
+    // 7) register on-chain
+    const onchain = await registerOnChainInternal({
+      forestUnitId,
+      ricardianHash: ric.ricardianHash,
+      merkleRoot: batch.merkleRoot,
+      storageUri: storage.storageUri
+    });
+
+    // (opzionale) salva “receipt” in memory per verify
+    state.writes[forestUnitId] = {
+      forestUnitId,
+      merkleRoot: batch.merkleRoot,
+      ricardianHash: ric.ricardianHash,
+      storageUri: storage.storageUri,
+      ipfsUri: storage.ipfsUri || null,
+      cid: storage.cid || null,
+      txHash: onchain.txHash,
+      blockNumber: onchain.blockNumber,
+      createdAt: new Date().toISOString()
+    };
+
+    return res.json({
+      ok: true,
+      forestUnitId,
+      login,
+      merkleRoot: batch.merkleRoot,
+      ricardianHash: ric.ricardianHash,
+      storageUri: storage.storageUri,
+      ipfsUri: storage.ipfsUri || null,
+      cid: storage.cid || null,
+      estimate,
+      onchain,
+      pdfEndpoint: `/api/ricardian/pdf/${forestUnitId}`
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error: "WRITE failed",
+      details: err.message,
+      meta: err.meta
+    });
+  }
+});
+
+// --------------------
+// ✅ OFFICIAL #3: VERIFY (on-chain write + proofs + (se IPFS) hash)
+// POST /api/contract/verify
+// body: { forestUnitId }
+// --------------------
+app.post("/api/contract/verify", async (req, res) => {
+  try {
+    const forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
+
+    // recupera dati attesi: da write receipt, altrimenti da state (fallback)
+    const w = state.writes?.[forestUnitId] || {};
+    const r = state.ricardians?.[forestUnitId];
+    const b = state.batches?.[forestUnitId];
+
+    const expectedRicardianHash = w.ricardianHash || r?.ricardianHash;
+    const expectedMerkleRoot = w.merkleRoot || b?.root;
+    const expectedStorageUri = w.storageUri || r?.storageUri;
+
+    if (!expectedRicardianHash) return res.status(400).json({ error: "expectedRicardianHash non disponibile (fai prima /api/contract/write)" });
+    if (!expectedMerkleRoot) return res.status(400).json({ error: "expectedMerkleRoot non disponibile (fai prima /api/contract/write)" });
+
+    // A) verifica scrittura on-chain
+    const onchainRic = await contract.forestRicardians(forestUnitId);
+
+    // prova a leggere campi noti
+    const onchainHash = onchainRic.ricardianHash || onchainRic.hash || onchainRic[0];
+    const onchainRoot = onchainRic.merkleRoot || onchainRic.root || onchainRic[1];
+    const onchainUri  = onchainRic.storageUri || onchainRic.uri || onchainRic[2];
+
+    const hashMatches = onchainHash && (String(onchainHash).toLowerCase() === String(expectedRicardianHash).toLowerCase());
+    const rootMatches = onchainRoot && (String(onchainRoot).toLowerCase() === String(expectedMerkleRoot).toLowerCase());
+    const uriMatches = expectedStorageUri ? (String(onchainUri || "").toLowerCase() === String(expectedStorageUri).toLowerCase()) : true;
+
+    const existsOnChain = !!onchainRoot && String(onchainRoot) !== "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+    // B) verify ipfs hash (solo se usi IPFS)
+    const ipfsVerify = await verifyIpfsHashInternal(forestUnitId, expectedRicardianHash);
+
+    // C) proofs
+    const proofs = await verifyMerkleProofsInternal(forestUnitId);
+
+    return res.json({
+      ok: true,
+      forestUnitId,
+      existsOnChain,
+      onchain: {
+        ricardianHash: onchainHash,
+        merkleRoot: onchainRoot,
+        storageUri: onchainUri
+      },
+      expected: {
+        ricardianHash: expectedRicardianHash,
+        merkleRoot: expectedMerkleRoot,
+        storageUri: expectedStorageUri
+      },
+      matches: { hashMatches, rootMatches, uriMatches },
+      ipfsVerify,
+      proofs
+    });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: "VERIFY failed", details: err.message });
   }
 });
 
