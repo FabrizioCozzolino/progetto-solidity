@@ -191,6 +191,11 @@ function toFileUri(p) {
   return `file://${abs.startsWith("/") ? "" : "/"}${abs}`;
 }
 
+function getBaseUrl(req) {
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  return `${proto}://${req.get("host")}`;
+}
+
 // --------------------
 // FLOW HELPERS (per 3 chiamate ufficiali)
 // --------------------
@@ -243,6 +248,30 @@ async function topviewImportLatest() {
   state._importedUnit = unit;
 
   return { forestUnitId: selectedForestKey, unit };
+}
+
+async function topviewImportForestUnitById(forestUnitId) {
+  const token = state.topview.token;
+  if (!token) throw new Error("Token mancante (TopView login non eseguito)");
+
+  const httpsAgent = new https.Agent({ rejectUnauthorized: !TOPVIEW_HTTPS_INSECURE });
+  const r = await axios.get(TOPVIEW_FOREST_UNITS_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+    httpsAgent
+  });
+
+  const forestUnits = r.data.forestUnits || {};
+  const unit = forestUnits[forestUnitId];
+
+  if (!unit) {
+    throw new Error(`Forest unit "${forestUnitId}" non trovata su TopView`);
+  }
+
+  state.forestUnitsRemote = forestUnits;
+  state.lastImportedForestUnitKey = forestUnitId;
+  state._importedUnit = unit;
+
+  return { forestUnitId, unit };
 }
 
 async function buildUnifiedBatchInternal(forestUnitId) {
@@ -353,7 +382,7 @@ async function buildUnifiedBatchInternal(forestUnitId) {
   return { forestUnitId, merkleRoot: root, batchFile, leavesCount: leaves.length };
 }
 
-async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, useIPFS) {
+async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMode = "LOCAL_FILE") {
   const network = await provider.getNetwork();
   const chainId = Number(network.chainId);
   const verifyingContract = deployed.ForestTracking;
@@ -389,7 +418,7 @@ interpretabile sia da esseri umani sia da sistemi automatici.
     technical: {
       merkleRootUnified: merkleRoot,
       batchFormat: "JSON",
-      storage: useIPFS ? "IPFS" : "LOCAL_FILE",
+      storage: storageMode,
       hashAlgorithm: "keccak256"
     },
     legal: {
@@ -521,6 +550,35 @@ async function estimateRegisterInternal({ forestUnitId, ricardianHash, merkleRoo
   };
 }
 
+async function estimateSetPdfUriInternal({ forestUnitId, pdfUri }) {
+  const contractAddress = deployed.ForestTracking;
+  const from = await signer.getAddress();
+
+  const data = contract.interface.encodeFunctionData("setRicardianPdfUri", [
+    forestUnitId,
+    pdfUri
+  ]);
+
+  const gasEstimate = await provider.estimateGas({ to: contractAddress, data, from });
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? ethers.parseUnits("20", "gwei");
+
+  const gasCostWei = gasEstimate * gasPrice;
+  const gasCostEth = Number(ethers.formatEther(gasCostWei));
+  const ethPrice = await getEthPriceInEuro();
+
+  return {
+    to: contractAddress,
+    from,
+    gasEstimate: gasEstimate.toString(),
+    gasPriceWei: gasPrice.toString(),
+    gasCostWei: gasCostWei.toString(),
+    gasCostEth,
+    ethEur: ethPrice,
+    eur: Number((gasCostEth * ethPrice).toFixed(2))
+  };
+}
+
 async function registerOnChainInternal({ forestUnitId, ricardianHash, merkleRoot, storageUri }) {
   const runner = await contract.runner;
   const signerAddress = await runner.getAddress();
@@ -538,6 +596,36 @@ async function registerOnChainInternal({ forestUnitId, ricardianHash, merkleRoot
   }
 
   const tx = await contract.registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri);
+  const receipt = await tx.wait();
+
+  return {
+    txHash: receipt.transactionHash || tx.hash,
+    blockNumber: receipt.blockNumber,
+    signerAddress
+  };
+}
+
+async function setPdfUriOnChainInternal({ forestUnitId, pdfUri }) {
+  const runner = await contract.runner;
+  const signerAddress = await runner.getAddress();
+  const balance = await runner.provider.getBalance(signerAddress);
+
+  const gas = await contract.setRicardianPdfUri.estimateGas(forestUnitId, pdfUri);
+  const feeData = await runner.provider.getFeeData();
+  const price = feeData.maxFeePerGas ?? feeData.gasPrice;
+  const estimatedCost = gas * price;
+
+  if (balance < estimatedCost) {
+    const e = new Error("Insufficient funds");
+    e.meta = {
+      signerAddress,
+      balanceWei: balance.toString(),
+      estimatedCostWei: estimatedCost.toString()
+    };
+    throw e;
+  }
+
+  const tx = await contract.setRicardianPdfUri(forestUnitId, pdfUri);
   const receipt = await tx.wait();
 
   return {
@@ -1417,46 +1505,56 @@ app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
 // 10) VIEW / DOWNLOAD Ricardian PDF
 // --------------------
 
-// A) PDF "ultimo generato" (sempre ricardian-forest.pdf in root)
-app.get("/api/ricardian/pdf", (req, res) => {
-  try {
-    const pdfPath = path.join(__dirname, "ricardian-forest.pdf");
+function getPdfPathByForestUnitId(forestUnitId) {
+  const r = state.ricardians?.[forestUnitId];
+  if (!r?.pdfPath) return null;
 
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({ error: "PDF non trovato. Genera prima con /api/ricardian/buildAndSign" });
-    }
+  const pdfPath = path.resolve(r.pdfPath);
+  if (!fs.existsSync(pdfPath)) return null;
 
-    res.setHeader("Content-Type", "application/pdf");
-    // inline = apre nel browser. attachment = forza download
-    res.setHeader("Content-Disposition", 'inline; filename="ricardian-forest.pdf"');
+  return pdfPath;
+}
 
-    return res.sendFile(pdfPath);
-  } catch (err) {
-    return res.status(500).json({ error: "Errore lettura PDF", details: err.message });
-  }
-});
-
-// B) PDF per forestUnit specifica (se vuoi distinguere più pdf in futuro)
-app.get("/api/ricardian/pdf/:forestUnitId", (req, res) => {
+// VIEW inline
+app.get("/api/ricardian/pdf/:forestUnitId/view", (req, res) => {
   try {
     const { forestUnitId } = req.params;
+    const pdfPath = getPdfPathByForestUnitId(forestUnitId);
 
-    const r = state.ricardians?.[forestUnitId];
-    const pdfPath = r?.pdfPath || path.join(__dirname, "ricardian-forest.pdf");
-
-    if (!pdfPath || !fs.existsSync(pdfPath)) {
+    if (!pdfPath) {
       return res.status(404).json({
         error: "PDF non trovato per questa forestUnitId. Genera prima con /api/ricardian/buildAndSign",
         forestUnitId
       });
     }
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="ricardian-${forestUnitId}.pdf"`);
-
-    return res.sendFile(pdfPath);
+    return res.sendFile(pdfPath, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="ricardian-${forestUnitId}.pdf"`
+      }
+    });
   } catch (err) {
     return res.status(500).json({ error: "Errore lettura PDF", details: err.message });
+  }
+});
+
+// DOWNLOAD attachment
+app.get("/api/ricardian/pdf/:forestUnitId/download", (req, res) => {
+  try {
+    const { forestUnitId } = req.params;
+    const pdfPath = getPdfPathByForestUnitId(forestUnitId);
+
+    if (!pdfPath) {
+      return res.status(404).json({
+        error: "PDF non trovato per questa forestUnitId. Genera prima con /api/ricardian/buildAndSign",
+        forestUnitId
+      });
+    }
+
+    return res.download(pdfPath, `ricardian-${forestUnitId}.pdf`);
+  } catch (err) {
+    return res.status(500).json({ error: "Errore download PDF", details: err.message });
   }
 });
 
@@ -1469,27 +1567,29 @@ app.post("/api/contract/write", async (req, res) => {
   try {
     const useIPFS = !!req.body?.useIPFS;
 
-    // 1) login (se già loggato non rifà)
+    // 1) login
     const login = await topviewEnsureLogin(req.body?.username, req.body?.password);
 
-    // 2) import latest (oppure usa forestUnitId passato)
+    // 2) import latest oppure specifica forest unit
     let forestUnitId = req.body?.forestUnitId;
     if (!forestUnitId) {
       const imported = await topviewImportLatest();
       forestUnitId = imported.forestUnitId;
     } else {
-      // se l'utente passa forestUnitId, comunque importiamo latest per avere unit in state
-      // (se vuoi: qui potresti cercare proprio quello specifico nel JSON TopView)
-      await topviewImportLatest();
+      await topviewImportForestUnitById(forestUnitId);
     }
 
-    // 3) batch+merkle
+    // 3) batch + merkle
     const batch = await buildUnifiedBatchInternal(forestUnitId);
 
-    // 4) ricardian + pdf (generato, ma “stampa” la fai con GET /pdf)
-    const ric = await buildAndSignRicardianInternal(forestUnitId, batch.merkleRoot, useIPFS);
+    // 4) build/sign ricardian
+    const ric = await buildAndSignRicardianInternal(
+      forestUnitId,
+      batch.merkleRoot,
+      useIPFS ? "IPFS" : "LOCAL_FILE"
+    );
 
-    // 5) storage uri: IPFS (se useIPFS) altrimenti file://
+    // 5) storage ricardian JSON: IPFS oppure file locale
     let storage;
     if (useIPFS) storage = await uploadRicardianToIpfsInternal(forestUnitId);
     else storage = await persistRicardianLocalInternal(forestUnitId);
@@ -1502,7 +1602,7 @@ app.post("/api/contract/write", async (req, res) => {
       storageUri: storage.storageUri
     });
 
-    // 7) register on-chain
+    // 7) register on-chain del SOLO ricardian contract
     const onchain = await registerOnChainInternal({
       forestUnitId,
       ricardianHash: ric.ricardianHash,
@@ -1510,36 +1610,123 @@ app.post("/api/contract/write", async (req, res) => {
       storageUri: storage.storageUri
     });
 
-    // (opzionale) salva “receipt” in memory per verify
     state.writes[forestUnitId] = {
       forestUnitId,
       merkleRoot: batch.merkleRoot,
       ricardianHash: ric.ricardianHash,
-      storageUri: storage.storageUri,
+      ricardianUri: storage.storageUri,
+      pdfUri: null,
       ipfsUri: storage.ipfsUri || null,
       cid: storage.cid || null,
       txHash: onchain.txHash,
       blockNumber: onchain.blockNumber,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      mode: "RICARDIAN_ONLY"
     };
 
     return res.json({
       ok: true,
+      mode: "RICARDIAN_ONLY",
       forestUnitId,
       login,
       merkleRoot: batch.merkleRoot,
       ricardianHash: ric.ricardianHash,
-      storageUri: storage.storageUri,
+      ricardianUri: storage.storageUri,
       ipfsUri: storage.ipfsUri || null,
       cid: storage.cid || null,
       estimate,
-      onchain,
-      pdfEndpoint: `/api/ricardian/pdf/${forestUnitId}`
+      onchain
     });
   } catch (err) {
     return res.status(500).json({
       ok: false,
       error: "WRITE failed",
+      details: err.message,
+      meta: err.meta
+    });
+  }
+});
+
+// --------------------
+// ✅ OFFICIAL #1.5: WRITE PDF ONLY ON-CHAIN
+// - genera batch + ricardian + PDF
+// - salva on-chain come storageUri il link HTTP del PDF
+// - restituisce il link da scaricare
+// --------------------
+app.post("/api/contract/write-1.5-pdf", async (req, res) => {
+  try {
+    const login = await topviewEnsureLogin(req.body?.username, req.body?.password);
+
+    let forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) {
+      const imported = await topviewImportLatest();
+      forestUnitId = imported.forestUnitId;
+    } else {
+      await topviewImportForestUnitById(forestUnitId);
+    }
+
+    const existingRic = state.ricardians?.[forestUnitId];
+    const existingWrite = state.writes?.[forestUnitId];
+    const existingBatch = state.batches?.[forestUnitId];
+
+    if (!existingRic?.ricardianHash || !existingBatch?.root) {
+      return res.status(400).json({
+        ok: false,
+        error: "Ricardian non disponibile. Esegui prima /api/contract/write"
+      });
+    }
+
+    const baseUrl = getBaseUrl(req);
+    const pdfViewUrl = `${baseUrl}/api/ricardian/pdf/${encodeURIComponent(forestUnitId)}/view`;
+    const pdfDownloadUrl = `${baseUrl}/api/ricardian/pdf/${encodeURIComponent(forestUnitId)}/download`;
+
+    const estimate = await estimateSetPdfUriInternal({
+      forestUnitId,
+      pdfUri: pdfDownloadUrl
+    });
+
+    const onchain = await setPdfUriOnChainInternal({
+      forestUnitId,
+      pdfUri: pdfDownloadUrl
+    });
+
+    if (state.ricardians?.[forestUnitId]) {
+      state.ricardians[forestUnitId].pdfUri = pdfDownloadUrl;
+    }
+
+    state.writes[forestUnitId] = {
+      ...(existingWrite || {}),
+      forestUnitId,
+      merkleRoot: existingBatch.root,
+      ricardianHash: existingRic.ricardianHash,
+      ricardianUri: existingWrite?.ricardianUri || existingRic.storageUri || null,
+      pdfUri: pdfDownloadUrl,
+      txHash: onchain.txHash,
+      blockNumber: onchain.blockNumber,
+      createdAt: new Date().toISOString(),
+      mode: "PDF_ONLY"
+    };
+
+    return res.json({
+      ok: true,
+      mode: "PDF_ONLY",
+      forestUnitId,
+      login,
+      merkleRoot: existingBatch.root,
+      ricardianHash: existingRic.ricardianHash,
+      pdfUri: pdfDownloadUrl,
+      estimate,
+      onchain,
+      pdf: {
+        viewUrl: pdfViewUrl,
+        downloadUrl: pdfDownloadUrl
+      },
+      note: "On-chain è stato registrato il link HTTP del PDF nel campo pdfUri."
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error: "WRITE 1.5 PDF failed",
       details: err.message,
       meta: err.meta
     });
@@ -1563,7 +1750,8 @@ app.post("/api/contract/verify", async (req, res) => {
 
     const expectedRicardianHash = w.ricardianHash || r?.ricardianHash;
     const expectedMerkleRoot = w.merkleRoot || b?.root;
-    const expectedStorageUri = w.storageUri || r?.storageUri;
+    const expectedRicardianUri = w.ricardianUri || r?.storageUri || null;
+    const expectedPdfUri = w.pdfUri || r?.pdfUri || null;
 
     if (!expectedRicardianHash) return res.status(400).json({ error: "expectedRicardianHash non disponibile (fai prima /api/contract/write)" });
     if (!expectedMerkleRoot) return res.status(400).json({ error: "expectedMerkleRoot non disponibile (fai prima /api/contract/write)" });
@@ -1574,16 +1762,26 @@ app.post("/api/contract/verify", async (req, res) => {
     // prova a leggere campi noti
     const onchainHash = onchainRic.ricardianHash || onchainRic.hash || onchainRic[0];
     const onchainRoot = onchainRic.merkleRoot || onchainRic.root || onchainRic[1];
-    const onchainUri  = onchainRic.storageUri || onchainRic.uri || onchainRic[2];
+    const onchainRicardianUri = onchainRic.ricardianUri || onchainRic[2];
+    const onchainPdfUri = onchainRic.pdfUri || onchainRic[3];
 
     const hashMatches = onchainHash && (String(onchainHash).toLowerCase() === String(expectedRicardianHash).toLowerCase());
     const rootMatches = onchainRoot && (String(onchainRoot).toLowerCase() === String(expectedMerkleRoot).toLowerCase());
-    const uriMatches = expectedStorageUri ? (String(onchainUri || "").toLowerCase() === String(expectedStorageUri).toLowerCase()) : true;
+    const ricardianUriMatches = expectedRicardianUri
+      ? String(onchainRicardianUri || "").toLowerCase() === String(expectedRicardianUri).toLowerCase()
+      : true;
+
+    const pdfUriMatches = expectedPdfUri
+      ? String(onchainPdfUri || "").toLowerCase() === String(expectedPdfUri).toLowerCase()
+      : true;
 
     const existsOnChain = !!onchainRoot && String(onchainRoot) !== "0x0000000000000000000000000000000000000000000000000000000000000000";
 
     // B) verify ipfs hash (solo se usi IPFS)
-    const ipfsVerify = await verifyIpfsHashInternal(forestUnitId, expectedRicardianHash);
+    const isIpfsMode = !!w.ipfsUri || !!r?.ipfsUri;
+    const ipfsVerify = isIpfsMode
+      ? await verifyIpfsHashInternal(forestUnitId, expectedRicardianHash)
+      : { skipped: true, reason: "storage non IPFS" };
 
     // C) proofs
     const proofs = await verifyMerkleProofsInternal(forestUnitId);
@@ -1595,14 +1793,21 @@ app.post("/api/contract/verify", async (req, res) => {
       onchain: {
         ricardianHash: onchainHash,
         merkleRoot: onchainRoot,
-        storageUri: onchainUri
+        ricardianUri: onchainRicardianUri,
+        pdfUri: onchainPdfUri
       },
       expected: {
         ricardianHash: expectedRicardianHash,
         merkleRoot: expectedMerkleRoot,
-        storageUri: expectedStorageUri
+        ricardianUri: expectedRicardianUri,
+        pdfUri: expectedPdfUri
       },
-      matches: { hashMatches, rootMatches, uriMatches },
+      matches: {
+        hashMatches,
+        rootMatches,
+        ricardianUriMatches,
+        pdfUriMatches
+      },
       ipfsVerify,
       proofs
     });
