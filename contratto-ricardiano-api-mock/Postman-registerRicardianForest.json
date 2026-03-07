@@ -1,16 +1,18 @@
 {
   "info": {
-    "name": "Register Ricardian Forest - 3 CALLS (WRITE + PDF + VERIFY)",
+    "name": "Register Ricardian Forest - 4 CALLS (WRITE + WRITE 1.5 PDF + PDF + VERIFY)",
     "_postman_id": "bbbbbbbb-1111-2222-3333-cccccccccccc",
-    "description": "Only 3 calls: 1) /api/contract/write (does all steps internally) 2) view PDF (kept as 4.5) 3) /api/contract/verify (on-chain + proofs + optional IPFS hash). Auto-populates collection variables.",
+    "description": "Calls: 1) /api/contract/write 2) /api/contract/write-1.5-pdf 3) PDF view/download 4) /api/contract/verify. Auto-populates collection variables.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1) WRITE (All-in-one) -> sets {{forestUnitId}} {{merkleRoot}} {{ricardianHash}} {{storageUri}} {{txHash}}",
+      "name": "1) WRITE (All-in-one) -> sets {{forestUnitId}} {{merkleRoot}} {{ricardianHash}} {{storageUri}} {{txHash}} {{pdfViewUrl}} {{pdfDownloadUrl}}",
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
         "url": {
           "raw": "{{API_URL}}/api/contract/write",
           "host": ["{{API_URL}}"],
@@ -36,21 +38,71 @@
               "if (j && j.ricardianHash) pm.collectionVariables.set('ricardianHash', j.ricardianHash);",
               "if (j && j.storageUri) pm.collectionVariables.set('storageUri', j.storageUri);",
               "if (j && j.onchain && j.onchain.txHash) pm.collectionVariables.set('txHash', j.onchain.txHash);",
-              "if (j && j.onchain && j.onchain.blockNumber !== undefined) pm.collectionVariables.set('blockNumber', String(j.onchain.blockNumber));",
-              "if (j && j.pdfEndpoint) pm.collectionVariables.set('pdfEndpoint', j.pdfEndpoint);"
+              "if (j && j.onchain && j.onchain.blockNumber !== undefined) pm.collectionVariables.set('blockNumber', String(j.onchain.blockNumber));"
             ]
           }
         }
       ]
     },
     {
-      "name": "4.5) View Ricardian PDF (kept) -> uses {{forestUnitId}}",
+      "name": "1.5) WRITE PDF ONLY -> sets {{forestUnitId}} {{merkleRoot}} {{ricardianHash}} {{storageUri}} {{txHash}} {{pdfViewUrl}} {{pdfDownloadUrl}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{API_URL}}/api/contract/write-1.5-pdf",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "contract", "write-1.5-pdf"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"operator\",\n  \"password\": \"1234567!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "if (!j || j.ok !== true) {",
+              "  console.log('WRITE 1.5 PDF failed response:', j);",
+              "}",
+              "if (j && j.forestUnitId) pm.collectionVariables.set('forestUnitId', j.forestUnitId);",
+              "if (j && j.merkleRoot) pm.collectionVariables.set('merkleRoot', j.merkleRoot);",
+              "if (j && j.ricardianHash) pm.collectionVariables.set('ricardianHash', j.ricardianHash);",
+              "if (j && j.storageUri) pm.collectionVariables.set('storageUri', j.storageUri);",
+              "if (j && j.onchain && j.onchain.txHash) pm.collectionVariables.set('txHash', j.onchain.txHash);",
+              "if (j && j.onchain && j.onchain.blockNumber !== undefined) pm.collectionVariables.set('blockNumber', String(j.onchain.blockNumber));",
+              "if (j && j.pdf && j.pdf.viewUrl) pm.collectionVariables.set('pdfViewUrl', j.pdf.viewUrl);",
+              "if (j && j.pdf && j.pdf.downloadUrl) pm.collectionVariables.set('pdfDownloadUrl', j.pdf.downloadUrl);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4.5) View Ricardian PDF -> uses {{forestUnitId}}",
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{API_URL}}/api/ricardian/pdf/{{forestUnitId}}",
+          "raw": "{{API_URL}}/api/ricardian/pdf/{{forestUnitId}}/view",
           "host": ["{{API_URL}}"],
-          "path": ["api", "ricardian", "pdf", "{{forestUnitId}}"]
+          "path": ["api", "ricardian", "pdf", "{{forestUnitId}}", "view"]
+        }
+      }
+    },
+    {
+      "name": "4.6) Download Ricardian PDF -> uses {{forestUnitId}}",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{API_URL}}/api/ricardian/pdf/{{forestUnitId}}/download",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "ricardian", "pdf", "{{forestUnitId}}", "download"]
         }
       }
     },
@@ -58,7 +110,9 @@
       "name": "3) VERIFY (On-chain + proofs + optional IPFS hash) -> uses {{forestUnitId}}",
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
         "url": {
           "raw": "{{API_URL}}/api/contract/verify",
           "host": ["{{API_URL}}"],
@@ -79,6 +133,7 @@
     { "key": "storageUri", "value": "" },
     { "key": "txHash", "value": "" },
     { "key": "blockNumber", "value": "" },
-    { "key": "pdfEndpoint", "value": "" }
+    { "key": "pdfViewUrl", "value": "" },
+    { "key": "pdfDownloadUrl", "value": "" }
   ]
 }

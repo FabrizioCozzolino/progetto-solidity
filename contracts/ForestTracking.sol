@@ -115,45 +115,92 @@ contract ForestTracking {
     }
 
     // =================================================
-    // ========== RICARDIAN CONTRACT SECTION ===========
-    // =================================================
+// ========== RICARDIAN CONTRACT SECTION ===========
+// =================================================
 
-    struct RicardianForestContract {
-        bytes32 ricardianHash;
-        bytes32 merkleRoot;
-        string ipfsHash;
-        uint256 timestamp;
-    }
+struct RicardianForestContract {
+    bytes32 ricardianHash;
+    bytes32 merkleRoot;
+    string ricardianUri;
+    string pdfUri;
+    uint256 timestamp;
+}
 
-    mapping(string => RicardianForestContract) public forestRicardians;
+mapping(string => RicardianForestContract) public forestRicardians;
 
-    event RicardianForestRegistered(
-        string forestUnitKey,
-        bytes32 ricardianHash,
-        bytes32 merkleRoot,
-        string ipfsHash,
-        uint256 timestamp
+event RicardianForestRegistered(
+    string forestUnitKey,
+    bytes32 ricardianHash,
+    bytes32 merkleRoot,
+    string ricardianUri,
+    uint256 timestamp
+);
+
+event RicardianPdfUriUpdated(
+    string forestUnitKey,
+    string pdfUri,
+    uint256 timestamp
+);
+
+function registerRicardianForest(
+    string memory forestUnitKey,
+    bytes32 ricardianHash,
+    bytes32 merkleRoot,
+    string memory ricardianUri
+) external onlyOwner {
+    forestRicardians[forestUnitKey].ricardianHash = ricardianHash;
+    forestRicardians[forestUnitKey].merkleRoot = merkleRoot;
+    forestRicardians[forestUnitKey].ricardianUri = ricardianUri;
+    forestRicardians[forestUnitKey].timestamp = block.timestamp;
+
+    emit RicardianForestRegistered(
+        forestUnitKey,
+        ricardianHash,
+        merkleRoot,
+        ricardianUri,
+        block.timestamp
+    );
+}
+
+function setRicardianPdfUri(
+    string memory forestUnitKey,
+    string memory pdfUri
+) external onlyOwner {
+    require(
+        forestRicardians[forestUnitKey].ricardianHash != bytes32(0),
+        "Ricardian non registrato"
     );
 
-    function registerRicardianForest(
-        string memory forestUnitKey,
+    forestRicardians[forestUnitKey].pdfUri = pdfUri;
+    forestRicardians[forestUnitKey].timestamp = block.timestamp;
+
+    emit RicardianPdfUriUpdated(
+        forestUnitKey,
+        pdfUri,
+        block.timestamp
+    );
+}
+
+function getRicardianForest(
+    string memory forestUnitKey
+)
+    external
+    view
+    returns (
         bytes32 ricardianHash,
         bytes32 merkleRoot,
-        string memory ipfsHash
-    ) external onlyOwner {
-        forestRicardians[forestUnitKey] = RicardianForestContract({
-            ricardianHash: ricardianHash,
-            merkleRoot: merkleRoot,
-            ipfsHash: ipfsHash,
-            timestamp: block.timestamp
-        });
-
-        emit RicardianForestRegistered(
-            forestUnitKey,
-            ricardianHash,
-            merkleRoot,
-            ipfsHash,
-            block.timestamp
-        );
-    }
+        string memory ricardianUri,
+        string memory pdfUri,
+        uint256 timestamp
+    )
+{
+    RicardianForestContract memory data = forestRicardians[forestUnitKey];
+    return (
+        data.ricardianHash,
+        data.merkleRoot,
+        data.ricardianUri,
+        data.pdfUri,
+        data.timestamp
+    );
+}
 }
