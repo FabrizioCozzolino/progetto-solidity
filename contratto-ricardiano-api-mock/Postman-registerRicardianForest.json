@@ -1,13 +1,13 @@
 {
   "info": {
-    "name": "Register Ricardian Forest - 4 CALLS (WRITE + WRITE 1.5 PDF + PDF + VERIFY)",
+    "name": "Register Ricardian Forest - 6 CALLS (WRITE + WRITE 1.5 PDF + PDF + UPLOAD CADES + WRITE 2 CADES + VERIFY)",
     "_postman_id": "bbbbbbbb-1111-2222-3333-cccccccccccc",
-    "description": "Calls: 1) /api/contract/write 2) /api/contract/write-1.5-pdf 3) PDF view/download 4) /api/contract/verify. Auto-populates collection variables.",
+    "description": "Calls: 1) /api/contract/write 2) /api/contract/write-1.5-pdf 3) PDF view/download 4) /api/ricardian/cades/upload 5) /api/contract/write-2-cades 6) /api/contract/verify. Auto-populates collection variables.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1) WRITE (All-in-one) -> sets {{forestUnitId}} {{merkleRoot}} {{ricardianHash}} {{storageUri}} {{txHash}} {{pdfViewUrl}} {{pdfDownloadUrl}}",
+      "name": "1) WRITE (All-in-one) -> sets {{forestUnitId}} {{merkleRoot}} {{ricardianHash}} {{storageUri}} {{txHash}}",
       "request": {
         "method": "POST",
         "header": [
@@ -36,7 +36,7 @@
               "if (j && j.forestUnitId) pm.collectionVariables.set('forestUnitId', j.forestUnitId);",
               "if (j && j.merkleRoot) pm.collectionVariables.set('merkleRoot', j.merkleRoot);",
               "if (j && j.ricardianHash) pm.collectionVariables.set('ricardianHash', j.ricardianHash);",
-              "if (j && j.storageUri) pm.collectionVariables.set('storageUri', j.storageUri);",
+              "if (j && j.ricardianUri) pm.collectionVariables.set('storageUri', j.ricardianUri);",
               "if (j && j.onchain && j.onchain.txHash) pm.collectionVariables.set('txHash', j.onchain.txHash);",
               "if (j && j.onchain && j.onchain.blockNumber !== undefined) pm.collectionVariables.set('blockNumber', String(j.onchain.blockNumber));"
             ]
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "name": "1.5) WRITE PDF ONLY -> sets {{forestUnitId}} {{merkleRoot}} {{ricardianHash}} {{storageUri}} {{txHash}} {{pdfViewUrl}} {{pdfDownloadUrl}}",
+      "name": "1.5) WRITE PDF ONLY -> sets {{forestUnitId}} {{merkleRoot}} {{ricardianHash}} {{txHash}} {{pdfViewUrl}} {{pdfDownloadUrl}}",
       "request": {
         "method": "POST",
         "header": [
@@ -74,7 +74,6 @@
               "if (j && j.forestUnitId) pm.collectionVariables.set('forestUnitId', j.forestUnitId);",
               "if (j && j.merkleRoot) pm.collectionVariables.set('merkleRoot', j.merkleRoot);",
               "if (j && j.ricardianHash) pm.collectionVariables.set('ricardianHash', j.ricardianHash);",
-              "if (j && j.storageUri) pm.collectionVariables.set('storageUri', j.storageUri);",
               "if (j && j.onchain && j.onchain.txHash) pm.collectionVariables.set('txHash', j.onchain.txHash);",
               "if (j && j.onchain && j.onchain.blockNumber !== undefined) pm.collectionVariables.set('blockNumber', String(j.onchain.blockNumber));",
               "if (j && j.pdf && j.pdf.viewUrl) pm.collectionVariables.set('pdfViewUrl', j.pdf.viewUrl);",
@@ -85,7 +84,7 @@
       ]
     },
     {
-      "name": "4.5) View Ricardian PDF -> uses {{forestUnitId}}",
+      "name": "2) View Ricardian PDF -> uses {{forestUnitId}}",
       "request": {
         "method": "GET",
         "url": {
@@ -96,7 +95,7 @@
       }
     },
     {
-      "name": "4.6) Download Ricardian PDF -> uses {{forestUnitId}}",
+      "name": "3) Download Ricardian PDF -> uses {{forestUnitId}}",
       "request": {
         "method": "GET",
         "url": {
@@ -107,7 +106,99 @@
       }
     },
     {
-      "name": "3) VERIFY (On-chain + proofs + optional IPFS hash) -> uses {{forestUnitId}}",
+      "name": "4) Upload CAdES .p7m -> sets {{pdfHash}} {{cadesHash}} {{cadesUri}} {{signerCommonName}} {{signerSerialNumber}} {{validOffchain}}",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{API_URL}}/api/ricardian/cades/upload",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "ricardian", "cades", "upload"]
+        },
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "forestUnitId",
+              "value": "{{forestUnitId}}",
+              "type": "text"
+            },
+            {
+              "key": "useIPFS",
+              "value": "false",
+              "type": "text"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": ""
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "console.log('UPLOAD CADES response:', j);",
+              "if (j && j.forestUnitId) pm.collectionVariables.set('forestUnitId', j.forestUnitId);",
+              "if (j && j.hashes && j.hashes.pdfHash) pm.collectionVariables.set('pdfHash', j.hashes.pdfHash);",
+              "if (j && j.hashes && j.hashes.cadesHash) pm.collectionVariables.set('cadesHash', j.hashes.cadesHash);",
+              "if (j && j.storage && j.storage.cadesUri) pm.collectionVariables.set('cadesUri', j.storage.cadesUri);",
+              "if (j && j.signer && j.signer.commonName !== undefined) pm.collectionVariables.set('signerCommonName', j.signer.commonName);",
+              "if (j && j.signer && j.signer.serialNumber !== undefined) pm.collectionVariables.set('signerSerialNumber', j.signer.serialNumber);",
+              "if (j && j.validOffchain !== undefined) pm.collectionVariables.set('validOffchain', String(j.validOffchain));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5) WRITE 2 CADES -> sets {{cadesTxHash}} {{cadesBlockNumber}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{API_URL}}/api/contract/write-2-cades",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "contract", "write-2-cades"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitId}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "console.log('WRITE 2 CADES response:', j);",
+              "if (j && j.ok !== true) {",
+              "  console.log('WRITE 2 CADES failed response:', j);",
+              "}",
+              "if (j && j.onchain && j.onchain.txHash) pm.collectionVariables.set('cadesTxHash', j.onchain.txHash);",
+              "if (j && j.onchain && j.onchain.blockNumber !== undefined) pm.collectionVariables.set('cadesBlockNumber', String(j.onchain.blockNumber));",
+              "if (j && j.countersignature && j.countersignature.pdfHash) pm.collectionVariables.set('pdfHash', j.countersignature.pdfHash);",
+              "if (j && j.countersignature && j.countersignature.cadesHash) pm.collectionVariables.set('cadesHash', j.countersignature.cadesHash);",
+              "if (j && j.countersignature && j.countersignature.cadesUri) pm.collectionVariables.set('cadesUri', j.countersignature.cadesUri);",
+              "if (j && j.countersignature && j.countersignature.signerCommonName !== undefined) pm.collectionVariables.set('signerCommonName', j.countersignature.signerCommonName);",
+              "if (j && j.countersignature && j.countersignature.signerSerialNumber !== undefined) pm.collectionVariables.set('signerSerialNumber', j.countersignature.signerSerialNumber);",
+              "if (j && j.countersignature && j.countersignature.validOffchain !== undefined) pm.collectionVariables.set('validOffchain', String(j.countersignature.validOffchain));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6) VERIFY (On-chain + proofs + optional IPFS hash + countersignature) -> uses {{forestUnitId}}",
       "request": {
         "method": "POST",
         "header": [
@@ -134,6 +225,14 @@
     { "key": "txHash", "value": "" },
     { "key": "blockNumber", "value": "" },
     { "key": "pdfViewUrl", "value": "" },
-    { "key": "pdfDownloadUrl", "value": "" }
+    { "key": "pdfDownloadUrl", "value": "" },
+    { "key": "pdfHash", "value": "" },
+    { "key": "cadesHash", "value": "" },
+    { "key": "cadesUri", "value": "" },
+    { "key": "signerCommonName", "value": "" },
+    { "key": "signerSerialNumber", "value": "" },
+    { "key": "validOffchain", "value": "" },
+    { "key": "cadesTxHash", "value": "" },
+    { "key": "cadesBlockNumber", "value": "" }
   ]
 }

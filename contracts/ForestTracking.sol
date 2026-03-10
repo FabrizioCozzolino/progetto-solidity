@@ -115,92 +115,205 @@ contract ForestTracking {
     }
 
     // =================================================
-// ========== RICARDIAN CONTRACT SECTION ===========
-// =================================================
+    // ========== RICARDIAN CONTRACT SECTION ===========
+    // =================================================
 
-struct RicardianForestContract {
-    bytes32 ricardianHash;
-    bytes32 merkleRoot;
-    string ricardianUri;
-    string pdfUri;
-    uint256 timestamp;
-}
+    struct RicardianForestContract {
+        bytes32 ricardianHash;
+        bytes32 merkleRoot;
+        string ricardianUri;
+        string pdfUri;
+        uint256 timestamp;
+    }
 
-mapping(string => RicardianForestContract) public forestRicardians;
+    mapping(string => RicardianForestContract) public forestRicardians;
 
-event RicardianForestRegistered(
-    string forestUnitKey,
-    bytes32 ricardianHash,
-    bytes32 merkleRoot,
-    string ricardianUri,
-    uint256 timestamp
-);
-
-event RicardianPdfUriUpdated(
-    string forestUnitKey,
-    string pdfUri,
-    uint256 timestamp
-);
-
-function registerRicardianForest(
-    string memory forestUnitKey,
-    bytes32 ricardianHash,
-    bytes32 merkleRoot,
-    string memory ricardianUri
-) external onlyOwner {
-    forestRicardians[forestUnitKey].ricardianHash = ricardianHash;
-    forestRicardians[forestUnitKey].merkleRoot = merkleRoot;
-    forestRicardians[forestUnitKey].ricardianUri = ricardianUri;
-    forestRicardians[forestUnitKey].timestamp = block.timestamp;
-
-    emit RicardianForestRegistered(
-        forestUnitKey,
-        ricardianHash,
-        merkleRoot,
-        ricardianUri,
-        block.timestamp
-    );
-}
-
-function setRicardianPdfUri(
-    string memory forestUnitKey,
-    string memory pdfUri
-) external onlyOwner {
-    require(
-        forestRicardians[forestUnitKey].ricardianHash != bytes32(0),
-        "Ricardian non registrato"
-    );
-
-    forestRicardians[forestUnitKey].pdfUri = pdfUri;
-    forestRicardians[forestUnitKey].timestamp = block.timestamp;
-
-    emit RicardianPdfUriUpdated(
-        forestUnitKey,
-        pdfUri,
-        block.timestamp
-    );
-}
-
-function getRicardianForest(
-    string memory forestUnitKey
-)
-    external
-    view
-    returns (
+    event RicardianForestRegistered(
+        string forestUnitKey,
         bytes32 ricardianHash,
         bytes32 merkleRoot,
-        string memory ricardianUri,
-        string memory pdfUri,
+        string ricardianUri,
         uint256 timestamp
-    )
-{
-    RicardianForestContract memory data = forestRicardians[forestUnitKey];
-    return (
-        data.ricardianHash,
-        data.merkleRoot,
-        data.ricardianUri,
-        data.pdfUri,
-        data.timestamp
     );
-}
+
+    event RicardianPdfUriUpdated(
+        string forestUnitKey,
+        string pdfUri,
+        uint256 timestamp
+    );
+
+    function registerRicardianForest(
+        string memory forestUnitKey,
+        bytes32 ricardianHash,
+        bytes32 merkleRoot,
+        string memory ricardianUri
+    ) external onlyOwner {
+        forestRicardians[forestUnitKey].ricardianHash = ricardianHash;
+        forestRicardians[forestUnitKey].merkleRoot = merkleRoot;
+        forestRicardians[forestUnitKey].ricardianUri = ricardianUri;
+        forestRicardians[forestUnitKey].timestamp = block.timestamp;
+
+        emit RicardianForestRegistered(
+            forestUnitKey,
+            ricardianHash,
+            merkleRoot,
+            ricardianUri,
+            block.timestamp
+        );
+    }
+
+    function setRicardianPdfUri(
+        string memory forestUnitKey,
+        string memory pdfUri
+    ) external onlyOwner {
+        require(
+            forestRicardians[forestUnitKey].ricardianHash != bytes32(0),
+            "Ricardian non registrato"
+        );
+
+        forestRicardians[forestUnitKey].pdfUri = pdfUri;
+        forestRicardians[forestUnitKey].timestamp = block.timestamp;
+
+        emit RicardianPdfUriUpdated(
+            forestUnitKey,
+            pdfUri,
+            block.timestamp
+        );
+    }
+
+    function getRicardianForest(
+        string memory forestUnitKey
+    )
+        external
+        view
+        returns (
+            bytes32 ricardianHash,
+            bytes32 merkleRoot,
+            string memory ricardianUri,
+            string memory pdfUri,
+            uint256 timestamp
+        )
+    {
+        RicardianForestContract memory data = forestRicardians[forestUnitKey];
+        return (
+            data.ricardianHash,
+            data.merkleRoot,
+            data.ricardianUri,
+            data.pdfUri,
+            data.timestamp
+        );
+    }
+
+    // =================================================
+    // ===== USER CAdES COUNTERSIGNATURE SECTION =======
+    // =================================================
+
+    struct RicardianUserCountersignature {
+        bool exists;
+        bytes32 pdfHash;
+        bytes32 cadesHash;
+        string cadesUri;
+        string signerCommonName;
+        string signerSerialNumber;
+        uint256 signedAt;
+        uint256 recordedAt;
+        bool validOffchain;
+    }
+
+    mapping(string => RicardianUserCountersignature)
+        public ricardianUserCountersignatures;
+
+    event RicardianUserCountersigned(
+        string forestUnitKey,
+        bytes32 indexed ricardianHash,
+        bytes32 indexed pdfHash,
+        bytes32 indexed cadesHash,
+        string cadesUri,
+        string signerCommonName,
+        string signerSerialNumber,
+        uint256 signedAt,
+        uint256 recordedAt,
+        bool validOffchain
+    );
+
+    function registerUserCountersignature(
+        string memory forestUnitKey,
+        bytes32 pdfHash,
+        bytes32 cadesHash,
+        string memory cadesUri,
+        string memory signerCommonName,
+        string memory signerSerialNumber,
+        uint256 signedAt,
+        bool validOffchain
+    ) external onlyOwner {
+        require(
+            forestRicardians[forestUnitKey].ricardianHash != bytes32(0),
+            "Ricardian non registrato"
+        );
+        require(
+            bytes(forestRicardians[forestUnitKey].pdfUri).length > 0,
+            "PDF URI non registrato"
+        );
+
+        ricardianUserCountersignatures[
+            forestUnitKey
+        ] = RicardianUserCountersignature({
+            exists: true,
+            pdfHash: pdfHash,
+            cadesHash: cadesHash,
+            cadesUri: cadesUri,
+            signerCommonName: signerCommonName,
+            signerSerialNumber: signerSerialNumber,
+            signedAt: signedAt,
+            recordedAt: block.timestamp,
+            validOffchain: validOffchain
+        });
+
+        emit RicardianUserCountersigned(
+            forestUnitKey,
+            forestRicardians[forestUnitKey].ricardianHash,
+            pdfHash,
+            cadesHash,
+            cadesUri,
+            signerCommonName,
+            signerSerialNumber,
+            signedAt,
+            block.timestamp,
+            validOffchain
+        );
+    }
+
+    function getUserCountersignature(
+        string memory forestUnitKey
+    )
+        external
+        view
+        returns (
+            bool exists,
+            bytes32 pdfHash,
+            bytes32 cadesHash,
+            string memory cadesUri,
+            string memory signerCommonName,
+            string memory signerSerialNumber,
+            uint256 signedAt,
+            uint256 recordedAt,
+            bool validOffchain
+        )
+    {
+        RicardianUserCountersignature memory data = ricardianUserCountersignatures[
+            forestUnitKey
+        ];
+
+        return (
+            data.exists,
+            data.pdfHash,
+            data.cadesHash,
+            data.cadesUri,
+            data.signerCommonName,
+            data.signerSerialNumber,
+            data.signedAt,
+            data.recordedAt,
+            data.validOffchain
+        );
+    }
 }

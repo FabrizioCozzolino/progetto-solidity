@@ -1,16 +1,3 @@
-/**
- * server.registerRicardianForest.js
- * FLOW completo identico allo script:
- * 1) TopView login
- * 2) get-forest-units, seleziona latest
- * 3) build unified batch + merkle
- * 4) build ricardian base + hash + EIP-712 + PDF
- * 5) upload ricardian json to IPFS (ipfs://CID/ricardian-forest.json) + pin (se daemon supporta pin)
- * 6) estimate gas + EUR
- * 7) registerRicardianForest on-chain
- * 8) verify ipfs hash == ricardianHash
- * 9) verify merkle proofs
- */
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../environment_variables.env") });
 
@@ -25,33 +12,43 @@ const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
 const ethers = require("ethers");
 
-const fs = require("fs");;
+const fs = require("fs");
+const crypto = require("crypto");
 const PDFDocument = require("pdfkit");
+const multer = require("multer");
 
 const { create } = require("ipfs-http-client");
+const { execFile } = require("child_process");
+const { promisify } = require("util");
+const execFileAsync = promisify(execFile);
 
 // --------------------
 // CONFIG
 // --------------------
 const PORT = Number(process.env.PORT || 3000);
 
-// TopView endpoints (come tuo script)
+// TopView endpoints
 const TOPVIEW_TOKEN_URL = process.env.TOPVIEW_TOKEN_URL || "https://digimedfor.topview.it/api/get-token/";
 const TOPVIEW_FOREST_UNITS_URL = process.env.TOPVIEW_FOREST_UNITS_URL || "https://digimedfor.topview.it/api/get-forest-units/";
 const TOPVIEW_USERNAME = process.env.TOPVIEW_USERNAME || "operator";
 const TOPVIEW_PASSWORD = process.env.TOPVIEW_PASSWORD || "1234567!";
 const TOPVIEW_HTTPS_INSECURE = (process.env.TOPVIEW_HTTPS_INSECURE || "true") === "true";
+
 const RICARDIAN_DIR = process.env.RICARDIAN_DIR || path.join(__dirname, "storage", "ricardians");
-if (!fs.existsSync(RICARDIAN_DIR)) {
-  fs.mkdirSync(RICARDIAN_DIR, { recursive: true });
+const CADES_DIR = process.env.CADES_DIR || path.join(__dirname, "storage", "cades");
+const TMP_DIR = process.env.TMP_DIR || path.join(__dirname, "storage", "tmp");
+
+for (const dir of [RICARDIAN_DIR, CADES_DIR, TMP_DIR]) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
+
 // EVM / Contract
 const RPC_URL = process.env.RPC_URL || "http://127.0.0.1:8545";
 const PRIVATE_KEY =
   process.env.PRIVATE_KEY ||
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
-// IPFS daemon locale (come nel tuo progetto)
+// IPFS daemon locale
 const IPFS_URL = process.env.IPFS_URL || "http://127.0.0.1:5004/api/v0";
 
 // --------------------
@@ -60,6 +57,14 @@ const IPFS_URL = process.env.IPFS_URL || "http://127.0.0.1:5004/api/v0";
 const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: "50mb" }));
+
+// --------------------
+// MULTER
+// --------------------
+const upload = multer({
+  dest: TMP_DIR,
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
 
 // --------------------
 // IPFS CLIENT
@@ -78,10 +83,9 @@ const contractJson = require(path.resolve(
   __dirname,
   "../artifacts/contracts/ForestTracking.sol/ForestTracking.json"
 ));
-const ForestTrackingAbi = contractJson.abi; // ✅ ora esiste
 const contract = new ethers.Contract(deployed.ForestTracking, contractJson.abi, signer);
 
-// ✅ DEBUG CHAIN INFO (mettilo qui)
+// DEBUG CHAIN INFO
 (async () => {
   const net = await provider.getNetwork();
   const addr = await signer.getAddress();
@@ -99,26 +103,15 @@ const contract = new ethers.Contract(deployed.ForestTracking, contractJson.abi, 
 // --------------------
 const state = {
   topview: { token: null, lastLoginAt: null },
-  forestUnitsRemote: null, // raw response forestUnits
+  forestUnitsRemote: null,
   lastImportedForestUnitKey: null,
-  // local cache for batch/proofs
-  batches: {
-    // [forestUnitId]: { batch, leaves, merkleTree, root, batchFilePath }
-  },
-  ricardians: {
-    // [forestUnitId]: { ricardianBase, ricardianForest, ricardianHash, jsonPath, pdfPath, ipfsUri, cid }
-  }
+  batches: {},
+  ricardians: {},
+  cades: {}
 };
 
-// --------------------
-// WRITE RECEIPTS (persist minimo in-memory)
-// --------------------
-state.writes = {
-  // [forestUnitId]: {
-  //   forestUnitId, merkleRoot, ricardianHash, storageUri, ipfsUri, cid,
-  //   txHash, blockNumber, createdAt
-  // }
-};
+state.writes = {};
+
 // --------------------
 // UTILS
 // --------------------
@@ -185,9 +178,7 @@ async function getEthPriceInEuro() {
 
 function toFileUri(p) {
   const abs = path.resolve(p).replace(/\\/g, "/");
-  // Windows: file:///C:/...
   if (/^[A-Za-z]:\//.test(abs)) return `file:///${abs}`;
-  // Linux/Mac: file:///home/...
   return `file://${abs.startsWith("/") ? "" : "/"}${abs}`;
 }
 
@@ -196,9 +187,33 @@ function getBaseUrl(req) {
   return `${proto}://${req.get("host")}`;
 }
 
-// --------------------
-// FLOW HELPERS (per 3 chiamate ufficiali)
-// --------------------
+function normalizeEstimateWithEur(rawEstimate) {
+  if (!rawEstimate) return rawEstimate;
+
+  const gasCostEth =
+    rawEstimate.gasCostEth != null
+      ? Number(rawEstimate.gasCostEth)
+      : rawEstimate.gasCostWei != null
+        ? Number(rawEstimate.gasCostWei) / 1e18
+        : null;
+
+  const ethEur =
+    rawEstimate.ethEur != null ? Number(rawEstimate.ethEur) : null;
+
+  const eur =
+    gasCostEth != null && ethEur != null
+      ? Number((gasCostEth * ethEur).toFixed(8))
+      : null;
+
+  return {
+    ...rawEstimate,
+    gasCostEth,
+    ethEur,
+    eur,
+    eurFormatted: eur != null ? eur.toFixed(8) : null
+  };
+}
+
 function safeJsonClone(x) {
   return JSON.parse(JSON.stringify(x));
 }
@@ -211,6 +226,152 @@ function stripRicardianToBase(ricardianJson) {
   return base;
 }
 
+function sha256FileHex(filePath) {
+  const data = fs.readFileSync(filePath);
+  return crypto.createHash("sha256").update(data).digest("hex");
+}
+
+function sha256FileBytes32(filePath) {
+  return "0x" + sha256FileHex(filePath);
+}
+
+function parseSubjectField(subject, key) {
+  const s = String(subject || "").trim();
+
+  const patterns = [
+    new RegExp(`(?:^|,)\\s*${key}\\s*=\\s*([^,]+)`, "i"),
+    new RegExp(`(?:^|/)\\s*${key}\\s*=\\s*([^/]+)`, "i")
+  ];
+
+  for (const regex of patterns) {
+    const m = s.match(regex);
+    if (m) return m[1].trim();
+  }
+
+  return "";
+}
+
+async function extractCertificateInfoFromP7m(p7mPath) {
+  const certOutPath = path.join(
+    TMP_DIR,
+    `cert-${Date.now()}-${Math.random().toString(16).slice(2)}.pem`
+  );
+
+  try {
+    // Estrae i certificati embedded dal CMS/CAdES
+    await execFileAsync("openssl", [
+      "cms",
+      "-cmsout",
+      "-print",
+      "-inform", "DER",
+      "-in", p7mPath
+    ]);
+
+    await execFileAsync("openssl", [
+      "cms",
+      "-verify",
+      "-inform", "DER",
+      "-binary",
+      "-noverify",
+      "-in", p7mPath,
+      "-certsout", certOutPath,
+      "-out", process.platform === "win32" ? "NUL" : "/dev/null"
+    ]);
+
+    if (!fs.existsSync(certOutPath)) {
+      throw new Error("certsout non ha prodotto alcun certificato");
+    }
+
+    const { stdout: subjectStdout } = await execFileAsync("openssl", [
+      "x509",
+      "-in", certOutPath,
+      "-noout",
+      "-subject",
+      "-nameopt", "RFC2253"
+    ]);
+
+    const { stdout: serialStdout } = await execFileAsync("openssl", [
+      "x509",
+      "-in", certOutPath,
+      "-noout",
+      "-serial"
+    ]);
+
+    const subjectLine = String(subjectStdout || "").trim(); // es. subject=serialNumber=TEST123,CN=Test User
+    const serialLine = String(serialStdout || "").trim();   // es. serial=4A8F...
+
+    const rawSubject = subjectLine.replace(/^subject=/i, "").trim();
+
+    const signerCommonName =
+      parseSubjectField(rawSubject, "CN") ||
+      parseSubjectField(rawSubject, "commonName") ||
+      "";
+
+    const signerSerialNumber =
+      parseSubjectField(rawSubject, "serialNumber") ||
+      serialLine.replace(/^serial=/i, "").trim();
+
+    return {
+      signerCommonName,
+      signerSerialNumber,
+      rawSubject
+    };
+  } catch (err) {
+    return {
+      signerCommonName: "",
+      signerSerialNumber: "",
+      rawSubject: "",
+      error: err.message
+    };
+  } finally {
+    if (fs.existsSync(certOutPath)) {
+      try { fs.unlinkSync(certOutPath); } catch {}
+    }
+  }
+}
+
+async function verifyAndExtractCadesAttachedPdf(p7mPath, extractedPdfPath) {
+  const attempts = [
+    ["cms", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", p7mPath, "-out", extractedPdfPath],
+    ["smime", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", p7mPath, "-out", extractedPdfPath]
+  ];
+
+  let lastError = null;
+
+  for (const args of attempts) {
+    try {
+      const { stderr } = await execFileAsync("openssl", args);
+      return {
+        ok: true,
+        stderr: stderr || ""
+      };
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  return {
+    ok: false,
+    error: lastError?.message || "OpenSSL verify failed"
+  };
+}
+
+async function uploadFileToIpfs(filePath, fileName) {
+  const content = fs.readFileSync(filePath);
+  const added = [];
+  for await (const entry of ipfs.addAll([{ path: fileName, content }], { wrapWithDirectory: true })) {
+    added.push(entry);
+  }
+  const dir = added.find(x => x.path === "") || added[added.length - 1];
+  const cid = dir.cid.toString();
+  const ipfsUri = `ipfs://${cid}/${fileName}`;
+  try { await ipfs.pin.add(cid); } catch {}
+  return { cid, ipfsUri };
+}
+
+// --------------------
+// FLOW HELPERS
+// --------------------
 async function topviewEnsureLogin(username, password) {
   if (state.topview.token) return { token: state.topview.token, lastLoginAt: state.topview.lastLoginAt };
 
@@ -239,7 +400,6 @@ async function topviewImportLatest() {
   const keys = Object.keys(forestUnits);
   if (!keys.length) throw new Error("Nessuna forest unit disponibile su TopView");
 
-  // ATTENZIONE: nel tuo codice usi -2
   const selectedForestKey = keys[keys.length - 2];
   const unit = forestUnits[selectedForestKey];
 
@@ -291,7 +451,6 @@ async function buildUnifiedBatchInternal(forestUnitId) {
     if (obj?.epc) seenEpcs.add(obj.epc);
   }
 
-  // TREES
   const trees = unit.trees || {};
   for (const treeId of Object.keys(trees)) {
     const t = trees[treeId];
@@ -314,7 +473,6 @@ async function buildUnifiedBatchInternal(forestUnitId) {
     });
   }
 
-  // WOOD LOGS
   const unitWoodLogs = unit.woodLogs || {};
   for (const logId of Object.keys(unitWoodLogs)) {
     const log = unitWoodLogs[logId] || {};
@@ -342,7 +500,6 @@ async function buildUnifiedBatchInternal(forestUnitId) {
     });
   }
 
-  // SAWN TIMBERS
   const unitSawnTimbers = unit.sawnTimbers || {};
   for (const stId of Object.keys(unitSawnTimbers)) {
     const st = unitSawnTimbers[stId] || {};
@@ -469,7 +626,8 @@ interpretabile sia da esseri umani sia da sistemi automatici.
     pdfPath: ricardianPdf,
     ipfsUri: null,
     cid: null,
-    storageUri: null
+    storageUri: null,
+    pdfUri: null
   };
 
   return { forestUnitId, ricardianHash, jsonPath: ricardianJson, pdfPath: ricardianPdf, ricardianForest };
@@ -488,7 +646,6 @@ async function persistRicardianLocalInternal(forestUnitId) {
   return { storageUri: r.storageUri, jsonPath: outPath };
 }
 
-// Crea ipfs://CID/ricardian-forest.json (directory wrapper)
 async function uploadRicardianToIpfsInternal(forestUnitId) {
   const r = state.ricardians?.[forestUnitId];
   if (!r?.ricardianForest) throw new Error("Ricardian non trovato (buildAndSign non eseguito)");
@@ -501,19 +658,15 @@ async function uploadRicardianToIpfsInternal(forestUnitId) {
     added.push(entry);
   }
 
-  // entry con path "" o simile = dir root (cid directory)
   const dir = added.find(x => x.path === "") || added[added.length - 1];
   const cid = dir.cid.toString();
   const ipfsUri = `ipfs://${cid}/${fileName}`;
 
-  // prova pin (se disponibile)
   try { await ipfs.pin.add(cid); } catch {}
 
   r.cid = cid;
   r.ipfsUri = ipfsUri;
   r.storageUri = ipfsUri;
-
-  // riflette ipfsUri nel json in memoria (opzionale)
   r.ricardianForest.ipfsUri = ipfsUri;
 
   return { cid, ipfsUri, storageUri: ipfsUri };
@@ -557,6 +710,50 @@ async function estimateSetPdfUriInternal({ forestUnitId, pdfUri }) {
   const data = contract.interface.encodeFunctionData("setRicardianPdfUri", [
     forestUnitId,
     pdfUri
+  ]);
+
+  const gasEstimate = await provider.estimateGas({ to: contractAddress, data, from });
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? ethers.parseUnits("20", "gwei");
+
+  const gasCostWei = gasEstimate * gasPrice;
+  const gasCostEth = Number(ethers.formatEther(gasCostWei));
+  const ethPrice = await getEthPriceInEuro();
+
+  return {
+    to: contractAddress,
+    from,
+    gasEstimate: gasEstimate.toString(),
+    gasPriceWei: gasPrice.toString(),
+    gasCostWei: gasCostWei.toString(),
+    gasCostEth,
+    ethEur: ethPrice,
+    eur: Number((gasCostEth * ethPrice).toFixed(2))
+  };
+}
+
+async function estimateRegisterCountersignatureInternal({
+  forestUnitId,
+  pdfHash,
+  cadesHash,
+  cadesUri,
+  signerCommonName,
+  signerSerialNumber,
+  signedAt,
+  validOffchain
+}) {
+  const contractAddress = deployed.ForestTracking;
+  const from = await signer.getAddress();
+
+  const data = contract.interface.encodeFunctionData("registerUserCountersignature", [
+    forestUnitId,
+    pdfHash,
+    cadesHash,
+    cadesUri,
+    signerCommonName,
+    signerSerialNumber,
+    signedAt,
+    validOffchain
   ]);
 
   const gasEstimate = await provider.estimateGas({ to: contractAddress, data, from });
@@ -635,6 +832,65 @@ async function setPdfUriOnChainInternal({ forestUnitId, pdfUri }) {
   };
 }
 
+async function registerCountersignatureOnChainInternal({
+  forestUnitId,
+  pdfHash,
+  cadesHash,
+  cadesUri,
+  signerCommonName,
+  signerSerialNumber,
+  signedAt,
+  validOffchain
+}) {
+  const runner = await contract.runner;
+  const signerAddress = await runner.getAddress();
+  const balance = await runner.provider.getBalance(signerAddress);
+
+  const gas = await contract.registerUserCountersignature.estimateGas(
+    forestUnitId,
+    pdfHash,
+    cadesHash,
+    cadesUri,
+    signerCommonName,
+    signerSerialNumber,
+    signedAt,
+    validOffchain
+  );
+
+  const feeData = await runner.provider.getFeeData();
+  const price = feeData.maxFeePerGas ?? feeData.gasPrice;
+  const estimatedCost = gas * price;
+
+  if (balance < estimatedCost) {
+    const e = new Error("Insufficient funds");
+    e.meta = {
+      signerAddress,
+      balanceWei: balance.toString(),
+      estimatedCostWei: estimatedCost.toString()
+    };
+    throw e;
+  }
+
+  const tx = await contract.registerUserCountersignature(
+    forestUnitId,
+    pdfHash,
+    cadesHash,
+    cadesUri,
+    signerCommonName,
+    signerSerialNumber,
+    signedAt,
+    validOffchain
+  );
+
+  const receipt = await tx.wait();
+
+  return {
+    txHash: receipt.transactionHash || tx.hash,
+    blockNumber: receipt.blockNumber,
+    signerAddress
+  };
+}
+
 async function verifyIpfsHashInternal(forestUnitId, expectedRicardianHash) {
   const r = state.ricardians?.[forestUnitId];
   if (!r?.ipfsUri || !r?.cid) {
@@ -686,8 +942,9 @@ async function verifyMerkleProofsInternal(forestUnitId) {
 
   return { total: leaves.length, valid, invalid, onchainRoot, localRoot, rootMatches };
 }
+
 // --------------------
-// PDF (IDENTICO al tuo script)
+// PDF
 // --------------------
 function generateRicardianPdf(ricardian, outPath) {
   return new Promise((resolve, reject) => {
@@ -950,7 +1207,7 @@ app.post("/api/topview/login", async (req, res) => {
 });
 
 // --------------------
-// 2) Import latest forest unit (come script: prendo l'ultima key)
+// 2) Import latest forest unit
 // --------------------
 app.post("/api/topview/import-latest", async (req, res) => {
   try {
@@ -974,16 +1231,10 @@ app.post("/api/topview/import-latest", async (req, res) => {
     state.lastImportedForestUnitKey = selectedForestKey;
     state._importedUnit = unit;
 
-    // LOG completo lato server (così la vedi in console)
-    // console.log("[TopView] selectedForestKey:", selectedForestKey);
-    // console.log("[TopView] unit (FULL):", JSON.stringify(unit, null, 2));
-
-    // Rispondo includendo TUTTA la unit
     res.json({
       forestUnitKey: selectedForestKey,
       name: unit?.name || selectedForestKey,
-      totalKeys: keys.length,
-      // unit // <-- TUTTA la forest unit
+      totalKeys: keys.length
     });
   } catch (err) {
     res.status(500).json({ error: "Import latest forest unit failed", details: err.message });
@@ -991,7 +1242,7 @@ app.post("/api/topview/import-latest", async (req, res) => {
 });
 
 // --------------------
-// 3) Build unified batch + merkle root (identico allo script)
+// 3) Build unified batch + merkle root
 // --------------------
 app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
   const forestUnitId = req.body?.forestUnitId;
@@ -1014,9 +1265,6 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
       if (obj?.epc) seenEpcs.add(obj.epc);
     }
 
-    // --------------------
-    // 1) TREES (da unit.trees)
-    // --------------------
     const trees = unit.trees || {};
     for (const treeId of Object.keys(trees)) {
       const t = trees[treeId];
@@ -1041,9 +1289,6 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
       addToBatch(treeObj);
     }
 
-    // --------------------
-    // 2) WOOD LOGS (da unit.woodLogs)  <-- QUI stavi perdendo tutto
-    // --------------------
     const unitWoodLogs = unit.woodLogs || {};
     for (const logId of Object.keys(unitWoodLogs)) {
       const log = unitWoodLogs[logId] || {};
@@ -1051,8 +1296,6 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
 
       if (seenEpcs.has(logEpc)) continue;
 
-      // prova a derivare parentTree (se TopView lo fornisce)
-      // nel tuo dump: treeID è null, quindi rimarrà vuoto
       const parentTree = log.treeID || log.treeId || log.parentTree || "";
 
       const logObj = {
@@ -1076,9 +1319,6 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
       addToBatch(logObj);
     }
 
-    // --------------------
-    // 3) SAWN TIMBERS (da unit.sawnTimbers) <-- idem
-    // --------------------
     const unitSawnTimbers = unit.sawnTimbers || {};
     for (const stId of Object.keys(unitSawnTimbers)) {
       const st = unitSawnTimbers[stId] || {};
@@ -1107,7 +1347,6 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
       addToBatch(stObj);
     }
 
-    // Merkle
     const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
     const root = merkleTree.getHexRoot();
 
@@ -1119,7 +1358,6 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
 
     state.batches[forestUnitId] = { batch: batchWithProof, leaves, merkleTree, root, batchFilePath: batchFile };
 
-    // debug counts (utilissimo per capire se “perdi”)
     const counts = {
       trees: Object.keys(unit.trees || {}).length,
       woodLogs: Object.keys(unit.woodLogs || {}).length,
@@ -1139,7 +1377,7 @@ app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
 });
 
 // --------------------
-// 4) Build + sign Ricardian (JSON+PDF) (identico allo script)
+// 4) Build + sign Ricardian (JSON+PDF)
 // --------------------
 app.post("/api/ricardian/buildAndSign", async (req, res) => {
   const forestUnitId = req.body?.forestUnitId;
@@ -1226,7 +1464,6 @@ interpretabile sia da esseri umani sia da sistemi automatici.
       });
     }
 
-    // ✅ costruisci ricardianForest usando signerAddress
     const ricardianForest = {
       ...ricardianBase,
       ricardianHash,
@@ -1245,7 +1482,6 @@ interpretabile sia da esseri umani sia da sistemi automatici.
     const ricardianJson = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
     fs.writeFileSync(ricardianJson, JSON.stringify(ricardianForest, null, 2));
 
-    // (se vuoi anche PDF nello stesso folder)
     const ricardianPdf = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
     await generateRicardianPdf(ricardianForest, ricardianPdf);
 
@@ -1273,7 +1509,7 @@ interpretabile sia da esseri umani sia da sistemi automatici.
 });
 
 // --------------------
-// 5) Persist Ricardian JSON locally (NO IPFS)
+// 5) Persist Ricardian JSON locally
 // --------------------
 app.post("/api/storage/persistRicardian", async (req, res) => {
   try {
@@ -1290,7 +1526,6 @@ app.post("/api/storage/persistRicardian", async (req, res) => {
 
     fs.writeFileSync(outPath, JSON.stringify(r.ricardianForest, null, 2));
 
-    // salva path nello state (comodo per step 6/7)
     r.jsonPath = outPath;
     r.storageUri = toFileUri(outPath);
 
@@ -1305,7 +1540,7 @@ app.post("/api/storage/persistRicardian", async (req, res) => {
 });
 
 // --------------------
-// 6) Estimate gas + EUR (identico allo script)
+// 6) Estimate gas + EUR
 // --------------------
 app.post("/api/chain/estimateRegisterRicardianForest", async (req, res) => {
   const { forestUnitId, ricardianHash, merkleRoot, storageUri } = req.body || {};
@@ -1314,10 +1549,9 @@ app.post("/api/chain/estimateRegisterRicardianForest", async (req, res) => {
   }
 
   try {
-    const contractAddress = deployed.ForestTracking; // ✅ UNA SOLA fonte, coerente col resto
+    const contractAddress = deployed.ForestTracking;
     const from = await signer.getAddress();
 
-    // encode identico allo script
     const data = contract.interface.encodeFunctionData("registerRicardianForest", [
       forestUnitId,
       ricardianHash,
@@ -1359,6 +1593,41 @@ app.post("/api/chain/estimateRegisterRicardianForest", async (req, res) => {
 });
 
 // --------------------
+// 6.5) Estimate user countersignature
+// --------------------
+app.post("/api/chain/estimateRegisterUserCountersignature", async (req, res) => {
+  try {
+    const forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
+
+    const c = state.cades?.[forestUnitId];
+    if (!c) {
+      return res.status(404).json({
+        error: "Controfirma CAdES non trovata. Carica prima il .p7m con /api/ricardian/cades/upload"
+      });
+    }
+
+    const rawEstimate = await estimateRegisterCountersignatureInternal({
+      forestUnitId,
+      pdfHash: c.pdfHash,
+      cadesHash: c.cadesHash,
+      cadesUri: c.cadesUri,
+      signerCommonName: c.signerCommonName,
+      signerSerialNumber: c.signerSerialNumber,
+      signedAt: c.signedAt,
+      validOffchain: c.validOffchain
+    });
+
+    return res.json(normalizeEstimateWithEur(rawEstimate));
+  } catch (err) {
+    return res.status(500).json({
+      error: "Estimate countersignature gas failed",
+      details: err.message
+    });
+  }
+});
+
+// --------------------
 // 7) Register on-chain
 // --------------------
 app.post("/api/chain/registerRicardianForest", async (req, res) => {
@@ -1368,17 +1637,15 @@ app.post("/api/chain/registerRicardianForest", async (req, res) => {
   }
 
   try {
-    const signer = await contract.runner; // ethers v6: il signer/provider attaccato al contract
+    const signer = await contract.runner;
     const signerAddress = await signer.getAddress();
     const balance = await signer.provider.getBalance(signerAddress);
 
-    // stima costo (gas * fee)
     const gas = await contract.registerRicardianForest.estimateGas(
       forestUnitId, ricardianHash, merkleRoot, storageUri
     );
     const feeData = await signer.provider.getFeeData();
 
-    // per EIP-1559: maxFeePerGas / maxPriorityFeePerGas (se null, fallback a gasPrice)
     const price = feeData.maxFeePerGas ?? feeData.gasPrice;
     const estimatedCost = gas * price;
 
@@ -1411,7 +1678,65 @@ app.post("/api/chain/registerRicardianForest", async (req, res) => {
 });
 
 // --------------------
-// 8) Verify LOCAL Ricardian JSON hash == expected (NO IPFS)
+// 7.5) Register countersignature on-chain
+// --------------------
+app.post("/api/chain/registerUserCountersignature", async (req, res) => {
+  try {
+    const forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
+
+    const c = state.cades?.[forestUnitId];
+    if (!c) {
+      return res.status(404).json({
+        error: "Controfirma CAdES non trovata. Carica prima il .p7m con /api/ricardian/cades/upload"
+      });
+    }
+
+    const onchain = await registerCountersignatureOnChainInternal({
+      forestUnitId,
+      pdfHash: c.pdfHash,
+      cadesHash: c.cadesHash,
+      cadesUri: c.cadesUri,
+      signerCommonName: c.signerCommonName,
+      signerSerialNumber: c.signerSerialNumber,
+      signedAt: c.signedAt,
+      validOffchain: c.validOffchain
+    });
+
+    state.writes[forestUnitId] = {
+      ...(state.writes[forestUnitId] || {}),
+      cadesHash: c.cadesHash,
+      cadesUri: c.cadesUri,
+      pdfHash: c.pdfHash,
+      countersignatureTxHash: onchain.txHash,
+      countersignatureBlockNumber: onchain.blockNumber
+    };
+
+    return res.json({
+      ok: true,
+      forestUnitId,
+      countersignature: {
+        pdfHash: c.pdfHash,
+        cadesHash: c.cadesHash,
+        cadesUri: c.cadesUri,
+        signerCommonName: c.signerCommonName,
+        signerSerialNumber: c.signerSerialNumber,
+        signedAt: c.signedAt,
+        validOffchain: c.validOffchain
+      },
+      onchain
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: "Register user countersignature failed",
+      details: err.message,
+      meta: err.meta
+    });
+  }
+});
+
+// --------------------
+// 8) Verify LOCAL Ricardian JSON hash == expected
 // --------------------
 app.post("/api/ricardian/verifyLocalHashByForestUnit", async (req, res) => {
   const { forestUnitId, expectedRicardianHash } = req.body || {};
@@ -1445,9 +1770,7 @@ app.post("/api/ricardian/verifyLocalHashByForestUnit", async (req, res) => {
 });
 
 // --------------------
-// 9) Verify Merkle proofs for all leaves (ON-CHAIN)
-// - legge root dal mapping forestRicardians
-// - verifica in EVM via verifyUnifiedProofWithRoot (eth_call)
+// 9) Verify Merkle proofs
 // --------------------
 app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
   const { forestUnitId } = req.body || {};
@@ -1461,12 +1784,9 @@ app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
 
     const { leaves, merkleTree } = cached;
 
-    // 1) Leggi la root registrata ON-CHAIN nella sezione Ricardian
-    // mapping(string => RicardianForestContract) public forestRicardians;
     const onchainRic = await contract.forestRicardians(forestUnitId);
-    const onchainRoot = onchainRic.merkleRoot; // bytes32
+    const onchainRoot = onchainRic.merkleRoot;
 
-    // sanity: root locale (solo debug)
     const localRoot = merkleTree.getHexRoot();
     const rootMatches = localRoot.toLowerCase() === onchainRoot.toLowerCase();
 
@@ -1474,12 +1794,10 @@ app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
     let invalidCount = 0;
 
     for (let i = 0; i < leaves.length; i++) {
-      const leaf = leaves[i]; // Buffer (32 bytes)
+      const leaf = leaves[i];
       const proof = merkleTree.getProof(leaf).map(x => "0x" + x.data.toString("hex"));
       const leafHex = "0x" + leaf.toString("hex");
 
-      // 2) Verifica "on-chain" via eth_call a funzione Solidity
-      // function verifyUnifiedProofWithRoot(bytes32 leaf, bytes32[] proof, bytes32 root) external pure returns (bool)
       const isValid = await contract.verifyUnifiedProofWithRoot(leafHex, proof, onchainRoot);
 
       if (isValid) validCount++;
@@ -1504,7 +1822,6 @@ app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
 // --------------------
 // 10) VIEW / DOWNLOAD Ricardian PDF
 // --------------------
-
 function getPdfPathByForestUnitId(forestUnitId) {
   const r = state.ricardians?.[forestUnitId];
   if (!r?.pdfPath) return null;
@@ -1515,7 +1832,6 @@ function getPdfPathByForestUnitId(forestUnitId) {
   return pdfPath;
 }
 
-// VIEW inline
 app.get("/api/ricardian/pdf/:forestUnitId/view", (req, res) => {
   try {
     const { forestUnitId } = req.params;
@@ -1539,7 +1855,6 @@ app.get("/api/ricardian/pdf/:forestUnitId/view", (req, res) => {
   }
 });
 
-// DOWNLOAD attachment
 app.get("/api/ricardian/pdf/:forestUnitId/download", (req, res) => {
   try {
     const { forestUnitId } = req.params;
@@ -1559,18 +1874,143 @@ app.get("/api/ricardian/pdf/:forestUnitId/download", (req, res) => {
 });
 
 // --------------------
-// ✅ OFFICIAL #1: WRITE CONTRACT ON-CHAIN (fa 1→9 internamente)
-// POST /api/contract/write
-// body opzionale: { username, password, forestUnitId?, useIPFS?: true/false }
+// 10.5) UPLOAD CAdES .p7m
+// form-data:
+// - forestUnitId
+// - file => .p7m
+// - useIPFS => true/false (optional)
+// --------------------
+app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) => {
+  let uploadedTempPath = req.file?.path || null;
+
+  try {
+    const forestUnitId = req.body?.forestUnitId;
+    const useIPFS = String(req.body?.useIPFS || "false").toLowerCase() === "true";
+
+    if (!forestUnitId) {
+      if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
+      return res.status(400).json({ error: "forestUnitId richiesto" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "File .p7m richiesto nel campo form-data 'file'" });
+    }
+
+    const originalPdfPath = getPdfPathByForestUnitId(forestUnitId);
+    if (!originalPdfPath) {
+      if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
+      return res.status(404).json({
+        error: "PDF ricardiano non trovato. Esegui prima /api/contract/write e /api/contract/write-1.5-pdf"
+      });
+    }
+
+    const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+    const finalP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.pdf.p7m`);
+    const extractedPdfPath = path.join(CADES_DIR, `ricardian-${safeName}.extracted-from-p7m.pdf`);
+
+    fs.renameSync(uploadedTempPath, finalP7mPath);
+    uploadedTempPath = null;
+
+    const verifyResult = await verifyAndExtractCadesAttachedPdf(finalP7mPath, extractedPdfPath);
+    if (!verifyResult.ok) {
+      return res.status(400).json({
+        error: "Verifica CAdES fallita",
+        details: verifyResult.error
+      });
+    }
+
+    if (!fs.existsSync(extractedPdfPath)) {
+      return res.status(400).json({
+        error: "OpenSSL non ha estratto il PDF dal .p7m"
+      });
+    }
+
+    const originalPdfHash = sha256FileBytes32(originalPdfPath);
+    const extractedPdfHash = sha256FileBytes32(extractedPdfPath);
+    const cadesHash = sha256FileBytes32(finalP7mPath);
+
+    const validOffchain = originalPdfHash.toLowerCase() === extractedPdfHash.toLowerCase();
+
+    const certInfo = await extractCertificateInfoFromP7m(finalP7mPath);
+    
+    let cadesUri = toFileUri(finalP7mPath);
+    let ipfs = null;
+
+    if (useIPFS) {
+      ipfs = await uploadFileToIpfs(finalP7mPath, `ricardian-${safeName}.pdf.p7m`);
+      cadesUri = ipfs.ipfsUri;
+    }
+
+    const signedAt = Math.floor(Date.now() / 1000);
+
+    state.cades[forestUnitId] = {
+      forestUnitId,
+      pdfPath: originalPdfPath,
+      p7mPath: finalP7mPath,
+      extractedPdfPath,
+      pdfHash: originalPdfHash,
+      extractedPdfHash,
+      cadesHash,
+      cadesUri,
+      signerCommonName: certInfo.signerCommonName || "",
+      signerSerialNumber: certInfo.signerSerialNumber || "",
+      signerSubject: certInfo.rawSubject || "",
+      signedAt,
+      validOffchain,
+      ipfsUri: ipfs?.ipfsUri || null,
+      cid: ipfs?.cid || null,
+      uploadedAt: new Date().toISOString()
+    };
+
+    return res.json({
+      ok: true,
+      forestUnitId,
+      validOffchain,
+      files: {
+        originalPdfPath,
+        p7mPath: finalP7mPath,
+        extractedPdfPath
+      },
+      hashes: {
+        pdfHash: originalPdfHash,
+        extractedPdfHash,
+        cadesHash
+      },
+      signer: {
+  commonName: certInfo.signerCommonName || "",
+  serialNumber: certInfo.signerSerialNumber || "",
+  subject: certInfo.rawSubject || "",
+  error: certInfo.error || null
+},
+      storage: {
+        cadesUri,
+        ipfsUri: ipfs?.ipfsUri || null,
+        cid: ipfs?.cid || null
+      },
+      note: validOffchain
+        ? "Il PDF estratto dal .p7m coincide con il PDF ricardiano originale."
+        : "Il .p7m è leggibile ma il PDF estratto NON coincide con il PDF ricardiano originale."
+    });
+  } catch (err) {
+    if (uploadedTempPath && fs.existsSync(uploadedTempPath)) {
+      try { fs.unlinkSync(uploadedTempPath); } catch {}
+    }
+    return res.status(500).json({
+      error: "Upload CAdES failed",
+      details: err.message
+    });
+  }
+});
+
+// --------------------
+// OFFICIAL #1: WRITE CONTRACT ON-CHAIN
 // --------------------
 app.post("/api/contract/write", async (req, res) => {
   try {
     const useIPFS = !!req.body?.useIPFS;
 
-    // 1) login
     const login = await topviewEnsureLogin(req.body?.username, req.body?.password);
 
-    // 2) import latest oppure specifica forest unit
     let forestUnitId = req.body?.forestUnitId;
     if (!forestUnitId) {
       const imported = await topviewImportLatest();
@@ -1579,30 +2019,27 @@ app.post("/api/contract/write", async (req, res) => {
       await topviewImportForestUnitById(forestUnitId);
     }
 
-    // 3) batch + merkle
     const batch = await buildUnifiedBatchInternal(forestUnitId);
 
-    // 4) build/sign ricardian
     const ric = await buildAndSignRicardianInternal(
       forestUnitId,
       batch.merkleRoot,
       useIPFS ? "IPFS" : "LOCAL_FILE"
     );
 
-    // 5) storage ricardian JSON: IPFS oppure file locale
     let storage;
     if (useIPFS) storage = await uploadRicardianToIpfsInternal(forestUnitId);
     else storage = await persistRicardianLocalInternal(forestUnitId);
 
-    // 6) estimate
-    const estimate = await estimateRegisterInternal({
+    const rawEstimate = await estimateRegisterInternal({
       forestUnitId,
       ricardianHash: ric.ricardianHash,
       merkleRoot: batch.merkleRoot,
       storageUri: storage.storageUri
     });
 
-    // 7) register on-chain del SOLO ricardian contract
+    const estimate = normalizeEstimateWithEur(rawEstimate);
+
     const onchain = await registerOnChainInternal({
       forestUnitId,
       ricardianHash: ric.ricardianHash,
@@ -1648,10 +2085,7 @@ app.post("/api/contract/write", async (req, res) => {
 });
 
 // --------------------
-// ✅ OFFICIAL #1.5: WRITE PDF ONLY ON-CHAIN
-// - genera batch + ricardian + PDF
-// - salva on-chain come storageUri il link HTTP del PDF
-// - restituisce il link da scaricare
+// OFFICIAL #1.5: WRITE PDF ONLY ON-CHAIN
 // --------------------
 app.post("/api/contract/write-1.5-pdf", async (req, res) => {
   try {
@@ -1680,10 +2114,12 @@ app.post("/api/contract/write-1.5-pdf", async (req, res) => {
     const pdfViewUrl = `${baseUrl}/api/ricardian/pdf/${encodeURIComponent(forestUnitId)}/view`;
     const pdfDownloadUrl = `${baseUrl}/api/ricardian/pdf/${encodeURIComponent(forestUnitId)}/download`;
 
-    const estimate = await estimateSetPdfUriInternal({
+    const rawEstimate = await estimateSetPdfUriInternal({
       forestUnitId,
       pdfUri: pdfDownloadUrl
     });
+
+    const estimate = normalizeEstimateWithEur(rawEstimate);
 
     const onchain = await setPdfUriOnChainInternal({
       forestUnitId,
@@ -1734,19 +2170,102 @@ app.post("/api/contract/write-1.5-pdf", async (req, res) => {
 });
 
 // --------------------
-// ✅ OFFICIAL #3: VERIFY (on-chain write + proofs + (se IPFS) hash)
-// POST /api/contract/verify
-// body: { forestUnitId }
+// OFFICIAL #2: REGISTER USER CAdES COUNTERSIGNATURE
+// body:
+// {
+//   "forestUnitId": "Vallombrosa"
+// }
+// --------------------
+app.post("/api/contract/write-2-cades", async (req, res) => {
+  try {
+    const forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) {
+      return res.status(400).json({ ok: false, error: "forestUnitId richiesto" });
+    }
+
+    const c = state.cades?.[forestUnitId];
+    if (!c) {
+      return res.status(404).json({
+        ok: false,
+        error: "Controfirma CAdES non trovata. Carica prima il .p7m con /api/ricardian/cades/upload"
+      });
+    }
+
+    const rawEstimate = await estimateRegisterCountersignatureInternal({
+      forestUnitId,
+      pdfHash: c.pdfHash,
+      cadesHash: c.cadesHash,
+      cadesUri: c.cadesUri,
+      signerCommonName: c.signerCommonName,
+      signerSerialNumber: c.signerSerialNumber,
+      signedAt: c.signedAt,
+      validOffchain: c.validOffchain
+    });
+
+    const estimate = normalizeEstimateWithEur(rawEstimate);
+
+    const onchain = await registerCountersignatureOnChainInternal({
+      forestUnitId,
+      pdfHash: c.pdfHash,
+      cadesHash: c.cadesHash,
+      cadesUri: c.cadesUri,
+      signerCommonName: c.signerCommonName,
+      signerSerialNumber: c.signerSerialNumber,
+      signedAt: c.signedAt,
+      validOffchain: c.validOffchain
+    });
+
+    state.writes[forestUnitId] = {
+      ...(state.writes[forestUnitId] || {}),
+      pdfHash: c.pdfHash,
+      cadesHash: c.cadesHash,
+      cadesUri: c.cadesUri,
+      signerCommonName: c.signerCommonName,
+      signerSerialNumber: c.signerSerialNumber,
+      signedAt: c.signedAt,
+      validOffchain: c.validOffchain,
+      cadesTxHash: onchain.txHash,
+      cadesBlockNumber: onchain.blockNumber
+    };
+
+    return res.json({
+      ok: true,
+      mode: "CADES_COUNTERSIGNATURE",
+      forestUnitId,
+      countersignature: {
+        pdfHash: c.pdfHash,
+        cadesHash: c.cadesHash,
+        cadesUri: c.cadesUri,
+        signerCommonName: c.signerCommonName,
+        signerSerialNumber: c.signerSerialNumber,
+        signedAt: c.signedAt,
+        validOffchain: c.validOffchain
+      },
+      estimate,
+      onchain
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error: "WRITE 2 CAdES failed",
+      details: err.message,
+      meta: err.meta
+    });
+  }
+});
+
+// --------------------
+// OFFICIAL #3: VERIFY
 // --------------------
 app.post("/api/contract/verify", async (req, res) => {
   try {
     const forestUnitId = req.body?.forestUnitId;
     if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
 
-    // recupera dati attesi: da write receipt, altrimenti da state (fallback)
     const w = state.writes?.[forestUnitId] || {};
     const r = state.ricardians?.[forestUnitId];
     const b = state.batches?.[forestUnitId];
+    const c = state.cades?.[forestUnitId];
 
     const expectedRicardianHash = w.ricardianHash || r?.ricardianHash;
     const expectedMerkleRoot = w.merkleRoot || b?.root;
@@ -1756,10 +2275,8 @@ app.post("/api/contract/verify", async (req, res) => {
     if (!expectedRicardianHash) return res.status(400).json({ error: "expectedRicardianHash non disponibile (fai prima /api/contract/write)" });
     if (!expectedMerkleRoot) return res.status(400).json({ error: "expectedMerkleRoot non disponibile (fai prima /api/contract/write)" });
 
-    // A) verifica scrittura on-chain
     const onchainRic = await contract.forestRicardians(forestUnitId);
 
-    // prova a leggere campi noti
     const onchainHash = onchainRic.ricardianHash || onchainRic.hash || onchainRic[0];
     const onchainRoot = onchainRic.merkleRoot || onchainRic.root || onchainRic[1];
     const onchainRicardianUri = onchainRic.ricardianUri || onchainRic[2];
@@ -1777,14 +2294,73 @@ app.post("/api/contract/verify", async (req, res) => {
 
     const existsOnChain = !!onchainRoot && String(onchainRoot) !== "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-    // B) verify ipfs hash (solo se usi IPFS)
     const isIpfsMode = !!w.ipfsUri || !!r?.ipfsUri;
     const ipfsVerify = isIpfsMode
       ? await verifyIpfsHashInternal(forestUnitId, expectedRicardianHash)
       : { skipped: true, reason: "storage non IPFS" };
 
-    // C) proofs
     const proofs = await verifyMerkleProofsInternal(forestUnitId);
+
+    let countersignature = { skipped: true, reason: "contorfirma CAdES non disponibile" };
+
+    try {
+      const onchainCounter = await contract.getUserCountersignature(forestUnitId);
+      const onchainCounterExists = onchainCounter[0];
+
+      if (onchainCounterExists) {
+        const expectedPdfHash = c?.pdfHash || w?.pdfHash || null;
+        const expectedCadesHash = c?.cadesHash || w?.cadesHash || null;
+        const expectedCadesUri = c?.cadesUri || w?.cadesUri || null;
+
+        const onchainPdfHash = onchainCounter[1];
+        const onchainCadesHash = onchainCounter[2];
+        const onchainCadesUri = onchainCounter[3];
+        const onchainSignerCommonName = onchainCounter[4];
+        const onchainSignerSerialNumber = onchainCounter[5];
+        const onchainSignedAt = onchainCounter[6];
+        const onchainRecordedAt = onchainCounter[7];
+        const onchainValidOffchain = onchainCounter[8];
+
+        countersignature = {
+          skipped: false,
+          existsOnChain: true,
+          onchain: {
+            pdfHash: onchainPdfHash,
+            cadesHash: onchainCadesHash,
+            cadesUri: onchainCadesUri,
+            signerCommonName: onchainSignerCommonName,
+            signerSerialNumber: onchainSignerSerialNumber,
+            signedAt: onchainSignedAt.toString(),
+            recordedAt: onchainRecordedAt.toString(),
+            validOffchain: onchainValidOffchain
+          },
+          expected: {
+            pdfHash: expectedPdfHash,
+            cadesHash: expectedCadesHash,
+            cadesUri: expectedCadesUri,
+            signerCommonName: c?.signerCommonName || w?.signerCommonName || null,
+            signerSerialNumber: c?.signerSerialNumber || w?.signerSerialNumber || null,
+            validOffchain: c?.validOffchain ?? w?.validOffchain ?? null
+          },
+          matches: {
+            pdfHashMatches: expectedPdfHash ? String(onchainPdfHash).toLowerCase() === String(expectedPdfHash).toLowerCase() : true,
+            cadesHashMatches: expectedCadesHash ? String(onchainCadesHash).toLowerCase() === String(expectedCadesHash).toLowerCase() : true,
+            cadesUriMatches: expectedCadesUri ? String(onchainCadesUri).toLowerCase() === String(expectedCadesUri).toLowerCase() : true
+          }
+        };
+      } else {
+        countersignature = {
+          skipped: false,
+          existsOnChain: false
+        };
+      }
+    } catch (err) {
+      countersignature = {
+        skipped: false,
+        error: "Errore lettura controfirma on-chain",
+        details: err.message
+      };
+    }
 
     return res.json({
       ok: true,
@@ -1809,16 +2385,16 @@ app.post("/api/contract/verify", async (req, res) => {
         pdfUriMatches
       },
       ipfsVerify,
-      proofs
+      proofs,
+      countersignature
     });
   } catch (err) {
     return res.status(500).json({ ok: false, error: "VERIFY failed", details: err.message });
   }
 });
 
-
 // --------------------
-// ROUTES LIST (debug comodo)
+// ROUTES LIST
 // --------------------
 app.get("/routes", (req, res) => {
   const routes = [];
