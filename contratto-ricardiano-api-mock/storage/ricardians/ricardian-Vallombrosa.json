@@ -52,9 +52,9 @@
     "whitespace": "normalized"
   },
   "timestamps": {
-    "createdAt": "2026-03-07T11:30:27.713Z"
+    "createdAt": "2026-03-10T12:10:37.193Z"
   },
-  "ricardianHash": "0x6e3bf1874bf19d292b4e82c393c15f952dd8cb2b60f931bd08e21f9a80b21e14",
+  "ricardianHash": "0x733d2e6085a345278a7beba1637c0d7c9bd95b200936c5ecd12b5a25067c4396",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -62,7 +62,7 @@
         "name": "RicardianForestTracking",
         "version": "1",
         "chainId": 11155111,
-        "verifyingContract": "0xE786AceEb1Ae543Db3fE6Bf0FEf04adf5C10EEe7"
+        "verifyingContract": "0x9360eA0825A4514dB7333cae2A0b2095812369f5"
       },
       "types": {
         "RicardianForest": [
@@ -86,11 +86,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x6e3bf1874bf19d292b4e82c393c15f952dd8cb2b60f931bd08e21f9a80b21e14",
+        "ricardianHash": "0x733d2e6085a345278a7beba1637c0d7c9bd95b200936c5ecd12b5a25067c4396",
         "merkleRoot": "0x2cf1571a58407a4be15bf23c268c7b00ede0b2473cf23220042103a459382452",
-        "createdAt": "2026-03-07T11:30:27.713Z"
+        "createdAt": "2026-03-10T12:10:37.193Z"
       },
-      "signature": "0x49dc14ab23e51fe9e5f2b82f4dabcbdb90e3fb8719ec696441e0d0d33a36ba9c0a97436d553bccba3eb6768e9393c87add57130d7111d5762b330e902f3c5af31c"
+      "signature": "0xfeafd7812778f55ccd2f43a4c1c10b65218f63cb1f6e05ccf47c02ab8c9dfa59725cff6ac35d534b4667a84648f3d537127a2eca2b88dbe712660ce766abc6541c"
     }
   }
 }
