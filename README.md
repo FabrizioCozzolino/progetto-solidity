@@ -49,8 +49,8 @@ Step 1: AVVIO DEL SERVER
 
 node .\server.registerRicardianForest.js
 
-PAGINA TERMINALE 2
+PER UPLODARE E FIRMARE IL CONTRATTO RICARDIANO IN FORMATO PDF.P7M
 
-Step 2: AVVIO HARDHAT NODE
+FIRMARE IL FILE CON QUESTO COMANDO: openssl cms -sign -binary -in ricardian-Vallombrosa.pdf -signer test-cert.pem -inkey test-key.pem -outform DER -out ricardian-Vallombrosa.pdf.p7m -nodetach
 
-npx hardhat node
+UPLODARE IL FILE NEL BODY DEL POSTMAN
