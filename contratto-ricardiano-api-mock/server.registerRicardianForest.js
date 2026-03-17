@@ -1931,7 +1931,28 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
 
     const validOffchain = originalPdfHash.toLowerCase() === extractedPdfHash.toLowerCase();
 
-    const certInfo = await extractCertificateInfoFromP7m(finalP7mPath);
+    if (!validOffchain) {
+      try {
+        if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath);
+      } catch {}
+
+      try {
+        if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath);
+      } catch {}
+
+      return res.status(400).json({
+        ok: false,
+        error: "Il PDF estratto dal .p7m non coincide con il PDF ricardiano originale",
+        forestUnitId,
+        hashes: {
+          originalPdfHash,
+          extractedPdfHash,
+          cadesHash
+        }
+      });
+    }
+
+const certInfo = await extractCertificateInfoFromP7m(finalP7mPath);
     
     let cadesUri = toFileUri(finalP7mPath);
     let ipfs = null;
@@ -2188,6 +2209,12 @@ app.post("/api/contract/write-2-cades", async (req, res) => {
       return res.status(404).json({
         ok: false,
         error: "Controfirma CAdES non trovata. Carica prima il .p7m con /api/ricardian/cades/upload"
+      });
+    }
+    if (c.validOffchain !== true) {
+      return res.status(400).json({
+        ok: false,
+        error: "Registrazione controfirma rifiutata: il contenuto del .p7m non coincide con il PDF originale"
       });
     }
 
