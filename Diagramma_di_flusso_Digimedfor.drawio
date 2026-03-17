@@ -1,0 +1,232 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.2">
+  <diagram name="DigiMedFor Use Cases Optimized" id="czKErbw91JmTaZOaIVOh">
+    <mxGraphModel dx="1703" dy="1505" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="i877U-q4JYsWX9JCjcop-1" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="UTENTE" vertex="1">
+          <mxGeometry height="60" width="30" x="110" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-2" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="125" y="110" as="sourcePoint" />
+            <mxPoint x="125" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Login sulla piattaforma" vertex="1">
+          <mxGeometry height="60" width="170" x="40" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-4" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.6" y="220" as="sourcePoint" />
+            <mxPoint x="124.6" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Visualizza Forest Unit disponibili" vertex="1">
+          <mxGeometry height="60" width="170" x="40" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-8" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.60000000000002" y="330" as="sourcePoint" />
+            <mxPoint x="124.60000000000002" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Scegli la forest unit da visualizzare/modificare/scrivere su blockchain" vertex="1">
+          <mxGeometry height="60" width="175" x="37.5" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-10" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.60000000000002" y="440" as="sourcePoint" />
+            <mxPoint x="124.60000000000002" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Visualizza il Ricardian Contract&lt;br&gt;(JSON + PDF)" vertex="1">
+          <mxGeometry height="60" width="175" x="37.5" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-12" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.60000000000002" y="550" as="sourcePoint" />
+            <mxPoint x="124.60000000000002" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Scarica il PDF del contratto" vertex="1">
+          <mxGeometry height="60" width="175" x="37.5" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-14" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.60000000000002" y="660" as="sourcePoint" />
+            <mxPoint x="124.60000000000002" y="710" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Firma digitalmente il PDF (CAdES .p7m)" vertex="1">
+          <mxGeometry height="60" width="175" x="37.5" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-16" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.60000000000002" y="770" as="sourcePoint" />
+            <mxPoint x="124.60000000000002" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Carica il file firmato (.p7m)" vertex="1">
+          <mxGeometry height="60" width="175" x="37.5" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-18" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.60000000000002" y="880" as="sourcePoint" />
+            <mxPoint x="124.60000000000002" y="930" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Il sistema verifica la firma digitale" vertex="1">
+          <mxGeometry height="60" width="175" x="37.5" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-20" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="124.60000000000002" y="990" as="sourcePoint" />
+            <mxPoint x="124.60000000000002" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="La firma viene registrata sulla blockchain" vertex="1">
+          <mxGeometry height="60" width="175" x="37.5" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-61" edge="1" parent="1" source="i877U-q4JYsWX9JCjcop-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="i877U-q4JYsWX9JCjcop-24" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-22" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="AMMINISTRATORE" vertex="1">
+          <mxGeometry height="60" width="30" x="398.5" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-23" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.5" y="110" as="sourcePoint" />
+            <mxPoint x="413.5" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Import forest data" vertex="1">
+          <mxGeometry height="60" width="170" x="328.5" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-25" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="220" as="sourcePoint" />
+            <mxPoint x="413.1" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Creazione batch dati forestali" vertex="1">
+          <mxGeometry height="60" width="170" x="328.5" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-27" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="330" as="sourcePoint" />
+            <mxPoint x="413.1" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-28" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Scrittura della forest unit su blockchain" vertex="1">
+          <mxGeometry height="60" width="175" x="326" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-29" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="440" as="sourcePoint" />
+            <mxPoint x="413.1" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-30" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Creazione Ricardian Contract&lt;br&gt;(JSON)" vertex="1">
+          <mxGeometry height="60" width="175" x="326" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-31" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="550" as="sourcePoint" />
+            <mxPoint x="413.1" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Generazione PDF del contratto" vertex="1">
+          <mxGeometry height="60" width="175" x="326" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-33" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="660" as="sourcePoint" />
+            <mxPoint x="413.1" y="710" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-34" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Registrazione su Blockchain&lt;br&gt;del contratto (JSON+PDF)" vertex="1">
+          <mxGeometry height="60" width="175" x="326" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-35" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="770" as="sourcePoint" />
+            <mxPoint x="413.1" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Salvataggio:&lt;br&gt;- ricardianHash&lt;br&gt;- merkleRoot&lt;br&gt;- pdfUri" vertex="1">
+          <mxGeometry height="60" width="175" x="326" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-37" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="880" as="sourcePoint" />
+            <mxPoint x="413.1" y="930" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-38" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Attesa firma utente/&lt;br&gt;Verifica firma CAdES" vertex="1">
+          <mxGeometry height="60" width="175" x="326" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-39" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="413.1" y="990" as="sourcePoint" />
+            <mxPoint x="413.1" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Registrazione countersignature&lt;br&gt;su blockchain" vertex="1">
+          <mxGeometry height="60" width="175" x="326" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-62" edge="1" parent="1" source="i877U-q4JYsWX9JCjcop-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="i877U-q4JYsWX9JCjcop-43" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-41" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="SISTEMA" vertex="1">
+          <mxGeometry height="60" width="30" x="682.5" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-42" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="697.5" y="110" as="sourcePoint" />
+            <mxPoint x="697.5" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-43" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Verifica hash documento" vertex="1">
+          <mxGeometry height="60" width="170" x="612.5" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-44" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="697.1" y="220" as="sourcePoint" />
+            <mxPoint x="697.1" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-45" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Verifica Merkle proofs" vertex="1">
+          <mxGeometry height="60" width="170" x="612.5" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-46" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="697.1" y="330" as="sourcePoint" />
+            <mxPoint x="697.1" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-47" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Verifica firma digitale" vertex="1">
+          <mxGeometry height="60" width="175" x="610" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-48" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="697.1" y="440" as="sourcePoint" />
+            <mxPoint x="697.1" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-49" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Confronto dati on-chain / off-chain" vertex="1">
+          <mxGeometry height="60" width="175" x="610" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-50" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="697.1" y="550" as="sourcePoint" />
+            <mxPoint x="697.1" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i877U-q4JYsWX9JCjcop-51" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Comunica il risultato della verifica" vertex="1">
+          <mxGeometry height="60" width="175" x="610" y="600" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
