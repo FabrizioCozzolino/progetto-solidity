@@ -64,10 +64,13 @@ Docker
 Docker Compose
 
 AVVIO
+
 docker compose up --build
 
 AVVIO IN BACKGROUNG
+
 docker compose up --build -d
 
 ARRESTO
+
 docker compose down
