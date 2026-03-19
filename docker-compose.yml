@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  ricardian-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ricardian-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./environment_variables.env
+    environment:
+      PORT: 3000
+      USE_IPFS: "false"
+      RICARDIAN_DIR: /app/contratto-ricardiano-api-mock/storage/ricardians
+      CADES_DIR: /app/contratto-ricardiano-api-mock/storage/cades
+      TMP_DIR: /app/contratto-ricardiano-api-mock/storage/tmp
+    volumes:
+      - ./contratto-ricardiano-api-mock/storage:/app/contratto-ricardiano-api-mock/storage
+      - ./contratto-ricardiano-api-mock/file-json:/app/contratto-ricardiano-api-mock/file-json
+      - ./contratto-ricardiano-api-mock/deployed.json:/app/contratto-ricardiano-api-mock/deployed.json:ro
+      - ./artifacts:/app/artifacts:ro
+      - ./environment_variables.env:/app/environment_variables.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
