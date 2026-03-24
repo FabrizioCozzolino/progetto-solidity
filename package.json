@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node contratto-ricardiano-api-mock/server.registerRicardianForest.js",
+    "deploy": "npx hardhat run scripts/deployForestTrackingSepolia.js --network sepolia",
+    "build": "npx hardhat compile"
   },
   "keywords": [],
   "author": "",
