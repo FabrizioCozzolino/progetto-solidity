@@ -54,3 +54,23 @@ PER UPLODARE E FIRMARE IL CONTRATTO RICARDIANO IN FORMATO PDF.P7M
 FIRMARE IL FILE CON QUESTO COMANDO: openssl cms -sign -binary -in ricardian-Vallombrosa.pdf -signer test-cert.pem -inkey test-key.pem -outform DER -out ricardian-Vallombrosa.pdf.p7m -nodetach
 
 UPLODARE IL FILE NEL BODY DEL POSTMAN
+
+PER USARE IL CONTAINER TRAMITE DOCKER
+
+REQUISITI
+
+Docker
+
+Docker Compose
+
+AVVIO
+
+docker compose up --build
+
+AVVIO IN BACKGROUNG
+
+docker compose up --build -d
+
+ARRESTO
+
+docker compose down
