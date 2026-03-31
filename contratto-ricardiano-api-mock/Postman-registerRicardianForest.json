@@ -20,7 +20,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"operator\",\n  \"password\": \"1234567!\",\n  \"useIPFS\": false\n}"
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitId}}\",\n  \"useIPFS\": false\n}"
         }
       },
       "event": [
@@ -58,7 +58,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"operator\",\n  \"password\": \"1234567!\"\n}"
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitId}}\"\n}"
         }
       },
       "event": [
