@@ -434,9 +434,18 @@ async function topviewImportForestUnitById(forestUnitId) {
   return { forestUnitId, unit };
 }
 
-async function buildUnifiedBatchInternal(forestUnitId) {
-  const unit = state._importedUnit;
-  if (!unit) throw new Error("Nessuna forest unit importata: serve import-latest prima");
+async function buildUnifiedBatchInternal(forestUnitId, forestData) {
+
+  if (!forestData)
+    throw new Error("Forest unit non disponibile da TopView");
+
+  state._importedUnit = forestData;
+
+  const unit = forestData?.data || forestData?.forestUnit || forestData;
+
+  if (!unit) {
+    throw new Error("Forest unit non disponibile da TopView");
+  }
 
   const leaves = [];
   const batchWithProof = [];
@@ -451,7 +460,7 @@ async function buildUnifiedBatchInternal(forestUnitId) {
     if (obj?.epc) seenEpcs.add(obj.epc);
   }
 
-  const trees = unit.trees || {};
+  const trees = unit.trees || unit.treeList || unit.treeMap || {};
   for (const treeId of Object.keys(trees)) {
     const t = trees[treeId];
     const treeEpc = t.EPC || t.epc || t.domainUUID || treeId;
@@ -473,7 +482,7 @@ async function buildUnifiedBatchInternal(forestUnitId) {
     });
   }
 
-  const unitWoodLogs = unit.woodLogs || {};
+  const unitWoodLogs = unit.woodLogs || unit.woodLogList || {};
   for (const logId of Object.keys(unitWoodLogs)) {
     const log = unitWoodLogs[logId] || {};
     const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID || logId);
@@ -500,7 +509,7 @@ async function buildUnifiedBatchInternal(forestUnitId) {
     });
   }
 
-  const unitSawnTimbers = unit.sawnTimbers || {};
+  const unitSawnTimbers = unit.sawnTimbers || unit.sawnTimberList || {};
   for (const stId of Object.keys(unitSawnTimbers)) {
     const st = unitSawnTimbers[stId] || {};
     const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || stId);
@@ -525,8 +534,17 @@ async function buildUnifiedBatchInternal(forestUnitId) {
     });
   }
 
+  if (leaves.length === 0) {
+    throw new Error("Merkle tree vuoto: nessun Tree/WoodLog/SawnTimber trovato");
+  }
+
   const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+
   const root = merkleTree.getHexRoot();
+
+  if (!root || root === "0x") {
+    throw new Error("Merkle root non valida");
+  }
 
   const outputDir = path.join(__dirname, "file-json");
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
@@ -1179,6 +1197,36 @@ function generateRicardianPdf(ricardian, outPath) {
     stream.on("finish", resolve);
     stream.on("error", reject);
   });
+}
+
+async function topviewGetForestUnit(forestUnitId) {
+  const token = state.topview?.token;
+
+  if (!token) {
+    const err = new Error("Token mancante (TopView login non eseguito)");
+    err.meta = { step: "getForestUnit" };
+    throw err;
+  }
+
+  const url = `https://digimedfor.topview.it/api/get-forest-unit/${forestUnitId}/`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    const err = new Error("TopView get-forest-unit failed");
+    err.meta = data;
+    throw err;
+  }
+
+  return data;
 }
 
 // --------------------
@@ -2030,17 +2078,21 @@ app.post("/api/contract/write", async (req, res) => {
   try {
     const useIPFS = !!req.body?.useIPFS;
 
-    const login = await topviewEnsureLogin(req.body?.username, req.body?.password);
+    const login = await topviewEnsureLogin(
+      process.env.TOPVIEW_USERNAME,
+      process.env.TOPVIEW_PASSWORD
+    );
 
     let forestUnitId = req.body?.forestUnitId;
+
     if (!forestUnitId) {
       const imported = await topviewImportLatest();
       forestUnitId = imported.forestUnitId;
-    } else {
-      await topviewImportForestUnitById(forestUnitId);
     }
 
-    const batch = await buildUnifiedBatchInternal(forestUnitId);
+    const forestData = await topviewGetForestUnit(forestUnitId);
+
+    const batch = await buildUnifiedBatchInternal(forestUnitId, forestData);
 
     const ric = await buildAndSignRicardianInternal(
       forestUnitId,
@@ -2110,14 +2162,16 @@ app.post("/api/contract/write", async (req, res) => {
 // --------------------
 app.post("/api/contract/write-1.5-pdf", async (req, res) => {
   try {
-    const login = await topviewEnsureLogin(req.body?.username, req.body?.password);
+    const login = await topviewEnsureLogin(
+      process.env.TOPVIEW_USERNAME,
+      process.env.TOPVIEW_PASSWORD
+    );
 
     let forestUnitId = req.body?.forestUnitId;
+
     if (!forestUnitId) {
       const imported = await topviewImportLatest();
       forestUnitId = imported.forestUnitId;
-    } else {
-      await topviewImportForestUnitById(forestUnitId);
     }
 
     const existingRic = state.ricardians?.[forestUnitId];
