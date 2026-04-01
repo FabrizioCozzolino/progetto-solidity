@@ -148,8 +148,18 @@
               "if (j && j.hashes && j.hashes.pdfHash) pm.collectionVariables.set('pdfHash', j.hashes.pdfHash);",
               "if (j && j.hashes && j.hashes.cadesHash) pm.collectionVariables.set('cadesHash', j.hashes.cadesHash);",
               "if (j && j.storage && j.storage.cadesUri) pm.collectionVariables.set('cadesUri', j.storage.cadesUri);",
-              "if (j && j.signer && j.signer.commonName !== undefined) pm.collectionVariables.set('signerCommonName', j.signer.commonName);",
-              "if (j && j.signer && j.signer.serialNumber !== undefined) pm.collectionVariables.set('signerSerialNumber', j.signer.serialNumber);",
+              "if (j && j.signer) {",
+              "  if (j.signer.commonName !== undefined) pm.collectionVariables.set('signerCommonName', j.signer.commonName);",
+              "  if (j.signer.serialNumber !== undefined) pm.collectionVariables.set('signerSerialNumber', j.signer.serialNumber);",
+              "  if (j.signer.organization !== undefined) pm.collectionVariables.set('signerOrganization', j.signer.organization);",
+              "  if (j.signer.country !== undefined) pm.collectionVariables.set('signerCountry', j.signer.country);",
+              "  if (j.signer.policy !== undefined) pm.collectionVariables.set('signerPolicy', j.signer.policy);",
+              "  if (j.signer.keyUsage !== undefined) pm.collectionVariables.set('signerKeyUsage', j.signer.keyUsage);",
+              "  if (j.signer.extendedKeyUsage !== undefined) pm.collectionVariables.set('signerExtendedKeyUsage', j.signer.extendedKeyUsage);",
+              "  if (j.signer.issuer !== undefined) pm.collectionVariables.set('signerIssuer', j.signer.issuer);",
+              "  if (j.signer.validFrom !== undefined) pm.collectionVariables.set('signerValidFrom', j.signer.validFrom);",
+              "  if (j.signer.validTo !== undefined) pm.collectionVariables.set('signerValidTo', j.signer.validTo);",
+              "}",
               "if (j && j.validOffchain !== undefined) pm.collectionVariables.set('validOffchain', String(j.validOffchain));"
             ]
           }
