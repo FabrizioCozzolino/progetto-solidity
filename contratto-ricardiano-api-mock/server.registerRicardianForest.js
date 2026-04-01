@@ -252,81 +252,79 @@ function parseSubjectField(subject, key) {
 }
 
 async function extractCertificateInfoFromP7m(p7mPath) {
+
   const certOutPath = path.join(
     TMP_DIR,
-    `cert-${Date.now()}-${Math.random().toString(16).slice(2)}.pem`
+    `cert-${Date.now()}.pem`
   );
 
   try {
-    // Estrae i certificati embedded dal CMS/CAdES
-    await execFileAsync("openssl", [
-      "cms",
-      "-cmsout",
-      "-print",
-      "-inform", "DER",
-      "-in", p7mPath
-    ]);
 
     await execFileAsync("openssl", [
-      "cms",
-      "-verify",
-      "-inform", "DER",
-      "-binary",
-      "-noverify",
+      "pkcs7",
       "-in", p7mPath,
-      "-certsout", certOutPath,
-      "-out", process.platform === "win32" ? "NUL" : "/dev/null"
+      "-inform", "DER",
+      "-print_certs",
+      "-out", certOutPath
     ]);
 
     if (!fs.existsSync(certOutPath)) {
-      throw new Error("certsout non ha prodotto alcun certificato");
+      throw new Error("Certificato non estratto");
     }
 
-    const { stdout: subjectStdout } = await execFileAsync("openssl", [
+    const { stdout } = await execFileAsync("openssl", [
       "x509",
       "-in", certOutPath,
       "-noout",
-      "-subject",
-      "-nameopt", "RFC2253"
+      "-text"
     ]);
 
-    const { stdout: serialStdout } = await execFileAsync("openssl", [
-      "x509",
-      "-in", certOutPath,
-      "-noout",
-      "-serial"
-    ]);
+    const certText = stdout;
 
-    const subjectLine = String(subjectStdout || "").trim(); // es. subject=serialNumber=TEST123,CN=Test User
-    const serialLine = String(serialStdout || "").trim();   // es. serial=4A8F...
-
-    const rawSubject = subjectLine.replace(/^subject=/i, "").trim();
-
-    const signerCommonName =
-      parseSubjectField(rawSubject, "CN") ||
-      parseSubjectField(rawSubject, "commonName") ||
-      "";
-
-    const signerSerialNumber =
-      parseSubjectField(rawSubject, "serialNumber") ||
-      serialLine.replace(/^serial=/i, "").trim();
-
-    return {
-      signerCommonName,
-      signerSerialNumber,
-      rawSubject
+    const get = (regex) => {
+      const m = certText.match(regex);
+      return m ? m[1].trim() : "";
     };
-  } catch (err) {
+
+    const subject = get(/Subject:\s*(.+)/);
+    const issuer = get(/Issuer:\s*(.+)/);
+
     return {
-      signerCommonName: "",
-      signerSerialNumber: "",
-      rawSubject: "",
+
+      signerCommonName: parseSubjectField(subject, "CN"),
+      signerSerialNumber: parseSubjectField(subject, "serialNumber"),
+
+      organization: parseSubjectField(subject, "O"),
+      country: parseSubjectField(subject, "C"),
+
+      issuer,
+
+      validFrom: get(/Not Before:\s*(.+)/),
+      validTo: get(/Not After\s*:\s*(.+)/),
+
+      signatureAlgorithm: get(/Signature Algorithm:\s*(.+)/),
+
+      keyUsage: get(/X509v3 Key Usage:.*\n\s*(.+)/),
+      extendedKeyUsage: get(/X509v3 Extended Key Usage:.*\n\s*(.+)/),
+      policy: get(/Policy:\s*([0-9\.]+)/),
+
+      rawSubject: subject,
+      rawIssuer: issuer,
+      rawCertificate: certText
+    };
+
+  } catch (err) {
+
+    return {
       error: err.message
     };
+
   } finally {
+
     if (fs.existsSync(certOutPath)) {
       try { fs.unlinkSync(certOutPath); } catch {}
     }
+
   }
 }
 
@@ -635,18 +633,20 @@ interpretabile sia da esseri umani sia da sistemi automatici.
 
   const ricardianPdf = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
   await generateRicardianPdf(ricardianForest, ricardianPdf);
+  const pdfHash = sha256FileBytes32(ricardianPdf);
 
   state.ricardians[forestUnitId] = {
-    ricardianBase,
-    ricardianForest,
-    ricardianHash,
-    jsonPath: ricardianJson,
-    pdfPath: ricardianPdf,
-    ipfsUri: null,
-    cid: null,
-    storageUri: null,
-    pdfUri: null
-  };
+  ricardianBase,
+  ricardianForest,
+  ricardianHash,
+  jsonPath: ricardianJson,
+  pdfPath: ricardianPdf,
+  pdfHash,
+  ipfsUri: null,
+  cid: null,
+  storageUri: null,
+  pdfUri: null
+};
 
   return { forestUnitId, ricardianHash, jsonPath: ricardianJson, pdfPath: ricardianPdf, ricardianForest };
 }
@@ -1214,19 +1214,118 @@ async function topviewGetForestUnit(forestUnitId) {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
+      "Accept": "application/json",
       "Content-Type": "application/json"
     }
   });
 
-  const data = await res.json();
+  const rawText = await res.text();
+  const contentType = res.headers.get("content-type") || "";
+
+  let data = null;
+  if (contentType.includes("application/json")) {
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      const err = new Error("TopView ha risposto con content-type JSON ma body non parsabile");
+      err.meta = {
+        url,
+        status: res.status,
+        contentType,
+        bodyPreview: rawText.slice(0, 500)
+      };
+      throw err;
+    }
+  } else {
+    const err = new Error("TopView non ha restituito JSON");
+    err.meta = {
+      url,
+      status: res.status,
+      contentType,
+      bodyPreview: rawText.slice(0, 500)
+    };
+    throw err;
+  }
 
   if (!res.ok) {
     const err = new Error("TopView get-forest-unit failed");
-    err.meta = data;
+    err.meta = {
+      url,
+      status: res.status,
+      data
+    };
     throw err;
   }
 
   return data;
+}
+
+function ensurePdfBaselineIntegrity(forestUnitId) {
+  const r = state.ricardians?.[forestUnitId];
+
+  if (!r) {
+    throw new Error("Ricardian non trovato in state");
+  }
+
+  if (!r.pdfPath || !fs.existsSync(r.pdfPath)) {
+    throw new Error("PDF originale non trovato su disco");
+  }
+
+  if (!r.pdfHash) {
+    throw new Error("pdfHash di baseline non presente");
+  }
+
+  const currentLocalPdfHash = sha256FileBytes32(r.pdfPath);
+
+  if (currentLocalPdfHash.toLowerCase() !== String(r.pdfHash).toLowerCase()) {
+    const e = new Error("Il PDF locale non coincide con la baseline registrata");
+    e.meta = {
+      expectedPdfHash: r.pdfHash,
+      currentLocalPdfHash,
+      pdfPath: r.pdfPath
+    };
+    throw e;
+  }
+
+  return {
+    pdfPath: r.pdfPath,
+    registeredPdfHash: r.pdfHash,
+    currentLocalPdfHash
+  };
+}
+
+async function verifyCadesSignatureTrust(p7mPath, caFilePath) {
+  try {
+    if (!fs.existsSync(caFilePath)) {
+      return {
+        ok: false,
+        trusted: false,
+        error: `CA file non trovato: ${caFilePath}`
+      };
+    }
+
+    const { stderr } = await execFileAsync("openssl", [
+      "cms",
+      "-verify",
+      "-inform", "DER",
+      "-binary",
+      "-in", p7mPath,
+      "-CAfile", caFilePath,
+      "-out", process.platform === "win32" ? "NUL" : "/dev/null"
+    ]);
+
+    return {
+      ok: true,
+      trusted: true,
+      details: stderr || ""
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      trusted: false,
+      error: err.message
+    };
+  }
 }
 
 // --------------------
@@ -1532,16 +1631,18 @@ interpretabile sia da esseri umani sia da sistemi automatici.
 
     const ricardianPdf = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
     await generateRicardianPdf(ricardianForest, ricardianPdf);
+    const pdfHash = sha256FileBytes32(ricardianPdf);
 
     state.ricardians[forestUnitId] = {
-      ricardianBase,
-      ricardianForest,
-      ricardianHash,
-      jsonPath: ricardianJson,
-      pdfPath: ricardianPdf,
-      ipfsUri: null,
-      cid: null
-    };
+  ricardianBase,
+  ricardianForest,
+  ricardianHash,
+  jsonPath: ricardianJson,
+  pdfPath: ricardianPdf,
+  pdfHash,
+  ipfsUri: null,
+  cid: null
+};
 
     res.json({
       forestUnitId,
@@ -1737,6 +1838,18 @@ app.post("/api/chain/registerUserCountersignature", async (req, res) => {
     if (!c) {
       return res.status(404).json({
         error: "Controfirma CAdES non trovata. Carica prima il .p7m con /api/ricardian/cades/upload"
+      });
+    }
+
+    if (c.validOffchain !== true) {
+      return res.status(400).json({
+        error: "Registrazione controfirma rifiutata: contenuto .p7m non coerente con il PDF registrato"
+      });
+    }
+
+    if (c.trustedSignature !== true) {
+      return res.status(400).json({
+        error: "Registrazione controfirma rifiutata: firma non trusted"
       });
     }
 
@@ -1944,13 +2057,9 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
       return res.status(400).json({ error: "File .p7m richiesto nel campo form-data 'file'" });
     }
 
-    const originalPdfPath = getPdfPathByForestUnitId(forestUnitId);
-    if (!originalPdfPath) {
-      if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
-      return res.status(404).json({
-        error: "PDF ricardiano non trovato. Esegui prima /api/contract/write e /api/contract/write-1.5-pdf"
-      });
-    }
+    const baseline = ensurePdfBaselineIntegrity(forestUnitId);
+    const originalPdfPath = baseline.pdfPath;
+    const registeredPdfHash = baseline.registeredPdfHash;
 
     const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
     const finalP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.pdf.p7m`);
@@ -1961,47 +2070,77 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
 
     const verifyResult = await verifyAndExtractCadesAttachedPdf(finalP7mPath, extractedPdfPath);
     if (!verifyResult.ok) {
+      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
+      try { if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath); } catch {}
+
       return res.status(400).json({
+        ok: false,
         error: "Verifica CAdES fallita",
         details: verifyResult.error
       });
     }
 
     if (!fs.existsSync(extractedPdfPath)) {
+      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
+
       return res.status(400).json({
+        ok: false,
         error: "OpenSSL non ha estratto il PDF dal .p7m"
       });
     }
 
-    const originalPdfHash = sha256FileBytes32(originalPdfPath);
+    const currentLocalPdfHash = sha256FileBytes32(originalPdfPath);
     const extractedPdfHash = sha256FileBytes32(extractedPdfPath);
     const cadesHash = sha256FileBytes32(finalP7mPath);
 
-    const validOffchain = originalPdfHash.toLowerCase() === extractedPdfHash.toLowerCase();
+    const localPdfStillMatchesBaseline =
+      currentLocalPdfHash.toLowerCase() === String(registeredPdfHash).toLowerCase();
 
-    if (!validOffchain) {
-      try {
-        if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath);
-      } catch {}
+    if (!localPdfStillMatchesBaseline) {
+      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
+      try { if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath); } catch {}
 
-      try {
-        if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath);
-      } catch {}
-
-      return res.status(400).json({
+      return res.status(409).json({
         ok: false,
-        error: "Il PDF estratto dal .p7m non coincide con il PDF ricardiano originale",
+        error: "Il PDF locale è stato alterato rispetto alla baseline registrata",
         forestUnitId,
         hashes: {
-          originalPdfHash,
+          registeredPdfHash,
+          currentLocalPdfHash,
           extractedPdfHash,
           cadesHash
         }
       });
     }
 
-const certInfo = await extractCertificateInfoFromP7m(finalP7mPath);
-    
+    const validOffchain =
+      extractedPdfHash.toLowerCase() === String(registeredPdfHash).toLowerCase();
+
+    if (!validOffchain) {
+      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
+      try { if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath); } catch {}
+
+      return res.status(400).json({
+        ok: false,
+        error: "Il PDF estratto dal .p7m non coincide con il PDF registrato",
+        forestUnitId,
+        hashes: {
+          registeredPdfHash,
+          currentLocalPdfHash,
+          extractedPdfHash,
+          cadesHash
+        }
+      });
+    }
+
+    const certInfo = await extractCertificateInfoFromP7m(finalP7mPath);
+
+    const caFilePath =
+    process.env.CADES_CA_FILE ||
+    path.join(__dirname, "storage", "ricardians", "trusted-ca.pem");
+
+const trustResult = await verifyCadesSignatureTrust(finalP7mPath, caFilePath);
+
     let cadesUri = toFileUri(finalP7mPath);
     let ipfs = null;
 
@@ -2017,56 +2156,81 @@ const certInfo = await extractCertificateInfoFromP7m(finalP7mPath);
       pdfPath: originalPdfPath,
       p7mPath: finalP7mPath,
       extractedPdfPath,
-      pdfHash: originalPdfHash,
+      pdfHash: registeredPdfHash,
+      localPdfHash: currentLocalPdfHash,
       extractedPdfHash,
       cadesHash,
       cadesUri,
       signerCommonName: certInfo.signerCommonName || "",
       signerSerialNumber: certInfo.signerSerialNumber || "",
       signerSubject: certInfo.rawSubject || "",
+      signerOrganization: certInfo.organization || "",
+      signerCountry: certInfo.country || "",
+      issuer: certInfo.issuer || "",
+      validFrom: certInfo.validFrom || "",
+      validTo: certInfo.validTo || "",
+      signatureAlgorithm: certInfo.signatureAlgorithm || "",
+      keyUsage: certInfo.keyUsage || "",
+      extendedKeyUsage: certInfo.extendedKeyUsage || "",
+      policy: certInfo.policy || "",
       signedAt,
       validOffchain,
       ipfsUri: ipfs?.ipfsUri || null,
       cid: ipfs?.cid || null,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      trustedSignature: trustResult.trusted,
+      trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
+      caFilePath
     };
 
     return res.json({
       ok: true,
       forestUnitId,
       validOffchain,
+      trustedSignature: trustResult.trusted,
+      trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
       files: {
         originalPdfPath,
         p7mPath: finalP7mPath,
         extractedPdfPath
       },
       hashes: {
-        pdfHash: originalPdfHash,
+        registeredPdfHash,
+        currentLocalPdfHash,
         extractedPdfHash,
         cadesHash
       },
       signer: {
-  commonName: certInfo.signerCommonName || "",
-  serialNumber: certInfo.signerSerialNumber || "",
-  subject: certInfo.rawSubject || "",
-  error: certInfo.error || null
-},
+        commonName: certInfo.signerCommonName,
+        serialNumber: certInfo.signerSerialNumber,
+        organization: certInfo.organization,
+        country: certInfo.country,
+        issuer: certInfo.issuer,
+        validFrom: certInfo.validFrom,
+        validTo: certInfo.validTo,
+        signatureAlgorithm: certInfo.signatureAlgorithm,
+        keyUsage: certInfo.keyUsage,
+        extendedKeyUsage: certInfo.extendedKeyUsage,
+        policy: certInfo.policy,
+        subject: certInfo.rawSubject
+      },
       storage: {
         cadesUri,
         ipfsUri: ipfs?.ipfsUri || null,
         cid: ipfs?.cid || null
       },
-      note: validOffchain
-        ? "Il PDF estratto dal .p7m coincide con il PDF ricardiano originale."
-        : "Il .p7m è leggibile ma il PDF estratto NON coincide con il PDF ricardiano originale."
+      note: "Il PDF estratto dal .p7m coincide con il PDF registrato in baseline."
     });
   } catch (err) {
     if (uploadedTempPath && fs.existsSync(uploadedTempPath)) {
       try { fs.unlinkSync(uploadedTempPath); } catch {}
     }
+
     return res.status(500).json({
+      ok: false,
       error: "Upload CAdES failed",
-      details: err.message
+      details: err.message,
+      meta: err.meta || null
     });
   }
 });
@@ -2084,13 +2248,16 @@ app.post("/api/contract/write", async (req, res) => {
     );
 
     let forestUnitId = req.body?.forestUnitId;
+    let imported;
 
     if (!forestUnitId) {
-      const imported = await topviewImportLatest();
+      imported = await topviewImportLatest();
       forestUnitId = imported.forestUnitId;
+    } else {
+      imported = await topviewImportForestUnitById(forestUnitId);
     }
 
-    const forestData = await topviewGetForestUnit(forestUnitId);
+    const forestData = imported.unit;
 
     const batch = await buildUnifiedBatchInternal(forestUnitId, forestData);
 
@@ -2125,6 +2292,7 @@ app.post("/api/contract/write", async (req, res) => {
       merkleRoot: batch.merkleRoot,
       ricardianHash: ric.ricardianHash,
       ricardianUri: storage.storageUri,
+      pdfHash: state.ricardians?.[forestUnitId]?.pdfHash || null,
       pdfUri: null,
       ipfsUri: storage.ipfsUri || null,
       cid: storage.cid || null,
@@ -2268,7 +2436,14 @@ app.post("/api/contract/write-2-cades", async (req, res) => {
     if (c.validOffchain !== true) {
       return res.status(400).json({
         ok: false,
-        error: "Registrazione controfirma rifiutata: il contenuto del .p7m non coincide con il PDF originale"
+        error: "Registrazione controfirma rifiutata: il contenuto del .p7m non coincide con il PDF registrato"
+      });
+    }
+
+    if (c.trustedSignature !== true) {
+      return res.status(400).json({
+        ok: false,
+        error: "Registrazione controfirma rifiutata: firma non trusted"
       });
     }
 
@@ -2353,6 +2528,23 @@ app.post("/api/contract/verify", async (req, res) => {
     const expectedRicardianUri = w.ricardianUri || r?.storageUri || null;
     const expectedPdfUri = w.pdfUri || r?.pdfUri || null;
 
+    const expectedPdfHash =
+      w.pdfHash ||
+      c?.pdfHash ||
+      r?.pdfHash ||
+      null;
+
+    let localCurrentPdfHash = null;
+    let pdfBaselineMatches = null;
+    let pdfPathUsed = r?.pdfPath || c?.pdfPath || null;
+
+    if (pdfPathUsed && fs.existsSync(pdfPathUsed) && expectedPdfHash) {
+      localCurrentPdfHash = sha256FileBytes32(pdfPathUsed);
+      pdfBaselineMatches =
+        String(localCurrentPdfHash).toLowerCase() ===
+        String(expectedPdfHash).toLowerCase();
+    }  
+
     if (!expectedRicardianHash) return res.status(400).json({ error: "expectedRicardianHash non disponibile (fai prima /api/contract/write)" });
     if (!expectedMerkleRoot) return res.status(400).json({ error: "expectedMerkleRoot non disponibile (fai prima /api/contract/write)" });
 
@@ -2372,6 +2564,10 @@ app.post("/api/contract/verify", async (req, res) => {
     const pdfUriMatches = expectedPdfUri
       ? String(onchainPdfUri || "").toLowerCase() === String(expectedPdfUri).toLowerCase()
       : true;
+
+    const pdfHashMatches = expectedPdfHash
+      ? pdfBaselineMatches === true
+      : null;  
 
     const existsOnChain = !!onchainRoot && String(onchainRoot) !== "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -2457,13 +2653,21 @@ app.post("/api/contract/verify", async (req, res) => {
         ricardianHash: expectedRicardianHash,
         merkleRoot: expectedMerkleRoot,
         ricardianUri: expectedRicardianUri,
-        pdfUri: expectedPdfUri
+        pdfUri: expectedPdfUri,
+        pdfHash: expectedPdfHash
+      },
+      pdf: {
+        pdfPath: pdfPathUsed,
+        expectedPdfHash,
+        localCurrentPdfHash,
+        pdfBaselineMatches
       },
       matches: {
         hashMatches,
         rootMatches,
         ricardianUriMatches,
-        pdfUriMatches
+        pdfUriMatches,
+        pdfHashMatches
       },
       ipfsVerify,
       proofs,
