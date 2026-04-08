@@ -1328,6 +1328,65 @@ async function verifyCadesSignatureTrust(p7mPath, caFilePath) {
   }
 }
 
+async function verifyCadesSignatureTrustWithGosign(p7mPath) {
+  try {
+    const { stdout, stderr } = await execFileAsync("gosign", [
+      "verify",
+      p7mPath
+    ]);
+
+    return {
+      ok: true,
+      trusted: true,
+      provider: "gosign",
+      details: [stdout, stderr].filter(Boolean).join("\n").trim()
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      trusted: false,
+      provider: "gosign",
+      error: err.stderr || err.stdout || err.message
+    };
+  }
+}
+
+async function verifyCadesSignatureTrustHybrid(p7mPath, caFilePath) {
+  const opensslResult = await verifyCadesSignatureTrust(p7mPath, caFilePath);
+
+  if (opensslResult.trusted === true) {
+    return {
+      ...opensslResult,
+      provider: "openssl"
+    };
+  }
+
+  const gosignResult = await verifyCadesSignatureTrustWithGosign(p7mPath);
+
+  if (gosignResult.trusted === true) {
+    return {
+      ok: true,
+      trusted: true,
+      provider: "gosign",
+      details: [
+        "OpenSSL failed, fallback Gosign succeeded.",
+        opensslResult.error ? `OpenSSL error: ${opensslResult.error}` : "",
+        gosignResult.details || ""
+      ].filter(Boolean).join("\n")
+    };
+  }
+
+  return {
+    ok: false,
+    trusted: false,
+    provider: "openssl+gosign",
+    error: [
+      opensslResult.error ? `OpenSSL: ${opensslResult.error}` : "",
+      gosignResult.error ? `Gosign: ${gosignResult.error}` : ""
+    ].filter(Boolean).join("\n\n")
+  };
+}
+
 // --------------------
 // HEALTH
 // --------------------
@@ -2139,7 +2198,7 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
     process.env.CADES_CA_FILE ||
     path.join(__dirname, "storage", "ricardians", "trusted-ca.pem");
 
-const trustResult = await verifyCadesSignatureTrust(finalP7mPath, caFilePath);
+    const trustResult = await verifyCadesSignatureTrustHybrid(finalP7mPath, caFilePath);
 
     let cadesUri = toFileUri(finalP7mPath);
     let ipfs = null;
@@ -2180,13 +2239,15 @@ const trustResult = await verifyCadesSignatureTrust(finalP7mPath, caFilePath);
       uploadedAt: new Date().toISOString(),
       trustedSignature: trustResult.trusted,
       trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
-      caFilePath
+      caFilePath,
+      trustProvider: trustResult.provider || null,
     };
 
     return res.json({
       ok: true,
       forestUnitId,
       validOffchain,
+      trustProvider: trustResult.provider || null,
       trustedSignature: trustResult.trusted,
       trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
       files: {
@@ -2353,9 +2414,80 @@ app.post("/api/contract/write-1.5-pdf", async (req, res) => {
       });
     }
 
+    const onchainRic = await contract.forestRicardians(forestUnitId);
+
+    const onchainHash =
+      onchainRic.ricardianHash ||
+      onchainRic.hash ||
+      onchainRic[0];
+
+    const onchainRoot =
+      onchainRic.merkleRoot ||
+      onchainRic.root ||
+      onchainRic[1];
+
+    const onchainRicardianUri =
+      onchainRic.ricardianUri ||
+      onchainRic[2] ||
+      "";
+
+    const onchainPdfUri =
+      onchainRic.pdfUri ||
+      onchainRic[3] ||
+      "";
+
+    console.log("[WRITE 1.5 PDF] forestUnitId:", forestUnitId);
+    console.log("[WRITE 1.5 PDF] onchainRic:", onchainRic);
+
+    if (!onchainHash || String(onchainHash) === ethers.ZeroHash) {
+      return res.status(400).json({
+        ok: false,
+        error: "Ricardian NON registrato on-chain. Devi fare prima /api/contract/write",
+        forestUnitId
+      });
+    }
+
     const baseUrl = getBaseUrl(req);
     const pdfViewUrl = `${baseUrl}/api/ricardian/pdf/${encodeURIComponent(forestUnitId)}/view`;
     const pdfDownloadUrl = `${baseUrl}/api/ricardian/pdf/${encodeURIComponent(forestUnitId)}/download`;
+
+    // Se il PDF URI è già presente on-chain, evita una nuova tx che potrebbe revertare
+    if (String(onchainPdfUri).trim().length > 0) {
+      const sameUri = String(onchainPdfUri) === String(pdfDownloadUrl);
+
+      if (state.ricardians?.[forestUnitId]) {
+        state.ricardians[forestUnitId].pdfUri = onchainPdfUri;
+      }
+
+      state.writes[forestUnitId] = {
+        ...(existingWrite || {}),
+        forestUnitId,
+        merkleRoot: existingBatch.root,
+        ricardianHash: existingRic.ricardianHash,
+        ricardianUri: existingWrite?.ricardianUri || existingRic.storageUri || onchainRicardianUri || null,
+        pdfUri: onchainPdfUri,
+        createdAt: new Date().toISOString(),
+        mode: sameUri ? "PDF_ALREADY_REGISTERED_SAME_URI" : "PDF_ALREADY_REGISTERED_DIFFERENT_URI"
+      };
+
+      return res.json({
+        ok: true,
+        mode: sameUri ? "PDF_ALREADY_REGISTERED_SAME_URI" : "PDF_ALREADY_REGISTERED_DIFFERENT_URI",
+        forestUnitId,
+        login,
+        merkleRoot: onchainRoot || existingBatch.root,
+        ricardianHash: onchainHash,
+        ricardianUri: onchainRicardianUri || existingWrite?.ricardianUri || existingRic.storageUri || null,
+        pdfUri: onchainPdfUri,
+        pdf: {
+          viewUrl: pdfViewUrl,
+          downloadUrl: pdfDownloadUrl
+        },
+        note: sameUri
+          ? "Il pdfUri era già registrato on-chain con lo stesso valore, quindi non è stata inviata una nuova transazione."
+          : "Esiste già un pdfUri on-chain diverso da quello richiesto, quindi non è stata inviata una nuova transazione."
+      });
+    }
 
     const rawEstimate = await estimateSetPdfUriInternal({
       forestUnitId,
@@ -2378,7 +2510,7 @@ app.post("/api/contract/write-1.5-pdf", async (req, res) => {
       forestUnitId,
       merkleRoot: existingBatch.root,
       ricardianHash: existingRic.ricardianHash,
-      ricardianUri: existingWrite?.ricardianUri || existingRic.storageUri || null,
+      ricardianUri: existingWrite?.ricardianUri || existingRic.storageUri || onchainRicardianUri || null,
       pdfUri: pdfDownloadUrl,
       txHash: onchain.txHash,
       blockNumber: onchain.blockNumber,
@@ -2393,6 +2525,7 @@ app.post("/api/contract/write-1.5-pdf", async (req, res) => {
       login,
       merkleRoot: existingBatch.root,
       ricardianHash: existingRic.ricardianHash,
+      ricardianUri: existingWrite?.ricardianUri || existingRic.storageUri || onchainRicardianUri || null,
       pdfUri: pdfDownloadUrl,
       estimate,
       onchain,
