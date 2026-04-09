@@ -1193,6 +1193,34 @@ function generateRicardianPdf(ricardian, outPath) {
       }, 260);
     }
 
+    sectionBox("Verifiche On-chain", ({ x, w }) => {
+    doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
+
+    doc.text(
+      "Puoi verificare in modo indipendente l’integrità di questo contratto Ricardiano e della sua Merkle root sulla rete di test Ethereum Sepolia.",
+      x,
+      doc.y,
+      { width: w, lineGap: 3 }
+    );
+
+    doc.moveDown(0.6);
+
+    // Link cliccabile
+    const etherscanUrl = "https://sepolia.etherscan.io/";
+
+    doc.fillColor("blue")
+      .text(etherscanUrl, x, doc.y, {
+        width: w,
+        link: etherscanUrl,
+        underline: true
+      });
+
+    doc.moveDown(0.6);
+
+    kv("Contract address", ricardian?.signature?.eip712?.domain?.verifyingContract, x, w);
+    kv("Merkle root", ricardian?.technical?.merkleRootUnified, x, w);
+  }, 120);
+
     doc.end();
     stream.on("finish", resolve);
     stream.on("error", reject);
