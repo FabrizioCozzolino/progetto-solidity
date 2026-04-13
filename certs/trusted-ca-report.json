@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-04-13T09:29:03.419Z",
+  "source": "https://ec.europa.eu/tools/lotl/eu-lotl.xml",
+  "tlCount": 29,
+  "certificateCount": 4260,
+  "failures": [
+    {
+      "url": "https://eidas.gov.ie/Irelandtslsigned.xml",
+      "error": "fetch failed"
+    }
+  ]
+}

@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node contratto-ricardiano-api-mock/server.registerRicardianForest.js",
     "deploy": "npx hardhat run scripts/deployForestTrackingSepolia.js --network sepolia",
-    "build": "npx hardhat compile"
+    "build": "npx hardhat compile",
+    "build:trusted-ca": "node scripts/buildTrustedCaFromEUTL.js"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +29,7 @@
     "dotenv": "^17.3.1",
     "ethers": "^6.16.0",
     "express": "^5.2.1",
+    "fast-xml-parser": "^5.5.12",
     "ipfs-http-client": "^56.0.3",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.5.2",
