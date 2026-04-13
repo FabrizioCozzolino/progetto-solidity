@@ -18,12 +18,14 @@ services:
       RICARDIAN_DIR: /app/contratto-ricardiano-api-mock/storage/ricardians
       CADES_DIR: /app/contratto-ricardiano-api-mock/storage/cades
       TMP_DIR: /app/contratto-ricardiano-api-mock/storage/tmp
+      CADES_CA_FILE: /app/certs/trusted-ca.pem
 
     volumes:
       - ./contratto-ricardiano-api-mock/storage:/app/contratto-ricardiano-api-mock/storage
       - ./contratto-ricardiano-api-mock/file-json:/app/contratto-ricardiano-api-mock/file-json
       - ./contratto-ricardiano-api-mock/deployed.json:/app/contratto-ricardiano-api-mock/deployed.json
       - ./environment_variables.env:/app/environment_variables.env:ro
+      - ./certs:/app/certs:ro
 
     restart: unless-stopped
 

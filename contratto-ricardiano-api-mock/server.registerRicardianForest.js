@@ -281,20 +281,34 @@ async function extractCertificateInfoFromP7m(p7mPath) {
 
     const certText = stdout;
 
-    const get = (regex) => {
-      const m = certText.match(regex);
-      return m ? m[1].trim() : "";
-    };
+    function extractSection(text, sectionName) {
+      const regex = new RegExp(
+        `${sectionName}:\\s*\\n([\\s\\S]*?)(?=\\n\\s*[A-Z][^\\n]+:|$)`,
+        "i"
+      );
+      const match = text.match(regex);
+      if (!match) return "";
 
-    const subject = get(/Subject:\s*(.+)/);
-    const issuer = get(/Issuer:\s*(.+)/);
+      return match[1]
+        .split("\n")
+        .map(l => l.trim())
+        .filter(Boolean)
+        .join(", ");
+    }
+
+      const subject = get(/Subject:\s*(.+)/);
+      const issuer = get(/Issuer:\s*(.+)/);
 
     return {
 
       signerCommonName: parseSubjectField(subject, "CN"),
       signerSerialNumber: parseSubjectField(subject, "serialNumber"),
 
-      organization: parseSubjectField(subject, "O"),
+      organization:
+      parseSubjectField(subject, "O") ||
+      parseSubjectField(subject, "OU") ||
+      "",
+      organizationIdentifier: parseSubjectField(subject, "organizationIdentifier"),
       country: parseSubjectField(subject, "C"),
 
       issuer,
@@ -304,8 +318,8 @@ async function extractCertificateInfoFromP7m(p7mPath) {
 
       signatureAlgorithm: get(/Signature Algorithm:\s*(.+)/),
 
-      keyUsage: get(/X509v3 Key Usage:.*\n\s*(.+)/),
-      extendedKeyUsage: get(/X509v3 Extended Key Usage:.*\n\s*(.+)/),
+      keyUsage: extractSection(certText, "X509v3 Key Usage"),
+      extendedKeyUsage: extractSection(certText, "X509v3 Extended Key Usage"),
       policy: get(/Policy:\s*([0-9\.]+)/),
 
       rawSubject: subject,
@@ -2224,7 +2238,7 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
 
     const caFilePath =
     process.env.CADES_CA_FILE ||
-    path.join(__dirname, "storage", "ricardians", "trusted-ca.pem");
+    path.resolve(__dirname, "../certs/trusted-ca.pem");
 
     const trustResult = await verifyCadesSignatureTrustHybrid(finalP7mPath, caFilePath);
 
