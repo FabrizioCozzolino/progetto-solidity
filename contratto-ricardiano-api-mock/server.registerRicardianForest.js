@@ -251,15 +251,50 @@ function parseSubjectField(subject, key) {
   return "";
 }
 
-async function extractCertificateInfoFromP7m(p7mPath) {
+function detectProviderName(issuer) {
+  const s = String(issuer || "").toLowerCase();
 
-  const certOutPath = path.join(
-    TMP_DIR,
-    `cert-${Date.now()}.pem`
-  );
+  if (s.includes("infocamere")) return "InfoCamere";
+  if (s.includes("arubapec")) return "ArubaPEC";
+  if (s.includes("namirial")) return "Namirial";
+  if (s.includes("intesa")) return "Intesa";
+  if (s.includes("actalis")) return "Actalis";
+  if (s.includes("poste")) return "Poste";
+  return "";
+}
+
+async function extractCertificateInfoFromP7m(p7mPath) {
+  const certOutPath = path.join(TMP_DIR, `cert-${Date.now()}.pem`);
+  const firstCertPath = path.join(TMP_DIR, `first-cert-${Date.now()}.pem`);
+
+  function extractSection(text, sectionName) {
+    const lines = String(text || "").split("\n");
+    const out = [];
+    let capture = false;
+
+    for (const rawLine of lines) {
+      const line = rawLine.replace(/\r/g, "");
+
+      if (!capture) {
+        if (line.toLowerCase().includes(sectionName.toLowerCase() + ":")) {
+          capture = true;
+        }
+        continue;
+      }
+
+      if (/^\s+/.test(line)) {
+        const cleaned = line.trim();
+        if (cleaned) out.push(cleaned);
+        continue;
+      }
+
+      break;
+    }
+
+    return out.join(", ");
+  }
 
   try {
-
     await execFileAsync("openssl", [
       "pkcs7",
       "-in", p7mPath,
@@ -272,44 +307,64 @@ async function extractCertificateInfoFromP7m(p7mPath) {
       throw new Error("Certificato non estratto");
     }
 
+    const pemBundle = fs.readFileSync(certOutPath, "utf8");
+
+    const firstCertMatch = pemBundle.match(
+      /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/
+    );
+
+    if (!firstCertMatch) {
+      throw new Error("Nessun certificato PEM trovato nell'output OpenSSL");
+    }
+
+    fs.writeFileSync(firstCertPath, firstCertMatch[0], "utf8");
+
     const { stdout } = await execFileAsync("openssl", [
       "x509",
-      "-in", certOutPath,
+      "-in", firstCertPath,
       "-noout",
       "-text"
     ]);
 
     const certText = stdout;
 
-    function extractSection(text, sectionName) {
-      const regex = new RegExp(
-        `${sectionName}:\\s*\\n([\\s\\S]*?)(?=\\n\\s*[A-Z][^\\n]+:|$)`,
-        "i"
-      );
-      const match = text.match(regex);
-      if (!match) return "";
+    const get = (regex) => {
+      const m = certText.match(regex);
+      return m ? m[1].trim() : "";
+    };
 
-      return match[1]
-        .split("\n")
-        .map(l => l.trim())
-        .filter(Boolean)
-        .join(", ");
-    }
+    const subject = get(/Subject:\s*(.+)/);
+    const issuer = get(/Issuer:\s*(.+)/);
 
-      const subject = get(/Subject:\s*(.+)/);
-      const issuer = get(/Issuer:\s*(.+)/);
+    const keyUsage =
+      extractSection(certText, "X509v3 Key Usage") ||
+      extractSection(certText, "Key Usage");
+
+    const extendedKeyUsage =
+      extractSection(certText, "X509v3 Extended Key Usage") ||
+      extractSection(certText, "Extended Key Usage");
 
     return {
-
       signerCommonName: parseSubjectField(subject, "CN"),
       signerSerialNumber: parseSubjectField(subject, "serialNumber"),
+      providerName: detectProviderName(issuer),
 
       organization:
-      parseSubjectField(subject, "O") ||
-      parseSubjectField(subject, "OU") ||
-      "",
-      organizationIdentifier: parseSubjectField(subject, "organizationIdentifier"),
-      country: parseSubjectField(subject, "C"),
+        parseSubjectField(subject, "O") ||
+        parseSubjectField(subject, "OU") ||
+        parseSubjectField(issuer, "O") ||
+        parseSubjectField(issuer, "OU") ||
+        "",
+
+      organizationIdentifier:
+        parseSubjectField(subject, "organizationIdentifier") ||
+        parseSubjectField(issuer, "organizationIdentifier") ||
+        "",
+
+      country:
+        parseSubjectField(subject, "C") ||
+        parseSubjectField(issuer, "C") ||
+        "",
 
       issuer,
 
@@ -318,27 +373,26 @@ async function extractCertificateInfoFromP7m(p7mPath) {
 
       signatureAlgorithm: get(/Signature Algorithm:\s*(.+)/),
 
-      keyUsage: extractSection(certText, "X509v3 Key Usage"),
-      extendedKeyUsage: extractSection(certText, "X509v3 Extended Key Usage"),
+      keyUsage,
+      extendedKeyUsage,
+
       policy: get(/Policy:\s*([0-9\.]+)/),
 
       rawSubject: subject,
       rawIssuer: issuer,
       rawCertificate: certText
     };
-
   } catch (err) {
-
     return {
-      error: err.message
+      error: err.stderr || err.message || "Errore estrazione certificato"
     };
-
   } finally {
-
     if (fs.existsSync(certOutPath)) {
       try { fs.unlinkSync(certOutPath); } catch {}
     }
-
+    if (fs.existsSync(firstCertPath)) {
+      try { fs.unlinkSync(firstCertPath); } catch {}
+    }
   }
 }
 
@@ -2292,6 +2346,7 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
       trustProvider: trustResult.provider || null,
       trustedSignature: trustResult.trusted,
       trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
+      signerExtractionError: certInfo.error || null,
       files: {
         originalPdfPath,
         p7mPath: finalP7mPath,
@@ -2306,6 +2361,7 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
       signer: {
         commonName: certInfo.signerCommonName,
         serialNumber: certInfo.signerSerialNumber,
+        providerName: certInfo.providerName,
         organization: certInfo.organization,
         country: certInfo.country,
         issuer: certInfo.issuer,
