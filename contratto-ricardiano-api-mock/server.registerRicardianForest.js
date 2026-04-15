@@ -629,47 +629,137 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   const verifyingContract = deployed.ForestTracking;
 
   const ricardianBase = {
-    version: "1.0",
-    type: "RicardianForestTracking",
-    jurisdiction: { courts: "Foro competente italiano", regulatoryFramework: ["IT", "EU"] },
-    governingLaw: "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
-    actors: { dataOwner: "TopView Srl", dataProducer: "Operatore drone", dataConsumer: "Cliente finale" },
-    purpose: "Tracciabilità e prova di integrità dei dati forestali",
-    scope: { forestUnitKey: forestUnitId, includedData: ["trees", "wood_logs", "sawn_timbers"] },
-    humanReadableAgreement: {
-      language: "it",
-      text: `
+  version: "2.0",
+  type: "RicardianForestTracking",
+
+  jurisdiction: {
+    courts: "Foro competente italiano",
+    regulatoryFramework: ["IT", "EU"]
+  },
+
+  governingLaw: "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
+
+  actors: {
+    dataOwner: "TopView Srl",
+    dataProducer: "Operatore drone",
+    dataConsumer: "Cliente finale"
+  },
+
+  purpose: "Tracciabilità, prova di integrità e auditabilità dei dati forestali",
+
+  scope: {
+    forestUnitKey: forestUnitId,
+    includedData: ["trees", "wood_logs", "sawn_timbers"]
+  },
+
+  humanReadableAgreement: {
+    language: "it",
+    text: `
 Il presente accordo disciplina la raccolta, la registrazione, la conservazione
 e la verifica dell’integrità dei dati forestali relativi all’unità forestale
 "${forestUnitId}".
 
 Le parti riconoscono che il dataset è memorizzato off-chain e che l’hash
 crittografico registrato su blockchain costituisce prova di esistenza,
-immutabilità e integrità dei dati alla data di registrazione.
+integrità, riferibilità temporale e auditabilità del dataset alla data di registrazione.
 
 Il presente documento è strutturato come contratto ricardiano, essendo
-interpretabile sia da esseri umani sia da sistemi automatici.
+interpretabile sia da esseri umani sia da sistemi automatici, e integra
+elementi di governance dei dati, interoperabilità e verificabilità tecnica.
 `.trim()
-    },
-    rightsAndDuties: {
-      dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
-      dataProducer: "Garantisce la correttezza della raccolta e l'origine dei dati",
-      dataConsumer: "Può verificare l’integrità dei dati ma non modificarli"
-    },
-    technical: {
-      merkleRootUnified: merkleRoot,
-      batchFormat: "JSON",
-      storage: storageMode,
-      hashAlgorithm: "keccak256"
-    },
-    legal: {
-      legalValue: "Valore probatorio ai sensi della normativa vigente",
-      statement: "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
-    },
-    hashBinding: { bindsHumanReadableText: true, bindsDatasetMerkleRoot: true },
-    canonicalization: { format: "UTF-8", ordering: "lexicographic", whitespace: "normalized" },
-    timestamps: { createdAt: new Date().toISOString() }
-  };
+  },
+
+  rightsAndDuties: {
+    dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione, conservazione e verifica",
+    dataProducer: "Garantisce la correttezza della raccolta, la provenienza dei dati e la coerenza del processo di generazione",
+    dataConsumer: "Può verificare l’integrità e la provenienza dei dati ma non modificarli"
+  },
+
+  technical: {
+    merkleRootUnified: merkleRoot,
+    batchFormat: "JSON",
+    storage: storageMode, // oppure useIPFS ? "IPFS" : "LOCAL_FILE" nella route
+    hashAlgorithm: "keccak256"
+  },
+
+  legal: {
+    legalValue: "Valore probatorio ai sensi della normativa vigente e come evidenza tecnica di integrità",
+    statement: "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+  },
+
+  hashBinding: {
+    bindsHumanReadableText: true,
+    bindsDatasetMerkleRoot: true
+  },
+
+  canonicalization: {
+    format: "UTF-8",
+    ordering: "lexicographic",
+    whitespace: "normalized"
+  },
+
+  dataGovernance: {
+    gdprCompliance: true,
+    dataMinimisation: true,
+    accessControl: "Role-based access control",
+    retentionPolicy: "Conservazione delle evidenze tecniche e documentali secondo obblighi legali e finalità di audit",
+    personalDataHandling: "I dati personali, se presenti, sono minimizzati e trattati con misure di accesso controllato"
+  },
+
+  dataLineage: {
+    source: "TopView API, rilievi di campo e dati associati all'unità forestale",
+    processing: "Normalizzazione dei dati, costruzione batch unificato, Merkle tree generation, hashing Ricardiano e firma EIP-712",
+    output: "Ricardian JSON, Ricardian PDF, Merkle root e registrazione on-chain",
+    versioning: true
+  },
+
+  interoperability: {
+    standard: "INSPIRE-aligned interoperability",
+    metadata: "ISO 19115 compliant metadata profile",
+    formats: ["JSON", "GeoJSON", "GPKG"]
+  },
+
+  evidencePack: {
+    exportable: true,
+    auditReady: true,
+    includes: [
+      "Merkle root",
+      "Ricardian hash",
+      "Dataset snapshot",
+      "Timestamps",
+      "Geolocation references",
+      "EIP-712 signature",
+      "On-chain reference"
+    ]
+  },
+
+  standards: [
+    "ISO 19115",
+    "ISO 19157",
+    "ISO/IEC 27001",
+    "ISO 38200"
+  ],
+
+  regulatoryReferences: [
+    "eIDAS Regulation",
+    "GDPR",
+    "INSPIRE Directive",
+    "EUDR",
+    "EU Forest Monitoring framework"
+  ],
+
+  ebsiCompliance: {
+    anchoring: "Blockchain anchoring on Ethereum-compatible infrastructure",
+    verifiableCredentials: false,
+    trustFramework: "eIDAS / EBSI-aligned trust model",
+    issuer: "TopView Srl",
+    verifier: "Authorized auditor or third-party verifier"
+  },
+
+  timestamps: {
+    createdAt: new Date().toISOString()
+  }
+};
 
   const ricardianHash = toKeccak256Json(ricardianBase);
 
@@ -719,7 +809,7 @@ interpretabile sia da esseri umani sia da sistemi automatici.
   return { forestUnitId, ricardianHash, jsonPath: ricardianJson, pdfPath: ricardianPdf, ricardianForest };
 }
 
-async function persistRicardianLocalInternal(forestUnitId) {
+async function persistRicardianLocalInternal(forestUnitId, baseUrl) {
   const r = state.ricardians?.[forestUnitId];
   if (!r?.ricardianForest) throw new Error("Ricardian non trovato (buildAndSign non eseguito)");
 
@@ -728,8 +818,14 @@ async function persistRicardianLocalInternal(forestUnitId) {
   fs.writeFileSync(outPath, JSON.stringify(r.ricardianForest, null, 2));
 
   r.jsonPath = outPath;
-  r.storageUri = toFileUri(outPath);
-  return { storageUri: r.storageUri, jsonPath: outPath };
+  r.storageUri = `${baseUrl}/api/ricardian/json/${encodeURIComponent(forestUnitId)}`;
+  r.pdfUri = `${baseUrl}/api/ricardian/pdf/${encodeURIComponent(forestUnitId)}/view`;
+
+  return {
+    storageUri: r.storageUri,
+    pdfUri: r.pdfUri,
+    jsonPath: outPath
+  };
 }
 
 async function uploadRicardianToIpfsInternal(forestUnitId) {
@@ -1047,11 +1143,13 @@ function generateRicardianPdf(ricardian, outPath) {
       faint: "#777777",
       line: "#D0D0D0",
       boxFill: "#F5F5F5",
-      accent: "#0B3D2E"
+      accent: "#0B3D2E",
+      link: "#0B57D0"
     };
 
     const safe = (v) => (v === null || v === undefined ? "" : String(v));
-    const boolStr = (b) => (b === true ? "true" : b === false ? "false" : "—");
+    const boolStr = (b) => (b === true ? "Yes" : b === false ? "No" : "—");
+    const arrStr = (v) => Array.isArray(v) ? v.join(", ") : safe(v) || "—";
 
     const fmtJurisdiction = (j) => {
       if (Array.isArray(j)) return j.join(", ");
@@ -1192,9 +1290,47 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.moveDown(0.6);
     }
 
+    function bulletList(label, items, x, w) {
+      doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.muted);
+      doc.text(label, x, doc.y, { width: w });
+      doc.moveDown(0.2);
+
+      if (!Array.isArray(items) || !items.length) {
+        doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
+        doc.text("—", x, doc.y, { width: w });
+        doc.moveDown(0.45);
+        return;
+      }
+
+      doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
+      for (const item of items) {
+        doc.text(`• ${safe(item)}`, x, doc.y, { width: w, lineGap: 2 });
+      }
+      doc.moveDown(0.45);
+    }
+
+    function clickableLink(label, url, x, w) {
+      doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.muted);
+      doc.text(label, x, doc.y, { width: w });
+      doc.moveDown(0.2);
+
+      doc.font("Helvetica").fontSize(10).fillColor(COLORS.link);
+      doc.text(safe(url) || "—", x, doc.y, {
+        width: w,
+        underline: !!url,
+        link: url || undefined,
+        lineGap: 2
+      });
+      doc.moveDown(0.45);
+    }
+
     doc.save().fillColor(COLORS.accent).rect(M, M - 22, W, 16).fill().restore();
+
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.text);
-    doc.text("Ricardian Contract – Forest Tracking", M, M + 5, { width: W, align: "center" });
+    doc.text("Ricardian Contract – Forest Tracking", M, M + 5, {
+      width: W,
+      align: "center"
+    });
 
     doc.moveDown(1);
     doc.font("Helvetica").fontSize(10).fillColor(COLORS.muted);
@@ -1220,13 +1356,16 @@ function generateRicardianPdf(ricardian, outPath) {
       kv("Data producer", ricardian?.actors?.dataProducer, x, w);
       kv("Data consumer", ricardian?.actors?.dataConsumer, x, w);
       kv("Forest unit key", ricardian?.scope?.forestUnitKey, x, w);
-      kv("Included data", (ricardian?.scope?.includedData || []).join(", "), x, w);
+      kv("Included data", arrStr(ricardian?.scope?.includedData), x, w);
       kv("Purpose", ricardian?.purpose, x, w);
     }, 120);
 
     sectionBox("Human-readable Agreement", ({ x, w }) => {
       doc.font("Helvetica").fontSize(10.5).fillColor(COLORS.text);
-      doc.text(ricardian?.humanReadableAgreement?.text || "—", x, doc.y, { width: w, lineGap: 3 });
+      doc.text(ricardian?.humanReadableAgreement?.text || "—", x, doc.y, {
+        width: w,
+        lineGap: 3
+      });
       doc.moveDown(0.6);
       kv("Language", ricardian?.humanReadableAgreement?.language, x, w);
     }, 140);
@@ -1246,48 +1385,84 @@ function generateRicardianPdf(ricardian, outPath) {
       kv("Hash algorithm", ricardian?.technical?.hashAlgorithm, x, w);
       kv("Batch format", ricardian?.technical?.batchFormat, x, w);
       kv("Storage", ricardian?.technical?.storage, x, w);
-      if (ricardian?.ipfsUri) kv("IPFS URI", ricardian.ipfsUri, x, w);
+      if (ricardian?.ipfsUri) clickableLink("IPFS URI", ricardian.ipfsUri, x, w);
       mono("Merkle root", ricardian?.technical?.merkleRootUnified, x, w);
       mono("Ricardian hash", ricardian?.ricardianHash, x, w);
-    }, 170);
+    }, 185);
+
+    sectionBox("Data Governance", ({ x, w }) => {
+      kv("GDPR compliance", boolStr(ricardian?.dataGovernance?.gdprCompliance), x, w);
+      kv("Data minimisation", boolStr(ricardian?.dataGovernance?.dataMinimisation), x, w);
+      kv("Access control", ricardian?.dataGovernance?.accessControl, x, w);
+      kv("Retention policy", ricardian?.dataGovernance?.retentionPolicy, x, w);
+      kv("Personal data handling", ricardian?.dataGovernance?.personalDataHandling, x, w);
+    }, 140);
+
+    sectionBox("Data Lineage", ({ x, w }) => {
+      kv("Source", ricardian?.dataLineage?.source, x, w);
+      kv("Processing", ricardian?.dataLineage?.processing, x, w);
+      kv("Output", ricardian?.dataLineage?.output, x, w);
+      kv("Versioning", boolStr(ricardian?.dataLineage?.versioning), x, w);
+    }, 120);
+
+    sectionBox("Interoperability", ({ x, w }) => {
+      kv("Standard", ricardian?.interoperability?.standard, x, w);
+      kv("Metadata", ricardian?.interoperability?.metadata, x, w);
+      bulletList("Formats", ricardian?.interoperability?.formats, x, w);
+    }, 120);
+
+    sectionBox("Evidence Pack", ({ x, w }) => {
+      kv("Exportable", boolStr(ricardian?.evidencePack?.exportable), x, w);
+      kv("Audit ready", boolStr(ricardian?.evidencePack?.auditReady), x, w);
+      bulletList("Includes", ricardian?.evidencePack?.includes, x, w);
+    }, 140);
+
+    sectionBox("Standards & Compliance References", ({ x, w }) => {
+      bulletList("Standards", ricardian?.standards, x, w);
+      bulletList("Regulatory references", ricardian?.regulatoryReferences, x, w);
+    }, 130);
 
     if (ricardian?.signature?.eip712) {
       sectionBox("EIP-712 Signature", ({ x, w }) => {
         const e = ricardian.signature.eip712;
-        kv("Signer", e.signer, x, w);
+        mono("Signer", e.signer, x, w);
         kv("ChainId", e.domain?.chainId, x, w);
-        kv("Verifying contract", e.domain?.verifyingContract, x, w);
+        mono("Verifying contract", e.domain?.verifyingContract, x, w);
         mono("Signature", e.signature, x, w);
-      }, 260);
+      }, 270);
     }
 
-    sectionBox("Verifiche On-chain", ({ x, w }) => {
-    doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
+    sectionBox("EBSI / Trust Framework", ({ x, w }) => {
+      kv("Anchoring", ricardian?.ebsiCompliance?.anchoring, x, w);
+      kv("Verifiable credentials", boolStr(ricardian?.ebsiCompliance?.verifiableCredentials), x, w);
+      kv("Trust framework", ricardian?.ebsiCompliance?.trustFramework, x, w);
+      kv("Issuer", ricardian?.ebsiCompliance?.issuer, x, w);
+      kv("Verifier", ricardian?.ebsiCompliance?.verifier, x, w);
+    }, 145);
 
-    doc.text(
-      "Puoi verificare in modo indipendente l’integrità di questo contratto Ricardiano e della sua Merkle root sulla rete di test Ethereum Sepolia.",
-      x,
-      doc.y,
-      { width: w, lineGap: 3 }
-    );
+    sectionBox("On-chain Verification", ({ x, w }) => {
+      doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
+      doc.text(
+        "This Ricardian contract, its dataset Merkle root, and its related integrity bindings can be independently verified on the Ethereum Sepolia test network.",
+        x,
+        doc.y,
+        { width: w, lineGap: 3 }
+      );
 
-    doc.moveDown(0.6);
+      doc.moveDown(0.6);
 
-    // Link cliccabile
-    const etherscanUrl = "https://sepolia.etherscan.io/";
+      const etherscanBase = "https://sepolia.etherscan.io/";
+      const contractAddress = ricardian?.signature?.eip712?.domain?.verifyingContract;
+      const contractUrl = contractAddress
+        ? `https://sepolia.etherscan.io/address/${contractAddress}`
+        : etherscanBase;
 
-    doc.fillColor("blue")
-      .text(etherscanUrl, x, doc.y, {
-        width: w,
-        link: etherscanUrl,
-        underline: true
-      });
-
-    doc.moveDown(0.6);
-
-    kv("Contract address", ricardian?.signature?.eip712?.domain?.verifyingContract, x, w);
-    kv("Merkle root", ricardian?.technical?.merkleRootUnified, x, w);
-  }, 120);
+      clickableLink("Sepolia explorer", etherscanBase, x, w);
+      clickableLink("Contract URL", contractUrl, x, w);
+      mono("Contract address", contractAddress, x, w);
+      mono("Merkle root", ricardian?.technical?.merkleRootUnified, x, w);
+      mono("Ricardian hash", ricardian?.ricardianHash, x, w);
+    }, 180);
 
     doc.end();
     stream.on("finish", resolve);
@@ -1487,6 +1662,44 @@ async function verifyCadesSignatureTrustHybrid(p7mPath, caFilePath) {
 // HEALTH
 // --------------------
 app.get("/health", (_, res) => res.json({ ok: true }));
+
+// JSON Ricardian
+app.get("/api/ricardian/json/:forestUnitId", (req, res) => {
+  const forestUnitId = req.params.forestUnitId;
+  const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+
+  const filePath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "Ricardian JSON non trovato" });
+  }
+
+  res.sendFile(filePath);
+});
+
+app.get("/api/ricardian/pdf/:forestUnitId/view", (req, res) => {
+  const forestUnitId = req.params.forestUnitId;
+  const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const filePath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "PDF non trovato" });
+  }
+
+  res.sendFile(filePath);
+});
+
+app.get("/api/ricardian/pdf/:forestUnitId/download", (req, res) => {
+  const forestUnitId = req.params.forestUnitId;
+  const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const filePath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "PDF non trovato" });
+  }
+
+  res.download(filePath);
+});
 
 // --------------------
 // 1) TopView login
@@ -1694,47 +1907,137 @@ app.post("/api/ricardian/buildAndSign", async (req, res) => {
     const verifyingContract = deployed.ForestTracking;
 
     const ricardianBase = {
-      version: "1.0",
-      type: "RicardianForestTracking",
-      jurisdiction: { courts: "Foro competente italiano", regulatoryFramework: ["IT", "EU"] },
-      governingLaw: "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
-      actors: { dataOwner: "TopView Srl", dataProducer: "Operatore drone", dataConsumer: "Cliente finale" },
-      purpose: "Tracciabilità e prova di integrità dei dati forestali",
-      scope: { forestUnitKey: forestUnitId, includedData: ["trees", "wood_logs", "sawn_timbers"] },
-      humanReadableAgreement: {
-        language: "it",
-        text: `
+  version: "2.0",
+  type: "RicardianForestTracking",
+
+  jurisdiction: {
+    courts: "Foro competente italiano",
+    regulatoryFramework: ["IT", "EU"]
+  },
+
+  governingLaw: "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
+
+  actors: {
+    dataOwner: "TopView Srl",
+    dataProducer: "Operatore drone",
+    dataConsumer: "Cliente finale"
+  },
+
+  purpose: "Tracciabilità, prova di integrità e auditabilità dei dati forestali",
+
+  scope: {
+    forestUnitKey: forestUnitId,
+    includedData: ["trees", "wood_logs", "sawn_timbers"]
+  },
+
+  humanReadableAgreement: {
+    language: "it",
+    text: `
 Il presente accordo disciplina la raccolta, la registrazione, la conservazione
 e la verifica dell’integrità dei dati forestali relativi all’unità forestale
 "${forestUnitId}".
 
 Le parti riconoscono che il dataset è memorizzato off-chain e che l’hash
 crittografico registrato su blockchain costituisce prova di esistenza,
-immutabilità e integrità dei dati alla data di registrazione.
+integrità, riferibilità temporale e auditabilità del dataset alla data di registrazione.
 
 Il presente documento è strutturato come contratto ricardiano, essendo
-interpretabile sia da esseri umani sia da sistemi automatici.
+interpretabile sia da esseri umani sia da sistemi automatici, e integra
+elementi di governance dei dati, interoperabilità e verificabilità tecnica.
 `.trim()
-      },
-      rightsAndDuties: {
-        dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica",
-        dataProducer: "Garantisce la correttezza della raccolta e l'origine dei dati",
-        dataConsumer: "Può verificare l’integrità dei dati ma non modificarli"
-      },
-      technical: {
-        merkleRootUnified: merkleRoot,
-        batchFormat: "JSON",
-        storage: useIPFS ? "IPFS" : "LOCAL_FILE",
-        hashAlgorithm: "keccak256"
-      },
-      legal: {
-        legalValue: "Valore probatorio ai sensi della normativa vigente",
-        statement: "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
-      },
-      hashBinding: { bindsHumanReadableText: true, bindsDatasetMerkleRoot: true },
-      canonicalization: { format: "UTF-8", ordering: "lexicographic", whitespace: "normalized" },
-      timestamps: { createdAt: new Date().toISOString() }
-    };
+  },
+
+  rightsAndDuties: {
+    dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione, conservazione e verifica",
+    dataProducer: "Garantisce la correttezza della raccolta, la provenienza dei dati e la coerenza del processo di generazione",
+    dataConsumer: "Può verificare l’integrità e la provenienza dei dati ma non modificarli"
+  },
+
+  technical: {
+    merkleRootUnified: merkleRoot,
+    batchFormat: "JSON",
+    storage: storageMode, // oppure useIPFS ? "IPFS" : "LOCAL_FILE" nella route
+    hashAlgorithm: "keccak256"
+  },
+
+  legal: {
+    legalValue: "Valore probatorio ai sensi della normativa vigente e come evidenza tecnica di integrità",
+    statement: "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+  },
+
+  hashBinding: {
+    bindsHumanReadableText: true,
+    bindsDatasetMerkleRoot: true
+  },
+
+  canonicalization: {
+    format: "UTF-8",
+    ordering: "lexicographic",
+    whitespace: "normalized"
+  },
+
+  dataGovernance: {
+    gdprCompliance: true,
+    dataMinimisation: true,
+    accessControl: "Role-based access control",
+    retentionPolicy: "Conservazione delle evidenze tecniche e documentali secondo obblighi legali e finalità di audit",
+    personalDataHandling: "I dati personali, se presenti, sono minimizzati e trattati con misure di accesso controllato"
+  },
+
+  dataLineage: {
+    source: "TopView API, rilievi di campo e dati associati all'unità forestale",
+    processing: "Normalizzazione dei dati, costruzione batch unificato, Merkle tree generation, hashing Ricardiano e firma EIP-712",
+    output: "Ricardian JSON, Ricardian PDF, Merkle root e registrazione on-chain",
+    versioning: true
+  },
+
+  interoperability: {
+    standard: "INSPIRE-aligned interoperability",
+    metadata: "ISO 19115 compliant metadata profile",
+    formats: ["JSON", "GeoJSON", "GPKG"]
+  },
+
+  evidencePack: {
+    exportable: true,
+    auditReady: true,
+    includes: [
+      "Merkle root",
+      "Ricardian hash",
+      "Dataset snapshot",
+      "Timestamps",
+      "Geolocation references",
+      "EIP-712 signature",
+      "On-chain reference"
+    ]
+  },
+
+  standards: [
+    "ISO 19115",
+    "ISO 19157",
+    "ISO/IEC 27001",
+    "ISO 38200"
+  ],
+
+  regulatoryReferences: [
+    "eIDAS Regulation",
+    "GDPR",
+    "INSPIRE Directive",
+    "EUDR",
+    "EU Forest Monitoring framework"
+  ],
+
+  ebsiCompliance: {
+    anchoring: "Blockchain anchoring on Ethereum-compatible infrastructure",
+    verifiableCredentials: false,
+    trustFramework: "eIDAS / EBSI-aligned trust model",
+    issuer: "TopView Srl",
+    verifier: "Authorized auditor or third-party verifier"
+  },
+
+  timestamps: {
+    createdAt: new Date().toISOString()
+  }
+};
 
     const ricardianHash = toKeccak256Json(ricardianBase);
 
@@ -1831,7 +2134,12 @@ app.post("/api/storage/persistRicardian", async (req, res) => {
     fs.writeFileSync(outPath, JSON.stringify(r.ricardianForest, null, 2));
 
     r.jsonPath = outPath;
-    r.storageUri = toFileUri(outPath);
+    function buildServerUri(req, path) {
+      const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
+      return `${proto}://${req.get("host")}${path}`;
+    }
+
+    r.storageUri = `/api/ricardian/json/${forestUnitId}`;
 
     return res.json({
       forestUnitId,
@@ -2427,8 +2735,12 @@ app.post("/api/contract/write", async (req, res) => {
     );
 
     let storage;
-    if (useIPFS) storage = await uploadRicardianToIpfsInternal(forestUnitId);
-    else storage = await persistRicardianLocalInternal(forestUnitId);
+    if (useIPFS) {
+      storage = await uploadRicardianToIpfsInternal(forestUnitId);
+    } else {
+      const baseUrl = getBaseUrl(req);
+      storage = await persistRicardianLocalInternal(forestUnitId, baseUrl);
+    }
 
     const rawEstimate = await estimateRegisterInternal({
       forestUnitId,
@@ -2452,7 +2764,7 @@ app.post("/api/contract/write", async (req, res) => {
       ricardianHash: ric.ricardianHash,
       ricardianUri: storage.storageUri,
       pdfHash: state.ricardians?.[forestUnitId]?.pdfHash || null,
-      pdfUri: null,
+      pdfUri: storage.pdfUri || null,
       ipfsUri: storage.ipfsUri || null,
       cid: storage.cid || null,
       txHash: onchain.txHash,
@@ -2469,6 +2781,7 @@ app.post("/api/contract/write", async (req, res) => {
       merkleRoot: batch.merkleRoot,
       ricardianHash: ric.ricardianHash,
       ricardianUri: storage.storageUri,
+      pdfUri: storage.pdfUri || null,
       ipfsUri: storage.ipfsUri || null,
       cid: storage.cid || null,
       estimate,
