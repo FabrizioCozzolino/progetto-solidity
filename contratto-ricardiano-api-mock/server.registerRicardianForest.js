@@ -628,24 +628,44 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   const chainId = Number(network.chainId);
   const verifyingContract = deployed.ForestTracking;
 
-  const ricardianBase = {
-  version: "2.0",
+ const ricardianBase = {
+  version: "2.1",
   type: "RicardianForestTracking",
 
+  parties: {
+    issuer: {
+      role: "Fornitore della piattaforma di tracciabilità e ancoraggio on-chain",
+      legalEntity: "TopView Srl"
+    },
+    subscriber: {
+      role: "Utente della piattaforma (titolare del trattamento dei dati forestali)",
+      legalEntity: "Cliente / Data owner sottoscrittore del servizio"
+    }
+  },
+
   jurisdiction: {
-    courts: "Foro competente italiano",
+    courts: "Foro competente italiano (salvo diversa pattuizione fra le parti)",
     regulatoryFramework: ["IT", "EU"]
   },
 
-  governingLaw: "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
+  governingLaw: [
+    "Regolamento (UE) 910/2014 (eIDAS), in particolare art. 41 (validità giuridica della validazione temporale elettronica)",
+    "Regolamento (UE) 2024/1183 (eIDAS 2.0 / EUDI Wallet)",
+    "Legge 11 febbraio 2019, n. 12, art. 8-ter (riconoscimento giuridico delle tecnologie basate su registri distribuiti e validazione temporale via DLT)",
+    "D.Lgs. 7 marzo 2005, n. 82 (CAD), artt. 20-23 (efficacia probatoria del documento informatico)",
+    "Codice Civile italiano, artt. 2702 e 2712 (scrittura privata informatica e riproduzioni meccaniche)",
+    "Regolamento (UE) 2016/679 (GDPR)",
+    "Regolamento (UE) 2023/1115 (EUDR) — limitatamente al caso d'uso forestale",
+    "Direttiva 2007/2/CE (INSPIRE) — limitatamente all'interoperabilità dei dati spaziali"
+  ],
 
   actors: {
-    dataOwner: "TopView Srl",
-    dataProducer: "Operatore drone",
-    dataConsumer: "Cliente finale"
+    dataOwner: "TopView Srl (in qualità di gestore della piattaforma) o cliente sottoscrittore titolare dei dati",
+    dataProducer: "Operatori abilitati: operatore forestale in campo via applicativo mobile (rilievi di alberi, tronchi, segati e relative osservazioni) e operatore drone (rilievi aerei georeferenziati)",
+    dataConsumer: "Cliente finale, auditor autorizzato o terzo verificatore"
   },
 
-  purpose: "Tracciabilità, prova di integrità e auditabilità dei dati forestali",
+  purpose: "Garantire l'integrita', l'immutabilita', la riferibilita' temporale e l'auditabilita' di dataset off-chain mediante ancoraggio crittografico on-chain. Caso d'uso: tracciabilita' dei dati forestali (alberi, tronchi, segati).",
 
   scope: {
     forestUnitKey: forestUnitId,
@@ -654,37 +674,32 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
 
   humanReadableAgreement: {
     language: "it",
-    text: `
-Il presente accordo disciplina la raccolta, la registrazione, la conservazione
-e la verifica dell’integrità dei dati forestali relativi all’unità forestale
-"${forestUnitId}".
-
-Le parti riconoscono che il dataset è memorizzato off-chain e che l’hash
-crittografico registrato su blockchain costituisce prova di esistenza,
-integrità, riferibilità temporale e auditabilità del dataset alla data di registrazione.
-
-Il presente documento è strutturato come contratto ricardiano, essendo
-interpretabile sia da esseri umani sia da sistemi automatici, e integra
-elementi di governance dei dati, interoperabilità e verificabilità tecnica.
-`.trim()
+    text: [
+      `Il presente contratto ricardiano e' stipulato fra il Fornitore della piattaforma "RicardianForestTracking" (di seguito "Issuer") e l'Utente sottoscrittore del servizio (di seguito "Sottoscrittore"). Il contratto disciplina la registrazione, la conservazione e la verifica dell'integrita' di dataset prodotti dal Sottoscrittore e ancorati on-chain dall'Issuer.`,
+      `Oggetto principale del contratto e' la fornitura di un servizio di prova di esistenza, integrita' e riferibilita' temporale del dataset, basato sulla registrazione della Merkle root e dell'hash ricardiano su una rete blockchain pubblica EVM-compatibile (Ethereum / Sepolia). Il valore giuridico delle evidenze cosi' generate discende dal combinato disposto del Regolamento (UE) 910/2014 (eIDAS, art. 41), dell'art. 8-ter della Legge 12/2019, degli artt. 20-23 del CAD (D.Lgs. 82/2005) e degli artt. 2702 e 2712 c.c.`,
+      `Le parti riconoscono che il dataset e' memorizzato off-chain e che l'hash crittografico e la Merkle root registrati on-chain costituiscono prova tecnica di esistenza, integrita' e riferibilita' temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile.`,
+      `Il caso d'uso specifico oggetto della presente registrazione e' la tracciabilita' dei dati forestali relativi all'unita' "${forestUnitId}" (alberi, tronchi, segati e relative osservazioni di campo), conforme al quadro EUDR e al framework EU Forest Monitoring. Tale applicazione non esaurisce l'oggetto del contratto, che resta riferito al servizio di ancoraggio e verifica di integrita' dei dati.`,
+      `Il presente documento e' strutturato come contratto ricardiano: e' interpretabile sia da esseri umani sia da sistemi automatici, integra elementi di governance dei dati, interoperabilita' e verificabilita' tecnica, ed e' vincolato crittograficamente al dataset tramite firma EIP-712.`
+    ].join("\n\n")
   },
 
   rightsAndDuties: {
-    dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione, conservazione e verifica",
-    dataProducer: "Garantisce la correttezza della raccolta, la provenienza dei dati e la coerenza del processo di generazione",
-    dataConsumer: "Può verificare l’integrità e la provenienza dei dati ma non modificarli"
+    issuer: "Garantisce la disponibilita' del servizio di ancoraggio, la corretta esecuzione dell'hashing, della firma EIP-712 e della registrazione on-chain, e mette a disposizione gli strumenti di verifica.",
+    dataOwner: "Detiene la titolarita' dei dati e autorizza la loro registrazione, conservazione e verifica; risponde della liceita' del trattamento ai sensi del GDPR.",
+    dataProducer: "Garantisce la correttezza della raccolta sul campo, la provenienza dei dati e la coerenza del processo di generazione (app mobile e/o drone).",
+    dataConsumer: "Puo' verificare l'integrita' e la provenienza dei dati attraverso le evidenze on-chain e off-chain, ma non puo' modificarli."
   },
 
   technical: {
     merkleRootUnified: merkleRoot,
     batchFormat: "JSON",
-    storage: storageMode, // oppure useIPFS ? "IPFS" : "LOCAL_FILE" nella route
+    storage: storageMode,
     hashAlgorithm: "keccak256"
   },
 
   legal: {
-    legalValue: "Valore probatorio ai sensi della normativa vigente e come evidenza tecnica di integrità",
-    statement: "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
+    legalValue: "Le evidenze generate (hash ricardiano, Merkle root, firma EIP-712, ancoraggio on-chain) costituiscono validazione temporale elettronica ai sensi dell'art. 41 Reg. (UE) 910/2014 e dell'art. 8-ter L. 12/2019, e producono gli effetti probatori del documento informatico ex artt. 20-23 CAD e artt. 2702 e 2712 c.c. nei procedimenti giudiziari e amministrativi italiani ed europei.",
+    statement: "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrita' e riferibilita' temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile."
   },
 
   hashBinding: {
@@ -702,14 +717,18 @@ elementi di governance dei dati, interoperabilità e verificabilità tecnica.
     gdprCompliance: true,
     dataMinimisation: true,
     accessControl: "Role-based access control",
-    retentionPolicy: "Conservazione delle evidenze tecniche e documentali secondo obblighi legali e finalità di audit",
-    personalDataHandling: "I dati personali, se presenti, sono minimizzati e trattati con misure di accesso controllato"
+    retentionPolicy: {
+      onChainEvidence: "Conservazione perpetua, derivante dalla natura immutabile della rete blockchain di ancoraggio.",
+      offChainEvidence: "10 anni dalla data di registrazione per dataset, PDF ricardiano e firma CAdES, in coerenza con l'art. 2946 c.c. (prescrizione ordinaria) e con gli obblighi di archiviazione documentale; prorogabile in caso di contenzioso o di richiesta dell'autorita' competente.",
+      personalData: "Conservazione limitata al periodo strettamente necessario alle finalita' del trattamento e comunque non superiore a 10 anni, salvo obblighi di legge."
+    },
+    personalDataHandling: "I dati personali, se presenti, sono minimizzati e trattati con misure di accesso controllato; il titolare del trattamento e' il sottoscrittore della piattaforma."
   },
 
   dataLineage: {
-    source: "TopView API, rilievi di campo e dati associati all'unità forestale",
-    processing: "Normalizzazione dei dati, costruzione batch unificato, Merkle tree generation, hashing Ricardiano e firma EIP-712",
-    output: "Ricardian JSON, Ricardian PDF, Merkle root e registrazione on-chain",
+    source: "TopView API, rilievi di campo via app mobile (operatore forestale) e rilievi aerei (operatore drone) associati all'unita' forestale",
+    processing: "Normalizzazione dei dati, costruzione batch unificato, generazione Merkle tree, hashing ricardiano e firma EIP-712",
+    output: "Ricardian JSON, Ricardian PDF, Merkle root, registrazione on-chain ed eventuale controfirma CAdES",
     versioning: true
   },
 
@@ -733,18 +752,16 @@ elementi di governance dei dati, interoperabilità e verificabilità tecnica.
     ]
   },
 
-  standards: [
-    "ISO 19115",
-    "ISO 19157",
-    "ISO/IEC 27001",
-    "ISO 38200"
-  ],
+  standards: ["ISO 19115", "ISO 19157", "ISO/IEC 27001", "ISO 38200"],
 
   regulatoryReferences: [
-    "eIDAS Regulation",
-    "GDPR",
-    "INSPIRE Directive",
-    "EUDR",
+    "eIDAS Regulation (UE) 910/2014",
+    "eIDAS 2.0 Regulation (UE) 2024/1183",
+    "Legge 12/2019 art. 8-ter (DLT e validazione temporale)",
+    "CAD D.Lgs. 82/2005",
+    "GDPR Reg. (UE) 2016/679",
+    "INSPIRE Directive 2007/2/CE",
+    "EUDR Reg. (UE) 2023/1115",
     "EU Forest Monitoring framework"
   ],
 
@@ -1345,11 +1362,22 @@ function generateRicardianPdf(ricardian, outPath) {
     doc.moveDown(1);
 
     sectionBox("Legal & Jurisdiction", ({ x, w }) => {
-      kv("Governing law", ricardian?.governingLaw, x, w);
+      if (Array.isArray(ricardian?.governingLaw)) {
+        bulletList("Governing law", ricardian.governingLaw, x, w);
+      } else {
+        kv("Governing law", ricardian?.governingLaw, x, w);
+      }
       kv("Jurisdiction", fmtJurisdiction(ricardian?.jurisdiction), x, w);
       kv("Legal value", ricardian?.legal?.legalValue, x, w);
       kv("Statement", ricardian?.legal?.statement, x, w);
-    }, 95);
+    }, 260); // altezza aumentata per accogliere la lista
+
+    sectionBox("Parties", ({ x, w }) => {
+      kv("Issuer (role)", ricardian?.parties?.issuer?.role, x, w);
+      kv("Issuer (legal entity)", ricardian?.parties?.issuer?.legalEntity, x, w);
+      kv("Subscriber (role)", ricardian?.parties?.subscriber?.role, x, w);
+      kv("Subscriber (legal entity)", ricardian?.parties?.subscriber?.legalEntity, x, w);
+    }, 130);
 
     sectionBox("Actors & Scope", ({ x, w }) => {
       kv("Data owner", ricardian?.actors?.dataOwner, x, w);
@@ -1394,9 +1422,16 @@ function generateRicardianPdf(ricardian, outPath) {
       kv("GDPR compliance", boolStr(ricardian?.dataGovernance?.gdprCompliance), x, w);
       kv("Data minimisation", boolStr(ricardian?.dataGovernance?.dataMinimisation), x, w);
       kv("Access control", ricardian?.dataGovernance?.accessControl, x, w);
-      kv("Retention policy", ricardian?.dataGovernance?.retentionPolicy, x, w);
+      const ret = ricardian?.dataGovernance?.retentionPolicy;
+      if (ret && typeof ret === "object") {
+        kv("Retention — on-chain evidence", ret.onChainEvidence, x, w);
+        kv("Retention — off-chain evidence", ret.offChainEvidence, x, w);
+        kv("Retention — personal data", ret.personalData, x, w);
+      } else {
+        kv("Retention policy", ret, x, w);
+      }
       kv("Personal data handling", ricardian?.dataGovernance?.personalDataHandling, x, w);
-    }, 140);
+    }, 200); // altezza aumentata da 140 a 200 per ospitare le 3 righe di retention
 
     sectionBox("Data Lineage", ({ x, w }) => {
       kv("Source", ricardian?.dataLineage?.source, x, w);
