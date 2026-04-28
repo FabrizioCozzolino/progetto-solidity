@@ -660,7 +660,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   ],
 
   actors: {
-    dataOwner: "TopView Srl (in qualità di gestore della piattaforma) o cliente sottoscrittore titolare dei dati",
+    dataOwner: "TopView Srl (in qualità di gestore della piattaforma) e cliente sottoscrittore titolare dei dati",
     dataProducer: "Operatori abilitati: operatore forestale in campo via applicativo mobile (rilievi di alberi, tronchi, segati e relative osservazioni) e operatore drone (rilievi aerei georeferenziati)",
     dataConsumer: "Cliente finale, auditor autorizzato o terzo verificatore"
   },
@@ -728,7 +728,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   dataLineage: {
     source: "TopView API, rilievi di campo via app mobile (operatore forestale) e rilievi aerei (operatore drone) associati all'unita' forestale",
     processing: "Normalizzazione dei dati, costruzione batch unificato, generazione Merkle tree, hashing ricardiano e firma EIP-712",
-    output: "Ricardian JSON, Ricardian PDF, Merkle root, registrazione on-chain ed eventuale controfirma CAdES",
+    output: "Ricardian JSON, Ricardian PDF, Merkle root, registrazione on-chain e controfirma CAdES",
     versioning: true
   },
 
