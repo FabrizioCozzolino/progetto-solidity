@@ -1294,6 +1294,7 @@ function generateRicardianPdf(ricardian, outPath) {
  
     const M = doc.page.margins.left;
     const W = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const PAGE_H = doc.page.height;
  
     const COLORS = {
       text: "#111111",
@@ -1302,6 +1303,7 @@ function generateRicardianPdf(ricardian, outPath) {
       line: "#D0D0D0",
       boxFill: "#F5F5F5",
       accent: "#0B3D2E",
+      accentSoft: "#E8F0EC",
       link: "#0B57D0",
       warn: "#A14D00",
       warnFill: "#FFF4E5"
@@ -1310,6 +1312,10 @@ function generateRicardianPdf(ricardian, outPath) {
     const safe = (v) => (v === null || v === undefined ? "" : String(v));
     const boolStr = (b) => (b === true ? "Yes" : b === false ? "No" : "—");
     const arrStr = (v) => Array.isArray(v) ? v.join(", ") : safe(v) || "—";
+    const truncate = (v, n) => {
+      const s = safe(v);
+      return s.length > n ? s.slice(0, n - 1) + "…" : s;
+    };
  
     const fmtJurisdiction = (j) => {
       if (Array.isArray(j)) return j.join(", ");
@@ -1322,6 +1328,18 @@ function generateRicardianPdf(ricardian, outPath) {
         return parts.join(" | ");
       }
       return "";
+    };
+ 
+    const fmtDate = (iso) => {
+      if (!iso) return "—";
+      try {
+        const d = new Date(iso);
+        const date = d.toLocaleDateString("it-IT", { day: "2-digit", month: "long", year: "numeric" });
+        const time = d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+        return `${date} • ${time} UTC`;
+      } catch (_) {
+        return iso;
+      }
     };
  
     function bottomY() {
@@ -1399,11 +1417,6 @@ function generateRicardianPdf(ricardian, outPath) {
       return Math.max(minH, innerH + pad * 2);
     }
  
-    /**
-     * box() standalone (per chi lo usasse fuori da sectionBox).
-     * NOTA: dentro sectionBox NON usiamo più questa funzione, per evitare la
-     * doppia misurazione che causava il bug del "titolo orfano".
-     */
     function box(fn, minH = 70, opts = {}) {
       const pad = 12;
       const boxH = measureBoxHeight(fn, minH);
@@ -1426,29 +1439,19 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.y = y + boxH + 14;
     }
  
-    /**
-     * sectionBox v3.0.1: titolo + box renderizzati atomicamente.
-     * Misura una sola volta, fa ensureSpace una sola volta, poi scrive
-     * tutto in sequenza sulla stessa pagina. Niente più "titolo orfano".
-     */
     function sectionBox(title, fn, minH = 70, opts = {}) {
       const pad = 12;
-      const titleLineH = 14;     // altezza riga del titolo (Helvetica-Bold 12)
-      const titleSpacing = 6;    // spazio fra titolo e box (corrisponde a moveDown(0.4))
+      const titleLineH = 14;
+      const titleSpacing = 6;
       const afterBoxSpacing = 14;
  
-      // misura UNA sola volta
       const boxH = measureBoxHeight(fn, minH);
- 
-      // ensure space per TUTTO il blocco (titolo + spaziatura + box + spaziatura finale)
       ensureSpace(titleLineH + titleSpacing + boxH + afterBoxSpacing);
  
-      // 1) scrivi il titolo
       doc.font("Helvetica-Bold").fontSize(12).fillColor(COLORS.text);
       doc.text(title, M, doc.y, { width: W });
       doc.moveDown(0.4);
  
-      // 2) disegna la box direttamente, SENZA richiamare measureBoxHeight/ensureSpace
       const fillColor = opts.fillColor || COLORS.boxFill;
       const strokeColor = opts.strokeColor || COLORS.line;
  
@@ -1536,32 +1539,236 @@ function generateRicardianPdf(ricardian, outPath) {
     }
  
     // ========================================================================
-    // HEADER
+    // FRONTESPIZIO (pagina 1)
     // ========================================================================
  
-    doc.save().fillColor(COLORS.accent).rect(M, M - 22, W, 16).fill().restore();
+    function renderFrontPage() {
+      // Banda decorativa superiore
+      doc.save().fillColor(COLORS.accent).rect(0, 0, doc.page.width, 60).fill().restore();
  
-    doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.text);
-    doc.text("Ricardian Contract – Forest Tracking", M, M + 5, {
-      width: W,
-      align: "center"
-    });
+      // Eyebrow / etichetta in alto
+      doc.font("Helvetica-Bold").fontSize(9).fillColor("#FFFFFF");
+      doc.text("CONTRATTO RICARDIANO • EVIDENZE ON-CHAIN", M, 24, {
+        width: W, align: "center", characterSpacing: 1.5
+      });
  
-    doc.moveDown(1);
-    doc.font("Helvetica").fontSize(10).fillColor(COLORS.muted);
-    doc.text(
-      `Forest Unit: ${safe(ricardian?.scope?.forestUnitKey)}   •   Type: ${safe(ricardian?.type)}   •   Version: ${safe(ricardian?.version)}`,
-      M,
-      doc.y,
-      { width: W }
-    );
+      // Spazio dal banner
+      doc.y = 110;
  
-    addFooter();
-    doc.moveDown(1);
+      // Titolo principale
+      doc.font("Helvetica-Bold").fontSize(28).fillColor(COLORS.text);
+      doc.text("Ricardian Contract", M, doc.y, { width: W, align: "center" });
+ 
+      doc.moveDown(0.3);
+      doc.font("Helvetica").fontSize(14).fillColor(COLORS.muted);
+      doc.text("Forest Tracking", M, doc.y, { width: W, align: "center" });
+ 
+      doc.moveDown(0.4);
+      doc.font("Helvetica-Oblique").fontSize(10.5).fillColor(COLORS.faint);
+      doc.text(
+        "Evidenze crittografiche di integrità e validazione temporale di dataset forestali",
+        M, doc.y, { width: W, align: "center" }
+      );
+ 
+      // Linea separatrice
+      doc.moveDown(1.2);
+      const sepY = doc.y;
+      doc.save().strokeColor(COLORS.accent).lineWidth(1.5);
+      doc.moveTo(M + W * 0.35, sepY).lineTo(M + W * 0.65, sepY).stroke();
+      doc.restore();
+      doc.y = sepY + 25;
+ 
+      // ===== Forest Unit (riquadro centrale prominente) =====
+      const fuY = doc.y;
+      const fuH = 70;
+      doc.save();
+      doc.fillColor(COLORS.accentSoft).strokeColor(COLORS.accent).lineWidth(1);
+      doc.rect(M, fuY, W, fuH).fillAndStroke();
+      doc.restore();
+ 
+      doc.font("Helvetica").fontSize(9).fillColor(COLORS.muted);
+      doc.text("FOREST UNIT", M, fuY + 12, { width: W, align: "center", characterSpacing: 2 });
+ 
+      doc.font("Helvetica-Bold").fontSize(20).fillColor(COLORS.accent);
+      doc.text(safe(ricardian?.scope?.forestUnitKey) || "—", M, fuY + 28, {
+        width: W, align: "center"
+      });
+ 
+      doc.font("Helvetica").fontSize(9).fillColor(COLORS.faint);
+      doc.text(
+        `Type: ${safe(ricardian?.type)} • Version: ${safe(ricardian?.version)}`,
+        M, fuY + 53, { width: W, align: "center" }
+      );
+ 
+      doc.y = fuY + fuH + 25;
+ 
+      // ===== Parti contraenti (due colonne) =====
+      const partiesY = doc.y;
+      const colW = (W - 12) / 2;
+      const partiesH = 100;
+ 
+      // Colonna Issuer
+      doc.save();
+      doc.fillColor(COLORS.boxFill).strokeColor(COLORS.line);
+      doc.rect(M, partiesY, colW, partiesH).fillAndStroke();
+      doc.restore();
+ 
+      doc.font("Helvetica-Bold").fontSize(8.5).fillColor(COLORS.accent);
+      doc.text("ISSUER (FORNITORE)", M + 10, partiesY + 10, {
+        width: colW - 20, characterSpacing: 1
+      });
+ 
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.text);
+      doc.text(
+        safe(ricardian?.parties?.issuer?.legalEntity) || "—",
+        M + 10, partiesY + 26, { width: colW - 20 }
+      );
+ 
+      doc.font("Helvetica").fontSize(8.5).fillColor(COLORS.muted);
+      doc.text(
+        truncate(ricardian?.parties?.issuer?.role, 80),
+        M + 10, partiesY + 44, { width: colW - 20, lineGap: 1 }
+      );
+ 
+      const issuerId = ricardian?.parties?.issuer?.identification;
+      if (issuerId?.method) {
+        doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.faint);
+        doc.text(
+          `ID: ${issuerId.method} • ${safe(issuerId.identifier)}`,
+          M + 10, partiesY + partiesH - 18, { width: colW - 20 }
+        );
+      }
+ 
+      // Colonna Subscriber
+      const colSubX = M + colW + 12;
+      const subEntity = ricardian?.parties?.subscriber?.legalEntity;
+      const subFill = subEntity ? COLORS.boxFill : COLORS.warnFill;
+      const subStroke = subEntity ? COLORS.line : COLORS.warn;
+ 
+      doc.save();
+      doc.fillColor(subFill).strokeColor(subStroke);
+      doc.rect(colSubX, partiesY, colW, partiesH).fillAndStroke();
+      doc.restore();
+ 
+      doc.font("Helvetica-Bold").fontSize(8.5).fillColor(subEntity ? COLORS.accent : COLORS.warn);
+      doc.text("SUBSCRIBER (SOTTOSCRITTORE)", colSubX + 10, partiesY + 10, {
+        width: colW - 20, characterSpacing: 1
+      });
+ 
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(subEntity ? COLORS.text : COLORS.warn);
+      doc.text(
+        subEntity || "Identificazione mancante",
+        colSubX + 10, partiesY + 26, { width: colW - 20 }
+      );
+ 
+      doc.font("Helvetica").fontSize(8.5).fillColor(COLORS.muted);
+      doc.text(
+        truncate(ricardian?.parties?.subscriber?.role, 80),
+        colSubX + 10, partiesY + 44, { width: colW - 20, lineGap: 1 }
+      );
+ 
+      const subId = ricardian?.parties?.subscriber?.identification;
+      if (subId?.method) {
+        doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.faint);
+        doc.text(
+          `ID: ${subId.method} • ${safe(subId.identifier)}`,
+          colSubX + 10, partiesY + partiesH - 18, { width: colW - 20 }
+        );
+      }
+ 
+      doc.y = partiesY + partiesH + 25;
+ 
+      // ===== Identificatori tecnici =====
+      const techY = doc.y;
+      const techH = 110;
+      doc.save();
+      doc.fillColor(COLORS.boxFill).strokeColor(COLORS.line);
+      doc.rect(M, techY, W, techH).fillAndStroke();
+      doc.restore();
+ 
+      doc.font("Helvetica-Bold").fontSize(8.5).fillColor(COLORS.accent);
+      doc.text("IDENTIFICATORI TECNICI", M + 10, techY + 10, {
+        width: W - 20, characterSpacing: 1
+      });
+ 
+      let ty = techY + 28;
+ 
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.muted);
+      doc.text("Ricardian hash", M + 10, ty, { width: W - 20 });
+      doc.font("Courier").fontSize(8.5).fillColor(COLORS.text);
+      doc.text(safe(ricardian?.ricardianHash) || "—", M + 10, ty + 11, { width: W - 20 });
+ 
+      ty += 28;
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.muted);
+      doc.text("Merkle root", M + 10, ty, { width: W - 20 });
+      doc.font("Courier").fontSize(8.5).fillColor(COLORS.text);
+      doc.text(safe(ricardian?.technical?.merkleRootUnified) || "—", M + 10, ty + 11, { width: W - 20 });
+ 
+      ty += 28;
+      const chainId = ricardian?.signature?.eip712?.domain?.chainId;
+      const explorers = {
+        1: "Ethereum mainnet",
+        11155111: "Sepolia testnet",
+        137: "Polygon mainnet",
+        80002: "Polygon Amoy testnet",
+        42161: "Arbitrum One"
+      };
+      const networkName = explorers[Number(chainId)] || `chainId ${chainId || "—"}`;
+      const verifyingContract = ricardian?.signature?.eip712?.domain?.verifyingContract;
+ 
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.muted);
+      doc.text(`Network: ${networkName}`, M + 10, ty, { width: (W - 20) / 2 });
+      if (verifyingContract) {
+        doc.font("Courier").fontSize(8).fillColor(COLORS.text);
+        doc.text(`Contract: ${verifyingContract}`, M + 10 + (W - 20) / 2, ty, { width: (W - 20) / 2 });
+      }
+ 
+      doc.y = techY + techH + 25;
+ 
+      // ===== Badge di compliance =====
+      const badgeY = doc.y;
+      const badgeH = 50;
+      doc.save();
+      doc.fillColor(COLORS.accent).strokeColor(COLORS.accent);
+      doc.rect(M, badgeY, W, badgeH).fillAndStroke();
+      doc.restore();
+ 
+      doc.font("Helvetica-Bold").fontSize(9).fillColor("#FFFFFF");
+      doc.text(
+        "VALIDAZIONE TEMPORALE NON QUALIFICATA",
+        M, badgeY + 10, { width: W, align: "center", characterSpacing: 1.5 }
+      );
+ 
+      doc.font("Helvetica").fontSize(9).fillColor("#FFFFFF");
+      doc.text(
+        "ai sensi dell'art. 41 Reg. (UE) 910/2014, in combinato disposto con art. 8-ter c.3 L. 12/2019",
+        M, badgeY + 26, { width: W, align: "center" }
+      );
+ 
+      doc.y = badgeY + badgeH + 18;
+ 
+      // ===== Data di creazione (footer del frontespizio) =====
+      doc.font("Helvetica").fontSize(9).fillColor(COLORS.faint);
+      doc.text("Data di creazione", M, doc.y, { width: W, align: "center" });
+ 
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.muted);
+      doc.text(fmtDate(ricardian?.timestamps?.createdAt), M, doc.y + 2, { width: W, align: "center" });
+ 
+      // Footer di pagina
+      addFooter();
+ 
+      // Vai a pagina nuova per l'inizio del corpo del documento
+      doc.addPage();
+    }
+ 
+    renderFrontPage();
+ 
+    // ========================================================================
+    // CORPO DEL DOCUMENTO (dalla pagina 2 in poi)
+    // ========================================================================
  
     // ========================================================================
     // LEGAL & JURISDICTION
-    // (minH ridotto: la misurazione automatica gestisce l'altezza effettiva)
     // ========================================================================
  
     sectionBox("Legal & Jurisdiction", ({ x, w }) => {
@@ -1772,7 +1979,6 @@ function generateRicardianPdf(ricardian, outPath) {
  
     // ========================================================================
     // INTEROPERABILITY FRAMEWORKS
-    // (era 600, ridotto a 80: la misurazione automatica gestisce l'altezza)
     // ========================================================================
  
     const ifw = ricardian?.interoperabilityFrameworks;
