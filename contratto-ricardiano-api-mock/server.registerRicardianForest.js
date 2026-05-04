@@ -641,23 +641,54 @@ async function buildUnifiedBatchInternal(forestUnitId, forestData) {
   return { forestUnitId, merkleRoot: root, batchFile, leavesCount: leaves.length };
 }
 
-async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMode = "LOCAL_FILE") {
+async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMode = "LOCAL_FILE", subscriberData = null) {
   const network = await provider.getNetwork();
   const chainId = Number(network.chainId);
   const verifyingContract = deployed.ForestTracking;
 
+  // --------------------
+  // Validazione subscriberData (art. 8-ter c.2 L. 12/2019)
+  // --------------------
+  // subscriberData può arrivare:
+  //   a) dal body della richiesta REST (Soluzione A: identificazione contrattuale)
+  //   b) in futuro da una sessione SPID/CIE (Soluzione B)
+  // Se manca, lasciamo i campi a null e l'asserzione assertSubscriberIdentified()
+  // in fondo a questa funzione bloccherà la firma.
+  const VALID_ID_METHODS = ["contractual", "SPID-L2", "SPID-L3", "CIE", "EUDIWallet"];
+  const _subLegalEntity = subscriberData?.legalEntity ?? null;
+  const _subMethod      = subscriberData?.method      ?? (subscriberData?.legalEntity ? "contractual" : null);
+  const _subIdentifier  = subscriberData?.identifier  ?? null;
+
+  if (_subMethod && !VALID_ID_METHODS.includes(_subMethod)) {
+    throw new Error(
+      `subscriber.method non valido: "${_subMethod}". ` +
+      `Ammessi: ${VALID_ID_METHODS.join(", ")}`
+    );
+  }
+
  const ricardianBase = {
-  version: "2.1",
+  version: "3.0",
   type: "RicardianForestTracking",
 
   parties: {
     issuer: {
       role: "Fornitore della piattaforma di tracciabilità e ancoraggio on-chain",
-      legalEntity: "TopView Srl"
+      legalEntity: "TopView Srl",
+      identification: {
+        method: "contractual",
+        identifier: "P.IVA TopView Srl"
+      }
     },
     subscriber: {
       role: "Utente della piattaforma (titolare del trattamento dei dati forestali)",
-      legalEntity: "Cliente / Data owner sottoscrittore del servizio"
+      // Popolato da subscriberData passato dal chiamante (vedi /api/contract/write).
+      // Se null, assertSubscriberIdentified() bloccherà la firma: l'art. 8-ter c.2
+      // L. 12/2019 richiede identificazione informatica delle parti prima della firma.
+      legalEntity: _subLegalEntity,
+      identification: {
+        method: _subMethod,         // "contractual" | "SPID-L2" | "SPID-L3" | "CIE" | "EUDIWallet"
+        identifier: _subIdentifier  // P.IVA o CF (per persona giuridica/fisica)
+      }
     }
   },
 
@@ -667,23 +698,21 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   },
 
   governingLaw: [
-    "Regolamento (UE) 910/2014 (eIDAS), in particolare art. 41 (validità giuridica della validazione temporale elettronica)",
-    "Regolamento (UE) 2024/1183 (eIDAS 2.0 / EUDI Wallet)",
-    "Legge 11 febbraio 2019, n. 12, art. 8-ter (riconoscimento giuridico delle tecnologie basate su registri distribuiti e validazione temporale via DLT)",
-    "D.Lgs. 7 marzo 2005, n. 82 (CAD), artt. 20-23 (efficacia probatoria del documento informatico)",
-    "Codice Civile italiano, artt. 2702 e 2712 (scrittura privata informatica e riproduzioni meccaniche)",
-    "Regolamento (UE) 2016/679 (GDPR)",
-    "Regolamento (UE) 2023/1115 (EUDR) — limitatamente al caso d'uso forestale",
-    "Direttiva 2007/2/CE (INSPIRE) — limitatamente all'interoperabilità dei dati spaziali"
+    "Regolamento (UE) 910/2014 (eIDAS), in particolare art. 41 (validazione temporale elettronica non qualificata)",
+    "Regolamento (UE) 2024/1183 (eIDAS 2.0)",
+    "Legge 11 febbraio 2019, n. 12, art. 8-ter (riconoscimento giuridico delle DLT e validazione temporale via DLT)",
+    "D.Lgs. 7 marzo 2005, n. 82 (CAD), artt. 20-23 (efficacia probatoria del documento informatico, applicabili alla controfirma CAdES qualificata)",
+    "Codice Civile italiano, artt. 2702 e 2712 (efficacia probatoria della scrittura privata informatica e delle riproduzioni meccaniche, applicabili alla controfirma CAdES qualificata)",
+    "Regolamento (UE) 2016/679 (GDPR)"
   ],
 
   actors: {
-    dataOwner: "TopView Srl (in qualità di gestore della piattaforma) e cliente sottoscrittore titolare dei dati",
-    dataProducer: "Operatori abilitati: operatore forestale in campo via applicativo mobile (rilievi di alberi, tronchi, segati e relative osservazioni) e operatore drone (rilievi aerei georeferenziati)",
+    dataOwner: "Cliente sottoscrittore titolare dei dati forestali",
+    dataProducer: "Operatori abilitati: operatore forestale via applicativo mobile e operatore drone per rilievi aerei georeferenziati",
     dataConsumer: "Cliente finale, auditor autorizzato o terzo verificatore"
   },
 
-  purpose: "Garantire l'integrita', l'immutabilita', la riferibilita' temporale e l'auditabilita' di dataset off-chain mediante ancoraggio crittografico on-chain. Caso d'uso: tracciabilita' dei dati forestali (alberi, tronchi, segati).",
+  purpose: "Garantire l'integrità, l'immutabilità, la riferibilità temporale e l'auditabilità di dataset off-chain mediante ancoraggio crittografico on-chain. Caso d'uso: tracciabilità dei dati forestali (alberi, tronchi, segati).",
 
   scope: {
     forestUnitKey: forestUnitId,
@@ -693,31 +722,60 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   humanReadableAgreement: {
     language: "it",
     text: [
-      `Il presente contratto ricardiano e' stipulato fra il Fornitore della piattaforma "RicardianForestTracking" (di seguito "Issuer") e l'Utente sottoscrittore del servizio (di seguito "Sottoscrittore"). Il contratto disciplina la registrazione, la conservazione e la verifica dell'integrita' di dataset prodotti dal Sottoscrittore e ancorati on-chain dall'Issuer.`,
-      `Oggetto principale del contratto e' la fornitura di un servizio di prova di esistenza, integrita' e riferibilita' temporale del dataset, basato sulla registrazione della Merkle root e dell'hash ricardiano su una rete blockchain pubblica EVM-compatibile (Ethereum / Sepolia). Il valore giuridico delle evidenze cosi' generate discende dal combinato disposto del Regolamento (UE) 910/2014 (eIDAS, art. 41), dell'art. 8-ter della Legge 12/2019, degli artt. 20-23 del CAD (D.Lgs. 82/2005) e degli artt. 2702 e 2712 c.c.`,
-      `Le parti riconoscono che il dataset e' memorizzato off-chain e che l'hash crittografico e la Merkle root registrati on-chain costituiscono prova tecnica di esistenza, integrita' e riferibilita' temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile.`,
-      `Il caso d'uso specifico oggetto della presente registrazione e' la tracciabilita' dei dati forestali relativi all'unita' "${forestUnitId}" (alberi, tronchi, segati e relative osservazioni di campo), conforme al quadro EUDR e al framework EU Forest Monitoring. Tale applicazione non esaurisce l'oggetto del contratto, che resta riferito al servizio di ancoraggio e verifica di integrita' dei dati.`,
-      `Il presente documento e' strutturato come contratto ricardiano: e' interpretabile sia da esseri umani sia da sistemi automatici, integra elementi di governance dei dati, interoperabilita' e verificabilita' tecnica, ed e' vincolato crittograficamente al dataset tramite firma EIP-712.`
+      `Il presente contratto ricardiano è stipulato fra il Fornitore della piattaforma "RicardianForestTracking" (di seguito "Issuer") e l'Utente sottoscrittore del servizio (di seguito "Sottoscrittore"). Il contratto disciplina la registrazione, la conservazione e la verifica dell'integrità di dataset prodotti dal Sottoscrittore e ancorati on-chain dall'Issuer.`,
+      `Oggetto principale del contratto è la fornitura di un servizio di prova di esistenza, integrità e riferibilità temporale del dataset, basato sulla registrazione della Merkle root e dell'hash ricardiano su una rete blockchain pubblica EVM-compatibile. Tale servizio costituisce validazione temporale elettronica NON QUALIFICATA ai sensi dell'art. 41 Reg. (UE) 910/2014, in combinato disposto con l'art. 8-ter c.3 della Legge 12/2019.`,
+      `Le parti riconoscono che il dataset è memorizzato off-chain e che l'hash crittografico e la Merkle root registrati on-chain costituiscono prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, ammissibile in giudizio nei limiti dell'art. 41 eIDAS, senza l'efficacia rinforzata della validazione temporale qualificata ex art. 42.`,
+      `La piena efficacia probatoria del documento informatico ex artt. 20-23 D.Lgs. 82/2005 e artt. 2702 e 2712 c.c. è subordinata alla controfirma del Sottoscrittore tramite firma elettronica qualificata (CAdES con certificato emesso da Qualified Trust Service Provider listato nella EU Trusted List), la cui valida apposizione sarà attestata dalla procedura di verifica documentata in 'verificationProcedure'.`,
+      `Il caso d'uso specifico oggetto della presente registrazione è la tracciabilità dei dati forestali relativi all'unità "${forestUnitId}". Tale applicazione non esaurisce l'oggetto del contratto, che resta riferito al servizio di ancoraggio e verifica di integrità dei dati.`,
+      `Il presente documento è strutturato come contratto ricardiano: è interpretabile sia da esseri umani sia da sistemi automatici, integra elementi di governance dei dati e di verificabilità tecnica, ed è vincolato crittograficamente al dataset tramite firma EIP-712 di sistema dell'Issuer.`
     ].join("\n\n")
   },
 
   rightsAndDuties: {
-    issuer: "Garantisce la disponibilita' del servizio di ancoraggio, la corretta esecuzione dell'hashing, della firma EIP-712 e della registrazione on-chain, e mette a disposizione gli strumenti di verifica.",
-    dataOwner: "Detiene la titolarita' dei dati e autorizza la loro registrazione, conservazione e verifica; risponde della liceita' del trattamento ai sensi del GDPR.",
+    issuer: "Garantisce la disponibilità del servizio di ancoraggio, la corretta esecuzione dell'hashing, della firma EIP-712 di sistema e della registrazione on-chain, e mette a disposizione gli strumenti di verifica documentati in 'verificationProcedure'.",
+    dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione, conservazione e verifica; risponde della liceità del trattamento ai sensi del GDPR; in qualità di titolare valuta la necessità di DPIA ex art. 35 GDPR.",
     dataProducer: "Garantisce la correttezza della raccolta sul campo, la provenienza dei dati e la coerenza del processo di generazione (app mobile e/o drone).",
-    dataConsumer: "Puo' verificare l'integrita' e la provenienza dei dati attraverso le evidenze on-chain e off-chain, ma non puo' modificarli."
+    dataConsumer: "Può verificare l'integrità e la provenienza dei dati attraverso le evidenze on-chain e off-chain, ma non può modificarli."
   },
 
   technical: {
     merkleRootUnified: merkleRoot,
     batchFormat: "JSON",
     storage: storageMode,
-    hashAlgorithm: "keccak256"
+    hashAlgorithm: "keccak256",
+    signatureFormats: {
+      systemSignature: "EIP-712 (apposta dall'Issuer per attestare l'origine dell'ancoraggio dalla piattaforma; NON costituisce firma elettronica avanzata né qualificata del Sottoscrittore ex artt. 26-27 eIDAS)",
+      userSignature: "CAdES-BES o superiore (DER) sul PDF ricardiano; livello effettivo di firma determinato a runtime dalla validazione DSS contro EU LOTL"
+    }
   },
 
   legal: {
-    legalValue: "Le evidenze generate (hash ricardiano, Merkle root, firma EIP-712, ancoraggio on-chain) costituiscono validazione temporale elettronica ai sensi dell'art. 41 Reg. (UE) 910/2014 e dell'art. 8-ter L. 12/2019, e producono gli effetti probatori del documento informatico ex artt. 20-23 CAD e artt. 2702 e 2712 c.c. nei procedimenti giudiziari e amministrativi italiani ed europei.",
-    statement: "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrita' e riferibilita' temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile."
+    timeStampValidation: {
+      level: "non-qualified",
+      basis: "art. 41 Reg. (UE) 910/2014 in combinato disposto con art. 8-ter c.3 L. 12/2019",
+      effects: "Ammissibilità come prova in procedimenti giudiziali. Non opera la presunzione di accuratezza temporale propria della validazione qualificata ex art. 42 eIDAS."
+    },
+    documentSignature: {
+      systemSignature: {
+        type: "Firma elettronica semplice di sistema (EIP-712)",
+        purpose: "Attesta la provenienza dell'ancoraggio dalla piattaforma Issuer.",
+        legalQualification: "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo dell'Issuer e non del Sottoscrittore."
+      },
+      userCountersignature: {
+        type: "CAdES (formato DER) — livello determinato a runtime",
+        legalQualification: "TBD — determinato dalla verifica DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
+        validationReportRef: null
+      }
+    },
+    statement: "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile e dal livello di firma effettivamente apposto e verificato."
+  },
+
+  verificationProcedure: {
+    onChain: "Verifica che ricardianHash e merkleRoot registrati on-chain corrispondano a quelli ricalcolati off-chain a partire dal dataset originale.",
+    merkleProofs: "Per ogni elemento del dataset, verifica della Merkle proof contro la root ancorata.",
+    cadesValidation: "Validazione della controfirma CAdES tramite Digital Signature Service (DSS) della Commissione UE o servizio equivalente, con: (a) chain-of-trust check contro EU LOTL; (b) revocation check via OCSP (RFC 6960) o CRL (RFC 5280); (c) verifica QCStatements (OID 0.4.0.1862.1.1 QcCompliance, 0.4.0.1862.1.4 QcSSCD) per attestare la qualificazione del certificato; (d) verifica del timestamp qualificato CAdES-T se presente.",
+    integrity: "SHA-256 del PDF ricardiano confrontato con l'hash registrato on-chain.",
+    referenceImplementation: "endpoint /api/contract/verify"
   },
 
   hashBinding: {
@@ -732,28 +790,55 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   },
 
   dataGovernance: {
-    gdprCompliance: true,
-    dataMinimisation: true,
-    accessControl: "Role-based access control",
-    retentionPolicy: {
-      onChainEvidence: "Conservazione perpetua, derivante dalla natura immutabile della rete blockchain di ancoraggio.",
-      offChainEvidence: "10 anni dalla data di registrazione per dataset, PDF ricardiano e firma CAdES, in coerenza con l'art. 2946 c.c. (prescrizione ordinaria) e con gli obblighi di archiviazione documentale; prorogabile in caso di contenzioso o di richiesta dell'autorita' competente.",
-      personalData: "Conservazione limitata al periodo strettamente necessario alle finalita' del trattamento e comunque non superiore a 10 anni, salvo obblighi di legge."
+    gdprMeasures: {
+      lawfulBasis: "Documentato nel DPA fra Issuer e Sottoscrittore (titolare del trattamento)",
+      dataMinimisation: "Implementata: l'on-chain contiene esclusivamente hash crittografici, mai payload di dati personali in chiaro.",
+      accessControl: "Role-based access control sul layer applicativo dell'Issuer",
+      retentionPolicy: {
+        onChainEvidence: "Conservazione perpetua, derivante dalla natura immutabile della rete blockchain di ancoraggio. Sull'on-chain sono registrati solo hash, non dati personali.",
+        offChainEvidence: "10 anni dalla data di registrazione, in coerenza con art. 2946 c.c. e con gli obblighi di archiviazione documentale; prorogabile in caso di contenzioso o di richiesta dell'autorità competente.",
+        personalData: "Conservazione limitata al periodo strettamente necessario alle finalità del trattamento e comunque non superiore a 10 anni, salvo obblighi di legge."
+      },
+      personalDataHandling: "I dati personali, se presenti, sono minimizzati e trattati con misure di accesso controllato. Il titolare del trattamento è il Sottoscrittore. Issuer agisce in qualità di Responsabile del trattamento ex art. 28 GDPR.",
+      dataSubjectRights: "Esercitabili contattando il Sottoscrittore (titolare del trattamento). Le evidenze on-chain registrano esclusivamente hash crittografici e non consentono identificazione diretta degli interessati.",
+      ipfsUsageStatement: "L'uso di IPFS è limitato a payload privi di dati personali. Eventuali dati personali sono conservati esclusivamente off-chain in storage controllato e cancellabile dall'Issuer e dal Sottoscrittore."
     },
-    personalDataHandling: "I dati personali, se presenti, sono minimizzati e trattati con misure di accesso controllato; il titolare del trattamento e' il sottoscrittore della piattaforma."
+    dpiaStatus: "Il Sottoscrittore in qualità di titolare valuta la necessità di DPIA ex art. 35 GDPR per il proprio caso d'uso specifico."
   },
 
   dataLineage: {
-    source: "TopView API, rilievi di campo via app mobile (operatore forestale) e rilievi aerei (operatore drone) associati all'unita' forestale",
-    processing: "Normalizzazione dei dati, costruzione batch unificato, generazione Merkle tree, hashing ricardiano e firma EIP-712",
-    output: "Ricardian JSON, Ricardian PDF, Merkle root, registrazione on-chain e controfirma CAdES",
+    source: "TopView API (rilievi di campo via applicativo mobile e rilievi aerei via drone)",
+    processing: "Normalizzazione, costruzione batch unificato, generazione Merkle tree, hashing keccak256, firma EIP-712 di sistema",
+    output: "Ricardian JSON, Ricardian PDF, Merkle root, registrazione on-chain, controfirma CAdES eventuale",
     versioning: true
   },
 
-  interoperability: {
-    standard: "INSPIRE-aligned interoperability",
-    metadata: "ISO 19115 compliant metadata profile",
-    formats: ["JSON", "GeoJSON", "GPKG"]
+  interoperabilityFrameworks: {
+    metadataModel: {
+      alignedWith: ["ISO 19115 (geographic information metadata)", "ISO 19157 (data quality)"],
+      certifiedAs: [],
+      note: "Allineamento concettuale al modello dati. Nessuna certificazione formale è stata acquisita."
+    },
+    securityFramework: {
+      alignedWith: ["ISO/IEC 27001 controls"],
+      certifiedAs: [],
+      note: "Adottati controlli ispirati a ISO/IEC 27001. Nessuna certificazione formale è in essere."
+    },
+    chainOfCustody: {
+      alignedWith: ["ISO 38200 (chain of custody of wood and wood-based products)"],
+      certifiedAs: [],
+      note: "Architettura compatibile con i requisiti di tracciabilità ISO 38200; certificazione in carico al Sottoscrittore se di interesse commerciale."
+    },
+    blockchainEcosystem: {
+      compatibleWith: ["EBSI architecture (Ethereum-compatible anchoring)"],
+      integratedWith: [],
+      note: "Architettura tecnicamente compatibile con un'eventuale integrazione EBSI; nessuna integrazione attiva con EBSI nodes."
+    },
+    spatialData: {
+      relevantTo: ["Direttiva 2007/2/CE (INSPIRE)"],
+      formats: ["JSON", "GeoJSON", "GPKG"],
+      note: "Formati compatibili con flussi INSPIRE; conformità formale dipende dal profilo di metadata adottato dal Sottoscrittore."
+    }
   },
 
   evidencePack: {
@@ -763,38 +848,76 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
       "Merkle root",
       "Ricardian hash",
       "Dataset snapshot",
-      "Timestamps",
+      "Timestamps (DLT-based, non-qualified)",
       "Geolocation references",
-      "EIP-712 signature",
-      "On-chain reference"
+      "EIP-712 system signature",
+      "On-chain reference (txHash, blockNumber)",
+      "CAdES countersignature (when present)",
+      "DSS validation report (when CAdES is verified)"
     ]
   },
 
-  standards: ["ISO 19115", "ISO 19157", "ISO/IEC 27001", "ISO 38200"],
+  domainContext: {
+    eudr: {
+      regulation: "Reg. (UE) 2023/1115",
+      relationToProject: "Il sistema produce evidenze geolocalizzate utili per la due diligence EUDR; la generazione della Due Diligence Statement (DDS) e l'integrazione TRACES NT non sono coperte dal presente servizio.",
+      coverage: "supporto strumentale, non compliance integrale"
+    },
+    euForestMonitoring: {
+      framework: "EU Forest Monitoring framework",
+      relationToProject: "Architettura compatibile con futuri obblighi di monitoraggio."
+    }
+  },
 
   regulatoryReferences: [
-    "eIDAS Regulation (UE) 910/2014",
-    "eIDAS 2.0 Regulation (UE) 2024/1183",
-    "Legge 12/2019 art. 8-ter (DLT e validazione temporale)",
-    "CAD D.Lgs. 82/2005",
-    "GDPR Reg. (UE) 2016/679",
-    "INSPIRE Directive 2007/2/CE",
-    "EUDR Reg. (UE) 2023/1115",
-    "EU Forest Monitoring framework"
+    "Reg. (UE) 910/2014 — eIDAS (governing)",
+    "Reg. (UE) 2024/1183 — eIDAS 2.0 (governing)",
+    "L. 12/2019 art. 8-ter (governing)",
+    "D.Lgs. 82/2005 — CAD (effetti collegati alla controfirma CAdES qualificata)",
+    "Codice Civile italiano artt. 2702 e 2712 (effetti collegati alla controfirma CAdES qualificata)",
+    "Reg. (UE) 2016/679 — GDPR (governing)",
+    "Direttiva 2007/2/CE — INSPIRE (rilevante per il profilo dei dati spaziali)",
+    "Reg. (UE) 2023/1115 — EUDR (rilevante per il caso d'uso forestale)"
   ],
 
-  ebsiCompliance: {
-    anchoring: "Blockchain anchoring on Ethereum-compatible infrastructure",
-    verifiableCredentials: false,
-    trustFramework: "eIDAS / EBSI-aligned trust model",
-    issuer: "TopView Srl",
-    verifier: "Authorized auditor or third-party verifier"
+  disclaimers: {
+    qualifiedTrustServiceStatus: "L'Issuer non è attualmente un Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
+    archivalStatus: "L'Issuer non è conservatore accreditato AgID. Per conservazione a norma è raccomandata l'integrazione con conservatore accreditato terzo.",
+    legalAdvice: "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto.",
+    versioning: "La versione 3.0 ridefinisce l'enunciazione degli effetti legali rispetto alle versioni precedenti per allinearli alla pipeline di verifica effettivamente implementata."
   },
 
   timestamps: {
     createdAt: new Date().toISOString()
   }
 };
+
+  function assertSubscriberIdentified(ricardianBase) {
+    const sub = ricardianBase?.parties?.subscriber;
+    if (!sub?.legalEntity) {
+      throw new Error(
+        "Subscriber non identificato: art. 8-ter c.2 L. 12/2019 richiede " +
+        "identificazione informatica delle parti prima della firma. " +
+        "Inviare nel body della richiesta: " +
+        "subscriber: { legalEntity, identifier, method }."
+      );
+    }
+    if (!sub?.identification?.method) {
+      throw new Error(
+        "Subscriber identification.method mancante: specificare metodo di identificazione " +
+        "(\"contractual\" | \"SPID-L2\" | \"SPID-L3\" | \"CIE\" | \"EUDIWallet\")."
+      );
+    }
+    if (!sub?.identification?.identifier) {
+      throw new Error(
+        "Subscriber identification.identifier mancante: " +
+        "specificare P.IVA (persona giuridica) o codice fiscale (persona fisica)."
+      );
+    }
+  }
+
+  // poi, prima di toKeccak256Json:
+  assertSubscriberIdentified(ricardianBase);
 
   const ricardianHash = toKeccak256Json(ricardianBase);
 
@@ -1168,10 +1291,10 @@ function generateRicardianPdf(ricardian, outPath) {
     const doc = new PDFDocument({ size: "A4", margin: 50, autoFirstPage: true });
     const stream = fs.createWriteStream(outPath);
     doc.pipe(stream);
-
+ 
     const M = doc.page.margins.left;
     const W = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-
+ 
     const COLORS = {
       text: "#111111",
       muted: "#444444",
@@ -1179,13 +1302,15 @@ function generateRicardianPdf(ricardian, outPath) {
       line: "#D0D0D0",
       boxFill: "#F5F5F5",
       accent: "#0B3D2E",
-      link: "#0B57D0"
+      link: "#0B57D0",
+      warn: "#A14D00",
+      warnFill: "#FFF4E5"
     };
-
+ 
     const safe = (v) => (v === null || v === undefined ? "" : String(v));
     const boolStr = (b) => (b === true ? "Yes" : b === false ? "No" : "—");
     const arrStr = (v) => Array.isArray(v) ? v.join(", ") : safe(v) || "—";
-
+ 
     const fmtJurisdiction = (j) => {
       if (Array.isArray(j)) return j.join(", ");
       if (j && typeof j === "object") {
@@ -1198,68 +1323,68 @@ function generateRicardianPdf(ricardian, outPath) {
       }
       return "";
     };
-
+ 
     function bottomY() {
       return doc.page.height - doc.page.margins.bottom;
     }
-
+ 
     function ensureSpace(needed) {
       if (doc.y + needed > bottomY()) {
         doc.addPage();
       }
     }
-
+ 
     function addFooter() {
       const y = doc.page.height - doc.page.margins.bottom - 18;
       const prevY = doc.y;
-
+ 
       doc.save();
       doc.font("Helvetica").fontSize(8.5).fillColor(COLORS.faint);
       doc.text("Generated by RicardianForestTracking", M, y, { width: W, align: "left" });
       doc.text(safe(ricardian?.timestamps?.createdAt), M, y, { width: W, align: "right" });
       doc.restore();
-
+ 
       doc.y = prevY;
     }
-
+ 
     doc.on("pageAdded", addFooter);
-
+ 
     function measureBoxHeight(fn, minH = 70) {
       const pad = 12;
       const innerW = W - pad * 2;
-
+ 
       const origText = doc.text.bind(doc);
       const origMoveDown = doc.moveDown.bind(doc);
       const origY = doc.y;
-
+ 
       doc._measureMode = true;
       doc._measureAcc = 0;
-
+ 
       doc.text = function (...args) {
         if (!doc._measureMode) return origText(...args);
-
+ 
         let text = typeof args[0] === "string" || typeof args[0] === "number"
           ? String(args[0] ?? "")
           : "";
-
+ 
         let options =
           typeof args[1] === "object" ? args[1] :
           typeof args[3] === "object" ? args[3] : {};
-
+ 
         const width = options.width ?? innerW;
         const lineGap = options.lineGap ?? 0;
-
+ 
         doc._measureAcc += doc.heightOfString(text, { width, lineGap }) || 0;
         doc._measureAcc += 2;
         return doc;
       };
-
+ 
       doc.moveDown = function (lines = 1) {
         if (!doc._measureMode) return origMoveDown(lines);
         doc._measureAcc += doc.currentLineHeight() * (lines || 1);
         return doc;
       };
-
+ 
       let innerH = 0;
       try {
         const ret = fn({ x: M + pad, w: innerW, measure: true });
@@ -1270,85 +1395,130 @@ function generateRicardianPdf(ricardian, outPath) {
         doc.moveDown = origMoveDown;
         doc.y = origY;
       }
-
+ 
       return Math.max(minH, innerH + pad * 2);
     }
-
-    function box(fn, minH = 70) {
+ 
+    /**
+     * box() standalone (per chi lo usasse fuori da sectionBox).
+     * NOTA: dentro sectionBox NON usiamo più questa funzione, per evitare la
+     * doppia misurazione che causava il bug del "titolo orfano".
+     */
+    function box(fn, minH = 70, opts = {}) {
       const pad = 12;
       const boxH = measureBoxHeight(fn, minH);
-
+ 
       ensureSpace(boxH + 20);
-
+ 
       const x = M;
       const y = doc.y;
-
+ 
+      const fillColor = opts.fillColor || COLORS.boxFill;
+      const strokeColor = opts.strokeColor || COLORS.line;
+ 
       doc.save();
-      doc.fillColor(COLORS.boxFill).strokeColor(COLORS.line);
+      doc.fillColor(fillColor).strokeColor(strokeColor);
       doc.rect(x, y, W, boxH).fillAndStroke();
       doc.restore();
-
+ 
       doc.y = y + pad;
       fn({ x: x + pad, w: W - pad * 2, measure: false });
       doc.y = y + boxH + 14;
     }
-
-    function sectionBox(title, fn, minH = 70) {
-      const titleH = 22;
+ 
+    /**
+     * sectionBox v3.0.1: titolo + box renderizzati atomicamente.
+     * Misura una sola volta, fa ensureSpace una sola volta, poi scrive
+     * tutto in sequenza sulla stessa pagina. Niente più "titolo orfano".
+     */
+    function sectionBox(title, fn, minH = 70, opts = {}) {
+      const pad = 12;
+      const titleLineH = 14;     // altezza riga del titolo (Helvetica-Bold 12)
+      const titleSpacing = 6;    // spazio fra titolo e box (corrisponde a moveDown(0.4))
+      const afterBoxSpacing = 14;
+ 
+      // misura UNA sola volta
       const boxH = measureBoxHeight(fn, minH);
-      ensureSpace(titleH + boxH + 20);
-
+ 
+      // ensure space per TUTTO il blocco (titolo + spaziatura + box + spaziatura finale)
+      ensureSpace(titleLineH + titleSpacing + boxH + afterBoxSpacing);
+ 
+      // 1) scrivi il titolo
       doc.font("Helvetica-Bold").fontSize(12).fillColor(COLORS.text);
       doc.text(title, M, doc.y, { width: W });
       doc.moveDown(0.4);
-
-      box(fn, minH);
+ 
+      // 2) disegna la box direttamente, SENZA richiamare measureBoxHeight/ensureSpace
+      const fillColor = opts.fillColor || COLORS.boxFill;
+      const strokeColor = opts.strokeColor || COLORS.line;
+ 
+      const x = M;
+      const y = doc.y;
+ 
+      doc.save();
+      doc.fillColor(fillColor).strokeColor(strokeColor);
+      doc.rect(x, y, W, boxH).fillAndStroke();
+      doc.restore();
+ 
+      doc.y = y + pad;
+      fn({ x: x + pad, w: W - pad * 2, measure: false });
+      doc.y = y + boxH + afterBoxSpacing;
     }
-
+ 
     function kv(label, value, x, w) {
       doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.muted);
       doc.text(label, x, doc.y, { width: w });
       doc.moveDown(0.15);
-
+ 
       doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
       doc.text(safe(value) || "—", x, doc.y, { width: w, lineGap: 2 });
       doc.moveDown(0.45);
     }
-
+ 
+    function kvWarn(label, value, x, w) {
+      doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.warn);
+      doc.text(label, x, doc.y, { width: w });
+      doc.moveDown(0.15);
+ 
+      doc.font("Helvetica").fontSize(10).fillColor(COLORS.warn);
+      doc.text(safe(value) || "—", x, doc.y, { width: w, lineGap: 2 });
+      doc.moveDown(0.45);
+    }
+ 
     function mono(label, value, x, w) {
       doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.muted);
       doc.text(label, x, doc.y, { width: w });
       doc.moveDown(0.25);
-
+ 
       doc.font("Courier").fontSize(9).fillColor(COLORS.text);
       doc.text(safe(value) || "—", x, doc.y, { width: w, lineGap: 2 });
       doc.moveDown(0.6);
     }
-
+ 
     function bulletList(label, items, x, w) {
       doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.muted);
       doc.text(label, x, doc.y, { width: w });
       doc.moveDown(0.2);
-
+ 
       if (!Array.isArray(items) || !items.length) {
         doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
         doc.text("—", x, doc.y, { width: w });
         doc.moveDown(0.45);
         return;
       }
-
+ 
       doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
       for (const item of items) {
         doc.text(`• ${safe(item)}`, x, doc.y, { width: w, lineGap: 2 });
       }
       doc.moveDown(0.45);
     }
-
+ 
     function clickableLink(label, url, x, w) {
       doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.muted);
       doc.text(label, x, doc.y, { width: w });
       doc.moveDown(0.2);
-
+ 
       doc.font("Helvetica").fontSize(10).fillColor(COLORS.link);
       doc.text(safe(url) || "—", x, doc.y, {
         width: w,
@@ -1358,15 +1528,25 @@ function generateRicardianPdf(ricardian, outPath) {
       });
       doc.moveDown(0.45);
     }
-
+ 
+    function subSectionTitle(text, x, w) {
+      doc.font("Helvetica-Bold").fontSize(10.5).fillColor(COLORS.accent);
+      doc.text(text, x, doc.y, { width: w });
+      doc.moveDown(0.3);
+    }
+ 
+    // ========================================================================
+    // HEADER
+    // ========================================================================
+ 
     doc.save().fillColor(COLORS.accent).rect(M, M - 22, W, 16).fill().restore();
-
+ 
     doc.font("Helvetica-Bold").fontSize(18).fillColor(COLORS.text);
     doc.text("Ricardian Contract – Forest Tracking", M, M + 5, {
       width: W,
       align: "center"
     });
-
+ 
     doc.moveDown(1);
     doc.font("Helvetica").fontSize(10).fillColor(COLORS.muted);
     doc.text(
@@ -1375,10 +1555,15 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.y,
       { width: W }
     );
-
+ 
     addFooter();
     doc.moveDown(1);
-
+ 
+    // ========================================================================
+    // LEGAL & JURISDICTION
+    // (minH ridotto: la misurazione automatica gestisce l'altezza effettiva)
+    // ========================================================================
+ 
     sectionBox("Legal & Jurisdiction", ({ x, w }) => {
       if (Array.isArray(ricardian?.governingLaw)) {
         bulletList("Governing law", ricardian.governingLaw, x, w);
@@ -1386,17 +1571,85 @@ function generateRicardianPdf(ricardian, outPath) {
         kv("Governing law", ricardian?.governingLaw, x, w);
       }
       kv("Jurisdiction", fmtJurisdiction(ricardian?.jurisdiction), x, w);
-      kv("Legal value", ricardian?.legal?.legalValue, x, w);
-      kv("Statement", ricardian?.legal?.statement, x, w);
-    }, 260); // altezza aumentata per accogliere la lista
-
+ 
+      const tsv = ricardian?.legal?.timeStampValidation;
+      if (tsv && typeof tsv === "object") {
+        subSectionTitle("Time Stamp Validation", x, w);
+        kv("Level", tsv.level, x, w);
+        kv("Legal basis", tsv.basis, x, w);
+        kv("Effects", tsv.effects, x, w);
+      } else if (ricardian?.legal?.legalValue) {
+        kv("Legal value", ricardian.legal.legalValue, x, w);
+      }
+ 
+      const ds = ricardian?.legal?.documentSignature;
+      if (ds && typeof ds === "object") {
+        if (ds.systemSignature) {
+          subSectionTitle("System Signature (EIP-712)", x, w);
+          kv("Type", ds.systemSignature.type, x, w);
+          kv("Purpose", ds.systemSignature.purpose, x, w);
+          kv("Legal qualification", ds.systemSignature.legalQualification, x, w);
+        }
+        if (ds.userCountersignature) {
+          subSectionTitle("User Countersignature (CAdES)", x, w);
+          kv("Type", ds.userCountersignature.type, x, w);
+          kv("Legal qualification", ds.userCountersignature.legalQualification, x, w);
+          if (ds.userCountersignature.validationReportRef) {
+            kv("Validation report ref", ds.userCountersignature.validationReportRef, x, w);
+          }
+        }
+      }
+ 
+      if (ricardian?.legal?.statement) {
+        subSectionTitle("Statement", x, w);
+        doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
+        doc.text(ricardian.legal.statement, x, doc.y, { width: w, lineGap: 2 });
+        doc.moveDown(0.5);
+      }
+    }, 80);
+ 
+    // ========================================================================
+    // PARTIES
+    // ========================================================================
+ 
     sectionBox("Parties", ({ x, w }) => {
       kv("Issuer (role)", ricardian?.parties?.issuer?.role, x, w);
       kv("Issuer (legal entity)", ricardian?.parties?.issuer?.legalEntity, x, w);
+ 
+      const issuerId = ricardian?.parties?.issuer?.identification;
+      if (issuerId && typeof issuerId === "object") {
+        kv("Issuer identification method", issuerId.method, x, w);
+        kv("Issuer identifier", issuerId.identifier, x, w);
+      }
+ 
       kv("Subscriber (role)", ricardian?.parties?.subscriber?.role, x, w);
-      kv("Subscriber (legal entity)", ricardian?.parties?.subscriber?.legalEntity, x, w);
-    }, 130);
-
+ 
+      const subEntity = ricardian?.parties?.subscriber?.legalEntity;
+      if (subEntity === null || subEntity === undefined || subEntity === "") {
+        kvWarn(
+          "Subscriber (legal entity) — IDENTIFICAZIONE MANCANTE",
+          "Il Sottoscrittore non è stato identificato. Ai sensi dell'art. 8-ter c.2 L. 12/2019 il requisito di forma scritta non è soddisfatto fino a identificazione informatica delle parti.",
+          x, w
+        );
+      } else {
+        kv("Subscriber (legal entity)", subEntity, x, w);
+      }
+ 
+      const subId = ricardian?.parties?.subscriber?.identification;
+      if (subId && typeof subId === "object") {
+        if (!subId.method) {
+          kvWarn("Subscriber identification method", "Non specificato", x, w);
+        } else {
+          kv("Subscriber identification method", subId.method, x, w);
+        }
+        kv("Subscriber identifier", subId.identifier, x, w);
+      }
+    }, 80);
+ 
+    // ========================================================================
+    // ACTORS & SCOPE
+    // ========================================================================
+ 
     sectionBox("Actors & Scope", ({ x, w }) => {
       kv("Data owner", ricardian?.actors?.dataOwner, x, w);
       kv("Data producer", ricardian?.actors?.dataProducer, x, w);
@@ -1404,8 +1657,12 @@ function generateRicardianPdf(ricardian, outPath) {
       kv("Forest unit key", ricardian?.scope?.forestUnitKey, x, w);
       kv("Included data", arrStr(ricardian?.scope?.includedData), x, w);
       kv("Purpose", ricardian?.purpose, x, w);
-    }, 120);
-
+    }, 80);
+ 
+    // ========================================================================
+    // HUMAN-READABLE AGREEMENT
+    // ========================================================================
+ 
     sectionBox("Human-readable Agreement", ({ x, w }) => {
       doc.font("Helvetica").fontSize(10.5).fillColor(COLORS.text);
       doc.text(ricardian?.humanReadableAgreement?.text || "—", x, doc.y, {
@@ -1414,19 +1671,32 @@ function generateRicardianPdf(ricardian, outPath) {
       });
       doc.moveDown(0.6);
       kv("Language", ricardian?.humanReadableAgreement?.language, x, w);
-    }, 140);
-
+    }, 80);
+ 
+    // ========================================================================
+    // RIGHTS & DUTIES
+    // ========================================================================
+ 
     sectionBox("Rights & Duties", ({ x, w }) => {
+      kv("Issuer", ricardian?.rightsAndDuties?.issuer, x, w);
       kv("Data owner", ricardian?.rightsAndDuties?.dataOwner, x, w);
       kv("Data producer", ricardian?.rightsAndDuties?.dataProducer, x, w);
       kv("Data consumer", ricardian?.rightsAndDuties?.dataConsumer, x, w);
-    }, 95);
-
+    }, 80);
+ 
+    // ========================================================================
+    // HASH BINDING
+    // ========================================================================
+ 
     sectionBox("Hash Binding", ({ x, w }) => {
       kv("Binds human-readable text", boolStr(ricardian?.hashBinding?.bindsHumanReadableText), x, w);
       kv("Binds dataset Merkle root", boolStr(ricardian?.hashBinding?.bindsDatasetMerkleRoot), x, w);
-    }, 80);
-
+    }, 60);
+ 
+    // ========================================================================
+    // TECHNICAL BINDINGS
+    // ========================================================================
+ 
     sectionBox("Technical Bindings", ({ x, w }) => {
       kv("Hash algorithm", ricardian?.technical?.hashAlgorithm, x, w);
       kv("Batch format", ricardian?.technical?.batchFormat, x, w);
@@ -1434,47 +1704,188 @@ function generateRicardianPdf(ricardian, outPath) {
       if (ricardian?.ipfsUri) clickableLink("IPFS URI", ricardian.ipfsUri, x, w);
       mono("Merkle root", ricardian?.technical?.merkleRootUnified, x, w);
       mono("Ricardian hash", ricardian?.ricardianHash, x, w);
-    }, 185);
-
-    sectionBox("Data Governance", ({ x, w }) => {
-      kv("GDPR compliance", boolStr(ricardian?.dataGovernance?.gdprCompliance), x, w);
-      kv("Data minimisation", boolStr(ricardian?.dataGovernance?.dataMinimisation), x, w);
-      kv("Access control", ricardian?.dataGovernance?.accessControl, x, w);
-      const ret = ricardian?.dataGovernance?.retentionPolicy;
-      if (ret && typeof ret === "object") {
-        kv("Retention — on-chain evidence", ret.onChainEvidence, x, w);
-        kv("Retention — off-chain evidence", ret.offChainEvidence, x, w);
-        kv("Retention — personal data", ret.personalData, x, w);
-      } else {
-        kv("Retention policy", ret, x, w);
+ 
+      const sf = ricardian?.technical?.signatureFormats;
+      if (sf && typeof sf === "object") {
+        subSectionTitle("Signature Formats", x, w);
+        kv("System signature", sf.systemSignature, x, w);
+        kv("User signature", sf.userSignature, x, w);
+      } else if (ricardian?.technical?.signatureFormat) {
+        kv("Signature format", ricardian.technical.signatureFormat, x, w);
       }
-      kv("Personal data handling", ricardian?.dataGovernance?.personalDataHandling, x, w);
-    }, 200); // altezza aumentata da 140 a 200 per ospitare le 3 righe di retention
-
+    }, 80);
+ 
+    // ========================================================================
+    // DATA GOVERNANCE
+    // ========================================================================
+ 
+    sectionBox("Data Governance", ({ x, w }) => {
+      const gdpr = ricardian?.dataGovernance?.gdprMeasures;
+ 
+      if (gdpr && typeof gdpr === "object") {
+        kv("Lawful basis", gdpr.lawfulBasis, x, w);
+        kv("Data minimisation", gdpr.dataMinimisation, x, w);
+        kv("Access control", gdpr.accessControl, x, w);
+ 
+        const ret = gdpr.retentionPolicy;
+        if (ret && typeof ret === "object") {
+          subSectionTitle("Retention Policy", x, w);
+          kv("On-chain evidence", ret.onChainEvidence, x, w);
+          kv("Off-chain evidence", ret.offChainEvidence, x, w);
+          kv("Personal data", ret.personalData, x, w);
+        }
+ 
+        kv("Personal data handling", gdpr.personalDataHandling, x, w);
+        kv("Data subject rights", gdpr.dataSubjectRights, x, w);
+        kv("IPFS usage statement", gdpr.ipfsUsageStatement, x, w);
+      } else {
+        kv("GDPR compliance", boolStr(ricardian?.dataGovernance?.gdprCompliance), x, w);
+        kv("Data minimisation", boolStr(ricardian?.dataGovernance?.dataMinimisation), x, w);
+        kv("Access control", ricardian?.dataGovernance?.accessControl, x, w);
+ 
+        const ret = ricardian?.dataGovernance?.retentionPolicy;
+        if (ret && typeof ret === "object") {
+          kv("Retention — on-chain", ret.onChainEvidence, x, w);
+          kv("Retention — off-chain", ret.offChainEvidence, x, w);
+          kv("Retention — personal data", ret.personalData, x, w);
+        } else {
+          kv("Retention policy", ret, x, w);
+        }
+        kv("Personal data handling", ricardian?.dataGovernance?.personalDataHandling, x, w);
+      }
+ 
+      if (ricardian?.dataGovernance?.dpiaStatus) {
+        kv("DPIA status", ricardian.dataGovernance.dpiaStatus, x, w);
+      }
+    }, 80);
+ 
+    // ========================================================================
+    // DATA LINEAGE
+    // ========================================================================
+ 
     sectionBox("Data Lineage", ({ x, w }) => {
       kv("Source", ricardian?.dataLineage?.source, x, w);
       kv("Processing", ricardian?.dataLineage?.processing, x, w);
       kv("Output", ricardian?.dataLineage?.output, x, w);
       kv("Versioning", boolStr(ricardian?.dataLineage?.versioning), x, w);
-    }, 120);
-
-    sectionBox("Interoperability", ({ x, w }) => {
-      kv("Standard", ricardian?.interoperability?.standard, x, w);
-      kv("Metadata", ricardian?.interoperability?.metadata, x, w);
-      bulletList("Formats", ricardian?.interoperability?.formats, x, w);
-    }, 120);
-
+    }, 80);
+ 
+    // ========================================================================
+    // INTEROPERABILITY FRAMEWORKS
+    // (era 600, ridotto a 80: la misurazione automatica gestisce l'altezza)
+    // ========================================================================
+ 
+    const ifw = ricardian?.interoperabilityFrameworks;
+    if (ifw && typeof ifw === "object") {
+      sectionBox("Interoperability Frameworks", ({ x, w }) => {
+        const renderFw = (fwName, fw) => {
+          if (!fw) return;
+          subSectionTitle(fwName, x, w);
+          if (Array.isArray(fw.alignedWith)) bulletList("Aligned with", fw.alignedWith, x, w);
+          if (Array.isArray(fw.compatibleWith)) bulletList("Compatible with", fw.compatibleWith, x, w);
+          if (Array.isArray(fw.relevantTo)) bulletList("Relevant to", fw.relevantTo, x, w);
+          if (Array.isArray(fw.formats)) bulletList("Formats", fw.formats, x, w);
+          if (Array.isArray(fw.certifiedAs)) {
+            if (fw.certifiedAs.length) {
+              bulletList("Certified as", fw.certifiedAs, x, w);
+            } else {
+              kv("Certified as", "Nessuna certificazione formale", x, w);
+            }
+          }
+          if (Array.isArray(fw.integratedWith)) {
+            if (fw.integratedWith.length) {
+              bulletList("Integrated with", fw.integratedWith, x, w);
+            } else {
+              kv("Integrated with", "Nessuna integrazione attiva", x, w);
+            }
+          }
+          if (fw.note) kv("Note", fw.note, x, w);
+        };
+ 
+        renderFw("Metadata Model", ifw.metadataModel);
+        renderFw("Security Framework", ifw.securityFramework);
+        renderFw("Chain of Custody", ifw.chainOfCustody);
+        renderFw("Blockchain Ecosystem", ifw.blockchainEcosystem);
+        renderFw("Spatial Data", ifw.spatialData);
+      }, 80);
+    } else {
+      if (Array.isArray(ricardian?.standards)) {
+        sectionBox("Standards & Compliance References", ({ x, w }) => {
+          bulletList("Standards", ricardian.standards, x, w);
+          bulletList("Regulatory references", ricardian?.regulatoryReferences, x, w);
+        }, 80);
+      }
+      if (ricardian?.interoperability) {
+        sectionBox("Interoperability", ({ x, w }) => {
+          kv("Standard", ricardian.interoperability.standard, x, w);
+          kv("Metadata", ricardian.interoperability.metadata, x, w);
+          bulletList("Formats", ricardian.interoperability.formats, x, w);
+        }, 80);
+      }
+    }
+ 
+    // ========================================================================
+    // EVIDENCE PACK
+    // ========================================================================
+ 
     sectionBox("Evidence Pack", ({ x, w }) => {
       kv("Exportable", boolStr(ricardian?.evidencePack?.exportable), x, w);
       kv("Audit ready", boolStr(ricardian?.evidencePack?.auditReady), x, w);
       bulletList("Includes", ricardian?.evidencePack?.includes, x, w);
-    }, 140);
-
-    sectionBox("Standards & Compliance References", ({ x, w }) => {
-      bulletList("Standards", ricardian?.standards, x, w);
-      bulletList("Regulatory references", ricardian?.regulatoryReferences, x, w);
-    }, 130);
-
+    }, 80);
+ 
+    // ========================================================================
+    // DOMAIN CONTEXT
+    // ========================================================================
+ 
+    const dc = ricardian?.domainContext;
+    if (dc && typeof dc === "object") {
+      sectionBox("Domain Context", ({ x, w }) => {
+        if (dc.eudr) {
+          subSectionTitle("EUDR (Reg. (UE) 2023/1115)", x, w);
+          kv("Regulation", dc.eudr.regulation, x, w);
+          kv("Relation to project", dc.eudr.relationToProject, x, w);
+          kv("Coverage", dc.eudr.coverage, x, w);
+        }
+        if (dc.euForestMonitoring) {
+          subSectionTitle("EU Forest Monitoring", x, w);
+          kv("Framework", dc.euForestMonitoring.framework, x, w);
+          kv("Relation to project", dc.euForestMonitoring.relationToProject, x, w);
+        }
+      }, 80);
+    }
+ 
+    // ========================================================================
+    // REGULATORY REFERENCES
+    // ========================================================================
+ 
+    if (Array.isArray(ricardian?.regulatoryReferences) && ricardian.regulatoryReferences.length) {
+      sectionBox("Regulatory References", ({ x, w }) => {
+        bulletList("References", ricardian.regulatoryReferences, x, w);
+      }, 80);
+    }
+ 
+    // ========================================================================
+    // VERIFICATION PROCEDURE
+    // ========================================================================
+ 
+    const vp = ricardian?.verificationProcedure;
+    if (vp && typeof vp === "object") {
+      sectionBox("Verification Procedure", ({ x, w }) => {
+        kv("On-chain check", vp.onChain, x, w);
+        kv("Merkle proofs", vp.merkleProofs, x, w);
+        kv("CAdES validation", vp.cadesValidation, x, w);
+        kv("Integrity check", vp.integrity, x, w);
+        if (vp.referenceImplementation) {
+          kv("Reference implementation", vp.referenceImplementation, x, w);
+        }
+      }, 80);
+    }
+ 
+    // ========================================================================
+    // EIP-712 SIGNATURE
+    // ========================================================================
+ 
     if (ricardian?.signature?.eip712) {
       sectionBox("EIP-712 Signature", ({ x, w }) => {
         const e = ricardian.signature.eip712;
@@ -1482,41 +1893,66 @@ function generateRicardianPdf(ricardian, outPath) {
         kv("ChainId", e.domain?.chainId, x, w);
         mono("Verifying contract", e.domain?.verifyingContract, x, w);
         mono("Signature", e.signature, x, w);
-      }, 270);
+      }, 80);
     }
-
-    sectionBox("EBSI / Trust Framework", ({ x, w }) => {
-      kv("Anchoring", ricardian?.ebsiCompliance?.anchoring, x, w);
-      kv("Verifiable credentials", boolStr(ricardian?.ebsiCompliance?.verifiableCredentials), x, w);
-      kv("Trust framework", ricardian?.ebsiCompliance?.trustFramework, x, w);
-      kv("Issuer", ricardian?.ebsiCompliance?.issuer, x, w);
-      kv("Verifier", ricardian?.ebsiCompliance?.verifier, x, w);
-    }, 145);
-
+ 
+    // ========================================================================
+    // ON-CHAIN VERIFICATION
+    // ========================================================================
+ 
     sectionBox("On-chain Verification", ({ x, w }) => {
       doc.font("Helvetica").fontSize(10).fillColor(COLORS.text);
       doc.text(
-        "This Ricardian contract, its dataset Merkle root, and its related integrity bindings can be independently verified on the Ethereum Sepolia test network.",
-        x,
-        doc.y,
-        { width: w, lineGap: 3 }
+        "This Ricardian contract, its dataset Merkle root, and its related integrity bindings can be independently verified on the configured blockchain network. Refer to 'Verification Procedure' for the full validation steps.",
+        x, doc.y, { width: w, lineGap: 3 }
       );
-
+ 
       doc.moveDown(0.6);
-
-      const etherscanBase = "https://sepolia.etherscan.io/";
+ 
+      const chainId = ricardian?.signature?.eip712?.domain?.chainId;
+      const explorers = {
+        1: { base: "https://etherscan.io/", name: "Ethereum mainnet" },
+        11155111: { base: "https://sepolia.etherscan.io/", name: "Sepolia testnet" },
+        137: { base: "https://polygonscan.com/", name: "Polygon mainnet" },
+        80002: { base: "https://amoy.polygonscan.com/", name: "Polygon Amoy testnet" },
+        42161: { base: "https://arbiscan.io/", name: "Arbitrum One" }
+      };
+      const explorer = explorers[Number(chainId)] || explorers[11155111];
       const contractAddress = ricardian?.signature?.eip712?.domain?.verifyingContract;
       const contractUrl = contractAddress
-        ? `https://sepolia.etherscan.io/address/${contractAddress}`
-        : etherscanBase;
-
-      clickableLink("Sepolia explorer", etherscanBase, x, w);
+        ? `${explorer.base}address/${contractAddress}`
+        : explorer.base;
+ 
+      kv("Network", explorer.name, x, w);
+      clickableLink("Block explorer", explorer.base, x, w);
       clickableLink("Contract URL", contractUrl, x, w);
       mono("Contract address", contractAddress, x, w);
       mono("Merkle root", ricardian?.technical?.merkleRootUnified, x, w);
       mono("Ricardian hash", ricardian?.ricardianHash, x, w);
-    }, 180);
-
+    }, 80);
+ 
+    // ========================================================================
+    // DISCLAIMERS
+    // ========================================================================
+ 
+    const disc = ricardian?.disclaimers;
+    if (disc && typeof disc === "object") {
+      sectionBox("Disclaimers", ({ x, w }) => {
+        if (disc.qualifiedTrustServiceStatus) {
+          kv("Qualified Trust Service status", disc.qualifiedTrustServiceStatus, x, w);
+        }
+        if (disc.archivalStatus) {
+          kv("Archival status", disc.archivalStatus, x, w);
+        }
+        if (disc.legalAdvice) {
+          kv("Legal advice", disc.legalAdvice, x, w);
+        }
+        if (disc.versioning) {
+          kv("Versioning notice", disc.versioning, x, w);
+        }
+      }, 80, { fillColor: COLORS.warnFill, strokeColor: COLORS.warn });
+    }
+ 
     doc.end();
     stream.on("finish", resolve);
     stream.on("error", reject);
@@ -2762,6 +3198,51 @@ app.post("/api/contract/write", async (req, res) => {
   try {
     const useIPFS = !!req.body?.useIPFS;
 
+    // ----------------------------------------------------------------
+    // Validazione subscriber (art. 8-ter c.2 L. 12/2019)
+    // ----------------------------------------------------------------
+    const subscriber = req.body?.subscriber;
+    if (!subscriber || typeof subscriber !== "object") {
+      return res.status(400).json({
+        ok: false,
+        error: "subscriber mancante (art. 8-ter c.2 L. 12/2019)",
+        hint: "Inviare nel body: { forestUnitId, subscriber: { legalEntity, identifier, method }, useIPFS }",
+        example: {
+          forestUnitId: "FU-2024-001",
+          subscriber: {
+            legalEntity: "Azienda Forestale Verdi SRL",
+            identifier: "IT12345678901",
+            method: "contractual"
+          },
+          useIPFS: false
+        }
+      });
+    }
+    if (!subscriber.legalEntity) {
+      return res.status(400).json({
+        ok: false,
+        error: "subscriber.legalEntity obbligatorio (ragione sociale o nome del Sottoscrittore)"
+      });
+    }
+    if (!subscriber.identifier) {
+      return res.status(400).json({
+        ok: false,
+        error: "subscriber.identifier obbligatorio (P.IVA per persona giuridica, CF per persona fisica)"
+      });
+    }
+    if (!subscriber.method) {
+      // default ragionevole se non specificato
+      subscriber.method = "contractual";
+    }
+    const VALID_METHODS = ["contractual", "SPID-L2", "SPID-L3", "CIE", "EUDIWallet"];
+    if (!VALID_METHODS.includes(subscriber.method)) {
+      return res.status(400).json({
+        ok: false,
+        error: `subscriber.method non valido: "${subscriber.method}"`,
+        allowed: VALID_METHODS
+      });
+    }
+
     const login = await topviewEnsureLogin(
       process.env.TOPVIEW_USERNAME,
       process.env.TOPVIEW_PASSWORD
@@ -2784,7 +3265,8 @@ app.post("/api/contract/write", async (req, res) => {
     const ric = await buildAndSignRicardianInternal(
       forestUnitId,
       batch.merkleRoot,
-      useIPFS ? "IPFS" : "LOCAL_FILE"
+      useIPFS ? "IPFS" : "LOCAL_FILE",
+      subscriber
     );
 
     let storage;
