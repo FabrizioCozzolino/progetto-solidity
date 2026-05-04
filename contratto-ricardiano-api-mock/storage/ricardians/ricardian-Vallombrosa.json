@@ -29,7 +29,7 @@
     "Direttiva 2007/2/CE (INSPIRE) — limitatamente all'interoperabilità dei dati spaziali"
   ],
   "actors": {
-    "dataOwner": "TopView Srl (in qualità di gestore della piattaforma) o cliente sottoscrittore titolare dei dati",
+    "dataOwner": "TopView Srl (in qualità di gestore della piattaforma) e cliente sottoscrittore titolare dei dati",
     "dataProducer": "Operatori abilitati: operatore forestale in campo via applicativo mobile (rilievi di alberi, tronchi, segati e relative osservazioni) e operatore drone (rilievi aerei georeferenziati)",
     "dataConsumer": "Cliente finale, auditor autorizzato o terzo verificatore"
   },
@@ -85,7 +85,7 @@
   "dataLineage": {
     "source": "TopView API, rilievi di campo via app mobile (operatore forestale) e rilievi aerei (operatore drone) associati all'unita' forestale",
     "processing": "Normalizzazione dei dati, costruzione batch unificato, generazione Merkle tree, hashing ricardiano e firma EIP-712",
-    "output": "Ricardian JSON, Ricardian PDF, Merkle root, registrazione on-chain ed eventuale controfirma CAdES",
+    "output": "Ricardian JSON, Ricardian PDF, Merkle root, registrazione on-chain e controfirma CAdES",
     "versioning": true
   },
   "interoperability": {
@@ -134,9 +134,9 @@
     "verifier": "Authorized auditor or third-party verifier"
   },
   "timestamps": {
-    "createdAt": "2026-04-27T16:27:46.145Z"
+    "createdAt": "2026-05-04T09:13:42.097Z"
   },
-  "ricardianHash": "0x9f0e07b9ddef8295f9162977b4c11466d94ff242f8fd98bb41c70ed5f6ba0361",
+  "ricardianHash": "0x2bf22673fc5d89bb8dd7d1956d9d1a09d1f24d589693cb92138bcb55fdd3753f",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -168,11 +168,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x9f0e07b9ddef8295f9162977b4c11466d94ff242f8fd98bb41c70ed5f6ba0361",
+        "ricardianHash": "0x2bf22673fc5d89bb8dd7d1956d9d1a09d1f24d589693cb92138bcb55fdd3753f",
         "merkleRoot": "0x2cf1571a58407a4be15bf23c268c7b00ede0b2473cf23220042103a459382452",
-        "createdAt": "2026-04-27T16:27:46.145Z"
+        "createdAt": "2026-05-04T09:13:42.097Z"
       },
-      "signature": "0x0151e6633d8a61ad1c422e2a7988984d0051affe9a190d7aac4388e4a3697ab632472297bbb94219fcf5fdbb1ef01b2a455d57eb35a63e632e5016857f6888e41b"
+      "signature": "0x90b906a440596b5d81f50107c3fafcc31877f64687b3d28881331bfa5e9d4e8101e562a23be5df88520b7e053b93cadac4d94304a114f8c0180b527a2870d2ec1b"
     }
   }
 }
