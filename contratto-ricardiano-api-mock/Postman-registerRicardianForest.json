@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Register Ricardian Forest - 6 CALLS (WRITE + WRITE 1.5 PDF + PDF + UPLOAD CADES + WRITE 2 CADES + VERIFY)",
+    "name": "Register Ricardian Forest v3.0 - 6 CALLS (WRITE + WRITE 1.5 PDF + PDF + UPLOAD CADES + WRITE 2 CADES + VERIFY)",
     "_postman_id": "bbbbbbbb-1111-2222-3333-cccccccccccc",
-    "description": "Calls: 1) /api/contract/write 2) /api/contract/write-1.5-pdf 3) PDF view/download 4) /api/ricardian/cades/upload 5) /api/contract/write-2-cades 6) /api/contract/verify. Auto-populates collection variables.",
+    "description": "Aggiornato per Ricardian v3.0. La call 1) WRITE ora richiede l'oggetto 'subscriber' (legalEntity, identifier, method) per soddisfare l'art. 8-ter c.2 L. 12/2019. Compila le variabili di collection {{subscriberLegalEntity}}, {{subscriberIdentifier}}, {{subscriberMethod}} con i dati del cliente reale prima di eseguire il flusso. Per ora method='contractual' è la Soluzione A (identificazione contrattuale, gratis); 'SPID-L2'/'SPID-L3'/'CIE'/'EUDIWallet' richiederanno integrazione futura.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -20,10 +20,25 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"forestUnitId\": \"{{forestUnitId}}\",\n  \"useIPFS\": false\n}"
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitId}}\",\n  \"useIPFS\": false,\n  \"subscriber\": {\n    \"legalEntity\": \"{{subscriberLegalEntity}}\",\n    \"identifier\": \"{{subscriberIdentifier}}\",\n    \"method\": \"{{subscriberMethod}}\"\n  }\n}"
         }
       },
       "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Pre-flight check: avvisa se le variabili subscriber non sono compilate",
+              "const le = pm.collectionVariables.get('subscriberLegalEntity');",
+              "const id = pm.collectionVariables.get('subscriberIdentifier');",
+              "if (!le || !id) {",
+              "  console.warn('[!] subscriberLegalEntity o subscriberIdentifier non compilati. La WRITE fallirà con errore 400.');",
+              "  console.warn('[!] Compila le variabili di collection prima di eseguire la chiamata.');",
+              "}"
+            ]
+          }
+        },
         {
           "listen": "test",
           "script": {
@@ -32,6 +47,8 @@
               "const j = pm.response.json();",
               "if (!j || j.ok !== true) {",
               "  console.log('WRITE failed response:', j);",
+              "  if (j && j.hint) console.log('Hint:', j.hint);",
+              "  if (j && j.example) console.log('Example body:', JSON.stringify(j.example, null, 2));",
               "}",
               "if (j && j.forestUnitId) pm.collectionVariables.set('forestUnitId', j.forestUnitId);",
               "if (j && j.merkleRoot) pm.collectionVariables.set('merkleRoot', j.merkleRoot);",
@@ -228,6 +245,9 @@
   ],
   "variable": [
     { "key": "API_URL", "value": "http://localhost:3000" },
+    { "key": "subscriberLegalEntity", "value": "Azienda Forestale Test SRL", "description": "Ragione sociale del Sottoscrittore (P.IVA o persona fisica). OBBLIGATORIO per WRITE." },
+    { "key": "subscriberIdentifier", "value": "IT12345678901", "description": "P.IVA per persona giuridica, CF per persona fisica. OBBLIGATORIO per WRITE." },
+    { "key": "subscriberMethod", "value": "contractual", "description": "Metodo di identificazione: contractual | SPID-L2 | SPID-L3 | CIE | EUDIWallet" },
     { "key": "forestUnitId", "value": "" },
     { "key": "merkleRoot", "value": "" },
     { "key": "ricardianHash", "value": "" },
