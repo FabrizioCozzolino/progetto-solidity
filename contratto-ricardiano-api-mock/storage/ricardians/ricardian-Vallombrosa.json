@@ -211,9 +211,9 @@
     "versioning": "La versione 3.0 ridefinisce l'enunciazione degli effetti legali rispetto alle versioni precedenti per allinearli alla pipeline di verifica effettivamente implementata."
   },
   "timestamps": {
-    "createdAt": "2026-05-04T09:52:47.639Z"
+    "createdAt": "2026-05-04T10:08:16.838Z"
   },
-  "ricardianHash": "0x601d81e6788589f6e06e430908898faa9a12767eb595d077400fd1a70be94119",
+  "ricardianHash": "0x8fa8392c5a5eea09abdac289e95c33c6ceee0640c3435c7aa6285822541b6e64",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -245,11 +245,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x601d81e6788589f6e06e430908898faa9a12767eb595d077400fd1a70be94119",
+        "ricardianHash": "0x8fa8392c5a5eea09abdac289e95c33c6ceee0640c3435c7aa6285822541b6e64",
         "merkleRoot": "0x2cf1571a58407a4be15bf23c268c7b00ede0b2473cf23220042103a459382452",
-        "createdAt": "2026-05-04T09:52:47.639Z"
+        "createdAt": "2026-05-04T10:08:16.838Z"
       },
-      "signature": "0x405dc3761e0971e7be16ec03601c123e5454bb09236112d1aa0f0feac21001d512c9c844f980248df265c862f0ff068117a86da1d94be5f71f652f46a6d00ea31c"
+      "signature": "0xee3f97709da0a6e92936cb2ca6dd3bed4ddcd1bfa08f25ed369ad00dda274fe12230f19fe72657eda290d2e3a0af39c06f6d73c2bf176f6bb7e2d69f54bcee191c"
     }
   }
 }
