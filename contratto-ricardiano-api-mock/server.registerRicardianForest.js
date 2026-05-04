@@ -22,6 +22,8 @@ const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
 
+const { validateWithUpgrade, dssHealthCheck } = require("./lib/dssClient");
+
 // --------------------
 // CONFIG
 // --------------------
@@ -415,28 +417,55 @@ async function extractCertificateInfoFromP7m(p7mPath) {
 }
 
 async function verifyAndExtractCadesAttachedPdf(p7mPath, extractedPdfPath) {
-  const attempts = [
+  // 1) Validazione DSS contro EU LOTL
+  const dssResult = await validateCades(p7mPath);
+
+  // 2) Estrazione del PDF originale (per verifica integrità)
+  // OpenSSL serve ancora per estrarre il payload, ma NON per validare la firma
+  const extractAttempts = [
     ["cms", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", p7mPath, "-out", extractedPdfPath],
     ["smime", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", p7mPath, "-out", extractedPdfPath]
   ];
 
-  let lastError = null;
-
-  for (const args of attempts) {
+  let extractOk = false;
+  let extractError = null;
+  for (const args of extractAttempts) {
     try {
-      const { stderr } = await execFileAsync("openssl", args);
-      return {
-        ok: true,
-        stderr: stderr || ""
-      };
+      await execFileAsync("openssl", args);
+      extractOk = true;
+      break;
     } catch (err) {
-      lastError = err;
+      extractError = err;
     }
   }
 
+  if (!extractOk) {
+    return {
+      ok: false,
+      error: "Estrazione PDF dal CAdES fallita",
+      extractError: extractError?.message,
+      dssResult
+    };
+  }
+
+  // 3) Determina validOffchain in base al risultato DSS
+  const validOffchain =
+    dssResult.ok &&
+    dssResult.indication === "TOTAL_PASSED" &&
+    ["QESig", "AdESig-QC"].includes(dssResult.signatureLevel);
+
   return {
-    ok: false,
-    error: lastError?.message || "OpenSSL verify failed"
+    ok: true,
+    extractOk: true,
+    validOffchain,
+    signatureLevel: dssResult.signatureLevel,
+    indication: dssResult.indication,
+    qcCompliance: dssResult.qcCompliance,
+    qcSSCD: dssResult.qcSSCD,
+    certificateChain: dssResult.certificateChain,
+    revocationStatus: dssResult.revocationStatus,
+    timestampPresent: dssResult.timestampPresent,
+    dssReport: dssResult.rawReport
   };
 }
 
@@ -3978,3 +4007,14 @@ app.get("/routes", (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Server avviato su http://localhost:${PORT}`));
+
+(async () => {
+  const dss = await dssHealthCheck();
+  if (dss.ok) {
+    console.log("[INFO] DSS service raggiungibile su", process.env.DSS_URL || "http://localhost:8080/services/rest");
+  } else {
+    console.warn("[WARN] DSS NON raggiungibile:", dss.error);
+    console.warn("[WARN]", dss.hint);
+    console.warn("[WARN] La validazione CAdES qualificata non sarà disponibile fino al riavvio di DSS.");
+  }
+})();
