@@ -30,9 +30,16 @@ const PORT = Number(process.env.PORT || 3000);
 // TopView endpoints
 const TOPVIEW_TOKEN_URL = process.env.TOPVIEW_TOKEN_URL || "https://digimedfor.topview.it/api/get-token/";
 const TOPVIEW_FOREST_UNITS_URL = process.env.TOPVIEW_FOREST_UNITS_URL || "https://digimedfor.topview.it/api/get-forest-units/";
-const TOPVIEW_USERNAME = process.env.TOPVIEW_USERNAME || "operator";
-const TOPVIEW_PASSWORD = process.env.TOPVIEW_PASSWORD || "1234567!";
-const TOPVIEW_HTTPS_INSECURE = (process.env.TOPVIEW_HTTPS_INSECURE || "true") === "true";
+const TOPVIEW_USERNAME = process.env.TOPVIEW_USERNAME;
+const TOPVIEW_PASSWORD = process.env.TOPVIEW_PASSWORD;
+if (!TOPVIEW_USERNAME || !TOPVIEW_PASSWORD) {
+  console.error("[FATAL] Credenziali TopView mancanti.");
+  process.exit(1);
+}
+const TOPVIEW_HTTPS_INSECURE = (process.env.TOPVIEW_HTTPS_INSECURE || "false") === "true";
+if (TOPVIEW_HTTPS_INSECURE) {
+  console.warn("[WARN] TLS verification verso TopView DISABILITATA. Solo per dev locale.");
+}
 
 const RICARDIAN_DIR = process.env.RICARDIAN_DIR || path.join(__dirname, "storage", "ricardians");
 const CADES_DIR = process.env.CADES_DIR || path.join(__dirname, "storage", "cades");
@@ -43,10 +50,21 @@ for (const dir of [RICARDIAN_DIR, CADES_DIR, TMP_DIR]) {
 }
 
 // EVM / Contract
-const RPC_URL = process.env.RPC_URL || "http://127.0.0.1:8545";
-const PRIVATE_KEY =
-  process.env.PRIVATE_KEY ||
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const RPC_URL = process.env.RPC_URL;
+if (!RPC_URL) {
+  console.error("[FATAL] RPC_URL non impostata. Suggerito: Sepolia o Polygon Amoy per test.");
+  process.exit(1);
+}
+console.log("[INFO] RPC target:", RPC_URL.replace(/\/\/.*@/, "//***@"));
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+if (!PRIVATE_KEY) {
+  console.error("[FATAL] PRIVATE_KEY non impostata. Server non avviato.");
+  process.exit(1);
+}
+if (PRIVATE_KEY === "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80") {
+  console.error("[FATAL] PRIVATE_KEY è la chiave Hardhat di default. Inammissibile.");
+  process.exit(1);
+}
 
 // IPFS daemon locale
 const IPFS_URL = process.env.IPFS_URL || "http://127.0.0.1:5004/api/v0";
