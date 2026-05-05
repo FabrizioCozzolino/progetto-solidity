@@ -82,8 +82,13 @@
       },
       "userCountersignature": {
         "type": "CAdES (formato DER) — livello determinato a runtime",
-        "legalQualification": "TBD — determinato dalla verifica DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
-        "validationReportRef": null
+        "legalQualification": "QESig",
+        "validationReportRef": "validation-Vallombrosa-1777976311085.json",
+        "validationIndication": "TOTAL_PASSED",
+        "signatureFormat": "CAdES-BASELINE-B",
+        "qcCompliance": false,
+        "qcSSCD": false,
+        "hasTimestamp": false
       }
     },
     "statement": "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile e dal livello di firma effettivamente apposto e verificato."
@@ -211,9 +216,9 @@
     "versioning": "La versione 3.0 ridefinisce l'enunciazione degli effetti legali rispetto alle versioni precedenti per allinearli alla pipeline di verifica effettivamente implementata."
   },
   "timestamps": {
-    "createdAt": "2026-05-04T10:08:16.838Z"
+    "createdAt": "2026-05-05T10:12:24.810Z"
   },
-  "ricardianHash": "0x8fa8392c5a5eea09abdac289e95c33c6ceee0640c3435c7aa6285822541b6e64",
+  "ricardianHash": "0xe086bf0500ca0eb2c1c5f830fc7fe5f809ea5d7d2a55fff1dcf36a350cef0f9c",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -245,11 +250,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x8fa8392c5a5eea09abdac289e95c33c6ceee0640c3435c7aa6285822541b6e64",
+        "ricardianHash": "0xe086bf0500ca0eb2c1c5f830fc7fe5f809ea5d7d2a55fff1dcf36a350cef0f9c",
         "merkleRoot": "0x2cf1571a58407a4be15bf23c268c7b00ede0b2473cf23220042103a459382452",
-        "createdAt": "2026-05-04T10:08:16.838Z"
+        "createdAt": "2026-05-05T10:12:24.810Z"
       },
-      "signature": "0xee3f97709da0a6e92936cb2ca6dd3bed4ddcd1bfa08f25ed369ad00dda274fe12230f19fe72657eda290d2e3a0af39c06f6d73c2bf176f6bb7e2d69f54bcee191c"
+      "signature": "0x2db133024a8522cf6197626e3627264799b14f8e1d246f5f4eca7d027a96cf6230db58346c19dec058fb611c4ac4eac1cc8d6e9d2df3d5b42a688cc2ad23bd501b"
     }
   }
 }

@@ -1,0 +1,3617 @@
+{
+  "validationReportDataHandler": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/Pgo8VmFsaWRhdGlvblJlcG9ydCB4bWxucz0iaHR0cDovL3VyaS5ldHNpLm9yZy8xOTEwMi92MS40LjEjIiB4bWxuczpuczI9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyMiIHhtbG5zOm5zMz0iaHR0cDovL3VyaS5ldHNpLm9yZy8wMTkwMy92MS4zLjIjIiB4bWxuczpuczQ9Imh0dHA6Ly91cmkuZXRzaS5vcmcvMDIyMzEvdjIjIj4KICAgIDxTaWduYXR1cmVWYWxpZGF0aW9uUmVwb3J0PgogICAgICAgIDxTaWduYXR1cmVJZGVudGlmaWVyIGlkPSJTLTk2MDc1RTlBNTVDQTVFNTc0MjhBNjE2NkRBQTgxOUE3OTQzRjk0ODQxRjIxMjQzNjQ4MjU4RTI4MEJBRUFGREYiPgogICAgICAgICAgICA8RGlnZXN0QWxnQW5kVmFsdWU+CiAgICAgICAgICAgICAgICA8bnMyOkRpZ2VzdE1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvMDQveG1sZW5jI3NoYTI1NiIvPgogICAgICAgICAgICAgICAgPG5zMjpEaWdlc3RWYWx1ZT5Kc1ZmZkFpS1Y3NFlJTmcrdHgwUzlURnRMb1JOWVNRMC93UWFUdmk2eXB3PTwvbnMyOkRpZ2VzdFZhbHVlPgogICAgICAgICAgICA8L0RpZ2VzdEFsZ0FuZFZhbHVlPgogICAgICAgICAgICA8bnMyOlNpZ25hdHVyZVZhbHVlPkV3bDVLVXRqYlBmN1EydXczaE9mWVJicm94VEJ6SFNVUEZUT3ZNRGVrZzNFdUNHTE5LVVgra2ZJY1VZMFBvMzVudXJWM0FRS0tHRzNOMkVzNWlPNmNuRXQ1cVVHTHo0WXFRUFFsdmNxb2M2OVZTNkVZZHF1V3k2a1BSRzdHOTNNek03TlB4OXl3NXZMSjFWR0ZsOU4vUm9XK2pXUTBlUzVFcmxwaDFsZFBvS2k1Yzk3TXU3a01MQ0huRjB3dXBtRGVqQ05FcjBhazRRVHBOVk1rZEg4T2xLWEQxdWJuRGVDTWsyRm9NbENYdmhseHEwZzloUExXRDRSNDBsLy9wM3MyMGlrQ3F4WnR2aDVWUG0rcmM4SmZaOEo5ZFRFdHZsaXBTOGdhVnlHRlNqRjZGT25JREFXWlQ5ZC82em05M3dLN2FVb004UnVOZ252OWJ0c3p4bldudz09PC9uczI6U2lnbmF0dXJlVmFsdWU+CiAgICAgICAgICAgIDxIYXNoT25seT5mYWxzZTwvSGFzaE9ubHk+CiAgICAgICAgICAgIDxEb2NIYXNoT25seT5mYWxzZTwvRG9jSGFzaE9ubHk+CiAgICAgICAgPC9TaWduYXR1cmVJZGVudGlmaWVyPgogICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludHNFdmFsdWF0aW9uUmVwb3J0PgogICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPnVybjpjZWY6ZHNzOmJiYjpmb3JtYXRDaGVja2luZzwvVmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPgogICAgICAgICAgICAgICAgPENvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgPFN0YXR1cz51cm46ZXRzaTowMTkxMDI6Y29uc3RyYWludFN0YXR1czphcHBsaWVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICA8L0NvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgICAgICA8VmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8TWFpbkluZGljYXRpb24+dXJuOmV0c2k6MDE5MTAyOm1haW5pbmRpY2F0aW9uOnBhc3NlZDwvTWFpbkluZGljYXRpb24+CiAgICAgICAgICAgICAgICA8L1ZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+dXJuOmNlZjpkc3M6YmJiOmlkZW50aWZpY2F0aW9uT2ZUaGVTaWduaW5nQ2VydGlmaWNhdGU8L1ZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj4KICAgICAgICAgICAgICAgIDxDb25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgIDxTdGF0dXM+dXJuOmV0c2k6MDE5MTAyOmNvbnN0cmFpbnRTdGF0dXM6YXBwbGllZDwvU3RhdHVzPgogICAgICAgICAgICAgICAgPC9Db25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgPFZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgPE1haW5JbmRpY2F0aW9uPnVybjpldHNpOjAxOTEwMjptYWluaW5kaWNhdGlvbjpwYXNzZWQ8L01haW5JbmRpY2F0aW9uPgogICAgICAgICAgICAgICAgPC9WYWxpZGF0aW9uU3RhdHVzPgogICAgICAgICAgICA8L1ZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPnVybjpjZWY6ZHNzOmJiYjp2YWxpZGF0aW9uQ29udGV4dEluaXRpYWxpemF0aW9uPC9WYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+CiAgICAgICAgICAgICAgICA8Q29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8U3RhdHVzPnVybjpldHNpOjAxOTEwMjpjb25zdHJhaW50U3RhdHVzOmFwcGxpZWQ8L1N0YXR1cz4KICAgICAgICAgICAgICAgIDwvQ29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uU3RhdHVzPgogICAgICAgICAgICAgICAgICAgIDxNYWluSW5kaWNhdGlvbj51cm46ZXRzaTowMTkxMDI6bWFpbmluZGljYXRpb246cGFzc2VkPC9NYWluSW5kaWNhdGlvbj4KICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgPC9WYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj51cm46Y2VmOmRzczpiYmI6Y3J5cHRvZ3JhcGhpY1ZlcmlmaWNhdGlvbjwvVmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPgogICAgICAgICAgICAgICAgPENvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgPFN0YXR1cz51cm46ZXRzaTowMTkxMDI6Y29uc3RyYWludFN0YXR1czphcHBsaWVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICA8L0NvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgICAgICA8VmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8TWFpbkluZGljYXRpb24+dXJuOmV0c2k6MDE5MTAyOm1haW5pbmRpY2F0aW9uOnBhc3NlZDwvTWFpbkluZGljYXRpb24+CiAgICAgICAgICAgICAgICA8L1ZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+dXJuOmNlZjpkc3M6YmJiOnNpZ25hdHVyZUFjY2VwdGFuY2VWYWxpZGF0aW9uPC9WYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+CiAgICAgICAgICAgICAgICA8Q29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8U3RhdHVzPnVybjpldHNpOjAxOTEwMjpjb25zdHJhaW50U3RhdHVzOmFwcGxpZWQ8L1N0YXR1cz4KICAgICAgICAgICAgICAgIDwvQ29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uU3RhdHVzPgogICAgICAgICAgICAgICAgICAgIDxNYWluSW5kaWNhdGlvbj51cm46ZXRzaTowMTkxMDI6bWFpbmluZGljYXRpb246cGFzc2VkPC9NYWluSW5kaWNhdGlvbj4KICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgPC9WYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj51cm46Y2VmOmRzczpiYmI6eDUwOUNlcnRpZmljYXRlVmFsaWRhdGlvbjwvVmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPgogICAgICAgICAgICAgICAgPENvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgPFN0YXR1cz51cm46ZXRzaTowMTkxMDI6Y29uc3RyYWludFN0YXR1czphcHBsaWVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICA8L0NvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgICAgICA8VmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8TWFpbkluZGljYXRpb24+dXJuOmV0c2k6MDE5MTAyOm1haW5pbmRpY2F0aW9uOnBhc3NlZDwvTWFpbkluZGljYXRpb24+CiAgICAgICAgICAgICAgICA8L1ZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+dXJuOmNlZjpkc3M6YmJiOnBhc3RTaWduYXR1cmVWYWxpZGF0aW9uPC9WYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+CiAgICAgICAgICAgICAgICA8Q29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8U3RhdHVzPnVybjpldHNpOjAxOTEwMjpjb25zdHJhaW50U3RhdHVzOmRpc2FibGVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICA8L0NvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+dXJuOmNlZjpkc3M6YmJiOnBhc3RDZXJ0aWZpY2F0ZVZhbGlkYXRpb248L1ZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj4KICAgICAgICAgICAgICAgIDxDb25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgIDxTdGF0dXM+dXJuOmV0c2k6MDE5MTAyOmNvbnN0cmFpbnRTdGF0dXM6ZGlzYWJsZWQ8L1N0YXR1cz4KICAgICAgICAgICAgICAgIDwvQ29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgPC9WYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj51cm46Y2VmOmRzczpiYmI6dmFsaWRhdGlvblRpbWVTbGlkaW5nPC9WYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+CiAgICAgICAgICAgICAgICA8Q29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8U3RhdHVzPnVybjpldHNpOjAxOTEwMjpjb25zdHJhaW50U3RhdHVzOmRpc2FibGVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICA8L0NvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgPC9WYWxpZGF0aW9uQ29uc3RyYWludHNFdmFsdWF0aW9uUmVwb3J0PgogICAgICAgIDxWYWxpZGF0aW9uVGltZUluZm8+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uVGltZT4yMDI2LTA1LTA1VDEwOjE4OjMwWjwvVmFsaWRhdGlvblRpbWU+CiAgICAgICAgICAgIDxCZXN0U2lnbmF0dXJlVGltZT4KICAgICAgICAgICAgICAgIDxQT0VUaW1lPjIwMjYtMDUtMDVUMTA6MTg6MzBaPC9QT0VUaW1lPgogICAgICAgICAgICAgICAgPFR5cGVPZlByb29mPnVybjpldHNpOjAxOTEwMjpwb2V0eXBlOnZhbGlkYXRpb248L1R5cGVPZlByb29mPgogICAgICAgICAgICA8L0Jlc3RTaWduYXR1cmVUaW1lPgogICAgICAgIDwvVmFsaWRhdGlvblRpbWVJbmZvPgogICAgICAgIDxTaWduZXJzRG9jdW1lbnQ+CiAgICAgICAgICAgIDxEaWdlc3RBbGdBbmRWYWx1ZT4KICAgICAgICAgICAgICAgIDxuczI6RGlnZXN0TWV0aG9kIEFsZ29yaXRobT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS8wNC94bWxlbmMjc2hhMjU2Ii8+CiAgICAgICAgICAgICAgICA8bnMyOkRpZ2VzdFZhbHVlPmd6TWtQYldmWUtzaktSSTArSUJXb2dQK3E4WnpyMXNWK09PSmZQLzkrS009PC9uczI6RGlnZXN0VmFsdWU+CiAgICAgICAgICAgIDwvRGlnZXN0QWxnQW5kVmFsdWU+CiAgICAgICAgICAgIDxTaWduZXJzRG9jdW1lbnRSZXByZXNlbnRhdGlvbiBWT1JlZmVyZW5jZT0iRC1GOUNCMTJGM0I4MDk4MDAwMTI4RkQzQzkzMDgyRENGNEE0NTE3NzNCNDk0RjdGQUM2ODcwNjM5NkM0MTBBRTgzIi8+CiAgICAgICAgPC9TaWduZXJzRG9jdW1lbnQ+CiAgICAgICAgPFNpZ25hdHVyZUF0dHJpYnV0ZXM+CiAgICAgICAgICAgIDxTaWduaW5nVGltZSBTaWduZWQ9InRydWUiPgogICAgICAgICAgICAgICAgPFRpbWU+MjAyNi0wNS0wNVQxMDoxNDo1MVo8L1RpbWU+CiAgICAgICAgICAgIDwvU2lnbmluZ1RpbWU+CiAgICAgICAgICAgIDxTaWduaW5nQ2VydGlmaWNhdGUgU2lnbmVkPSJ0cnVlIj4KICAgICAgICAgICAgICAgIDxBdHRyaWJ1dGVPYmplY3QgVk9SZWZlcmVuY2U9IkMtQTQxMjY0NkI1OEY1MDZFQjM3OEM5QTk2OEE3ODEyMDAxRTRCOURBNUQ2MjYyMzQwMTkzMDBEMDBEQzdFNkEyNiIvPgogICAgICAgICAgICA8L1NpZ25pbmdDZXJ0aWZpY2F0ZT4KICAgICAgICAgICAgPERhdGFPYmplY3RGb3JtYXQgU2lnbmVkPSJ0cnVlIj4KICAgICAgICAgICAgICAgIDxDb250ZW50VHlwZT4xLjIuODQwLjExMzU0OS4xLjcuMTwvQ29udGVudFR5cGU+CiAgICAgICAgICAgIDwvRGF0YU9iamVjdEZvcm1hdD4KICAgICAgICAgICAgPE1lc3NhZ2VEaWdlc3QgU2lnbmVkPSJ0cnVlIj4KICAgICAgICAgICAgICAgIDxEaWdlc3Q+Z3pNa1BiV2ZZS3NqS1JJMCtJQldvZ1ArcThaenIxc1YrT09KZlAvOStLTT08L0RpZ2VzdD4KICAgICAgICAgICAgPC9NZXNzYWdlRGlnZXN0PgogICAgICAgIDwvU2lnbmF0dXJlQXR0cmlidXRlcz4KICAgICAgICA8U2lnbmVySW5mb3JtYXRpb24gUHNldWRvbnltPSJmYWxzZSI+CiAgICAgICAgICAgIDxTaWduZXJDZXJ0aWZpY2F0ZSBWT1JlZmVyZW5jZT0iQy1BNDEyNjQ2QjU4RjUwNkVCMzc4QzlBOTY4QTc4MTIwMDFFNEI5REE1RDYyNjIzNDAxOTMwMEQwMERDN0U2QTI2Ii8+CiAgICAgICAgICAgIDxTaWduZXI+QU5UT05JTyBDQVNUQUxETzwvU2lnbmVyPgogICAgICAgIDwvU2lnbmVySW5mb3JtYXRpb24+CiAgICAgICAgPFNpZ25hdHVyZVF1YWxpdHk+CiAgICAgICAgICAgIDxTaWduYXR1cmVRdWFsaXR5SW5mb3JtYXRpb24+dXJuOmNlZjpkc3M6c2lnbmF0dXJlUXVhbGlmaWNhdGlvbjpRRVNpZzwvU2lnbmF0dXJlUXVhbGl0eUluZm9ybWF0aW9uPgogICAgICAgIDwvU2lnbmF0dXJlUXVhbGl0eT4KICAgICAgICA8U2lnbmF0dXJlVmFsaWRhdGlvblByb2Nlc3M+CiAgICAgICAgICAgIDxTaWduYXR1cmVWYWxpZGF0aW9uUHJvY2Vzc0lEPnVybjpldHNpOjAxOTEwMjp2YWxpZGF0aW9ucHJvY2VzczpMVEE8L1NpZ25hdHVyZVZhbGlkYXRpb25Qcm9jZXNzSUQ+CiAgICAgICAgPC9TaWduYXR1cmVWYWxpZGF0aW9uUHJvY2Vzcz4KICAgICAgICA8U2lnbmF0dXJlVmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgPE1haW5JbmRpY2F0aW9uPnVybjpldHNpOjAxOTEwMjptYWluaW5kaWNhdGlvbjp0b3RhbC1wYXNzZWQ8L01haW5JbmRpY2F0aW9uPgogICAgICAgICAgICA8QXNzb2NpYXRlZFZhbGlkYXRpb25SZXBvcnREYXRhPgogICAgICAgICAgICAgICAgPFRydXN0QW5jaG9yIFZPUmVmZXJlbmNlPSJDLUNENkQ1NzBBNTc1N0M5OUFFOTYzMzQ5OTY2Njk3NzYyQkZBNTBCMzZCMTQ2MTIzNUEzMjUyNjI3Q0FGOTdEODAiLz4KICAgICAgICAgICAgICAgIDxDZXJ0aWZpY2F0ZUNoYWluPgogICAgICAgICAgICAgICAgICAgIDxTaWduaW5nQ2VydGlmaWNhdGUgVk9SZWZlcmVuY2U9IkMtQTQxMjY0NkI1OEY1MDZFQjM3OEM5QTk2OEE3ODEyMDAxRTRCOURBNUQ2MjYyMzQwMTkzMDBEMDBEQzdFNkEyNiIvPgogICAgICAgICAgICAgICAgICAgIDxUcnVzdEFuY2hvciBWT1JlZmVyZW5jZT0iQy1DRDZENTcwQTU3NTdDOTlBRTk2MzM0OTk2NjY5Nzc2MkJGQTUwQjM2QjE0NjEyMzVBMzI1MjYyN0NBRjk3RDgwIi8+CiAgICAgICAgICAgICAgICA8L0NlcnRpZmljYXRlQ2hhaW4+CiAgICAgICAgICAgICAgICA8Q3J5cHRvSW5mb3JtYXRpb24+CiAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25PYmplY3RJZCBWT1JlZmVyZW5jZT0iUy05NjA3NUU5QTU1Q0E1RTU3NDI4QTYxNjZEQUE4MTlBNzk0M0Y5NDg0MUYyMTI0MzY0ODI1OEUyODBCQUVBRkRGIi8+CiAgICAgICAgICAgICAgICAgICAgPEFsZ29yaXRobT5odHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNyc2Etc2hhMjU2PC9BbGdvcml0aG0+CiAgICAgICAgICAgICAgICAgICAgPFNlY3VyZUFsZ29yaXRobT50cnVlPC9TZWN1cmVBbGdvcml0aG0+CiAgICAgICAgICAgICAgICAgICAgPE5vdEFmdGVyPjIwMjktMDEtMDFUMDA6MDA6MDBaPC9Ob3RBZnRlcj4KICAgICAgICAgICAgICAgIDwvQ3J5cHRvSW5mb3JtYXRpb24+CiAgICAgICAgICAgIDwvQXNzb2NpYXRlZFZhbGlkYXRpb25SZXBvcnREYXRhPgogICAgICAgIDwvU2lnbmF0dXJlVmFsaWRhdGlvblN0YXR1cz4KICAgIDwvU2lnbmF0dXJlVmFsaWRhdGlvblJlcG9ydD4KICAgIDxTaWduYXR1cmVWYWxpZGF0aW9uT2JqZWN0cz4KICAgICAgICA8VmFsaWRhdGlvbk9iamVjdCBpZD0iQy03MTZBQUVDMjE3MjQ2QkI4NTE1RUZFRDE2ODdEMjQ4QjZBNENFODQzRTQ3RjhBNTlCQjA5QTkzRTM1NDhFRTUwIj4KICAgICAgICAgICAgPE9iamVjdFR5cGU+dXJuOmV0c2k6MDE5MTAyOnZhbGlkYXRpb25PYmplY3Q6Y2VydGlmaWNhdGU8L09iamVjdFR5cGU+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uT2JqZWN0UmVwcmVzZW50YXRpb24+CiAgICAgICAgICAgICAgICA8RGlnZXN0QWxnQW5kVmFsdWU+CiAgICAgICAgICAgICAgICAgICAgPG5zMjpEaWdlc3RNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGVuYyNzaGEyNTYiLz4KICAgICAgICAgICAgICAgICAgICA8bnMyOkRpZ2VzdFZhbHVlPmNXcXV3aGNrYTdoUlh2N1JhSDBraTJwTTZFUGtmNHBadXdtcFBqVkk3bEE9PC9uczI6RGlnZXN0VmFsdWU+CiAgICAgICAgICAgICAgICA8L0RpZ2VzdEFsZ0FuZFZhbHVlPgogICAgICAgICAgICA8L1ZhbGlkYXRpb25PYmplY3RSZXByZXNlbnRhdGlvbj4KICAgICAgICAgICAgPFBPRT4KICAgICAgICAgICAgICAgIDxQT0VUaW1lPjIwMjYtMDUtMDVUMTA6MTg6MzBaPC9QT0VUaW1lPgogICAgICAgICAgICAgICAgPFR5cGVPZlByb29mPnVybjpldHNpOjAxOTEwMjpwb2V0eXBlOnZhbGlkYXRpb248L1R5cGVPZlByb29mPgogICAgICAgICAgICA8L1BPRT4KICAgICAgICA8L1ZhbGlkYXRpb25PYmplY3Q+CiAgICAgICAgPFZhbGlkYXRpb25PYmplY3QgaWQ9IkMtQTQxMjY0NkI1OEY1MDZFQjM3OEM5QTk2OEE3ODEyMDAxRTRCOURBNUQ2MjYyMzQwMTkzMDBEMDBEQzdFNkEyNiI+CiAgICAgICAgICAgIDxPYmplY3RUeXBlPnVybjpldHNpOjAxOTEwMjp2YWxpZGF0aW9uT2JqZWN0OmNlcnRpZmljYXRlPC9PYmplY3RUeXBlPgogICAgICAgICAgICA8VmFsaWRhdGlvbk9iamVjdFJlcHJlc2VudGF0aW9uPgogICAgICAgICAgICAgICAgPERpZ2VzdEFsZ0FuZFZhbHVlPgogICAgICAgICAgICAgICAgICAgIDxuczI6RGlnZXN0TWV0aG9kIEFsZ29yaXRobT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS8wNC94bWxlbmMjc2hhMjU2Ii8+CiAgICAgICAgICAgICAgICAgICAgPG5zMjpEaWdlc3RWYWx1ZT5wQkprYTFqMUJ1czNqSnFXaW5nU0FCNUxuYVhXSmlOQUdUQU5BTngrYWlZPTwvbnMyOkRpZ2VzdFZhbHVlPgogICAgICAgICAgICAgICAgPC9EaWdlc3RBbGdBbmRWYWx1ZT4KICAgICAgICAgICAgPC9WYWxpZGF0aW9uT2JqZWN0UmVwcmVzZW50YXRpb24+CiAgICAgICAgICAgIDxQT0U+CiAgICAgICAgICAgICAgICA8UE9FVGltZT4yMDI2LTA1LTA1VDEwOjE4OjMwWjwvUE9FVGltZT4KICAgICAgICAgICAgICAgIDxUeXBlT2ZQcm9vZj51cm46ZXRzaTowMTkxMDI6cG9ldHlwZTp2YWxpZGF0aW9uPC9UeXBlT2ZQcm9vZj4KICAgICAgICAgICAgPC9QT0U+CiAgICAgICAgPC9WYWxpZGF0aW9uT2JqZWN0PgogICAgICAgIDxWYWxpZGF0aW9uT2JqZWN0IGlkPSJDLUNENkQ1NzBBNTc1N0M5OUFFOTYzMzQ5OTY2Njk3NzYyQkZBNTBCMzZCMTQ2MTIzNUEzMjUyNjI3Q0FGOTdEODAiPgogICAgICAgICAgICA8T2JqZWN0VHlwZT51cm46ZXRzaTowMTkxMDI6dmFsaWRhdGlvbk9iamVjdDpjZXJ0aWZpY2F0ZTwvT2JqZWN0VHlwZT4KICAgICAgICAgICAgPFZhbGlkYXRpb25PYmplY3RSZXByZXNlbnRhdGlvbj4KICAgICAgICAgICAgICAgIDxEaWdlc3RBbGdBbmRWYWx1ZT4KICAgICAgICAgICAgICAgICAgICA8bnMyOkRpZ2VzdE1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvMDQveG1sZW5jI3NoYTI1NiIvPgogICAgICAgICAgICAgICAgICAgIDxuczI6RGlnZXN0VmFsdWU+elcxWENsZFh5WnJwWXpTWlptbDNZcitsQ3pheFJoSTFveVVtSjhyNWZZQT08L25zMjpEaWdlc3RWYWx1ZT4KICAgICAgICAgICAgICAgIDwvRGlnZXN0QWxnQW5kVmFsdWU+CiAgICAgICAgICAgIDwvVmFsaWRhdGlvbk9iamVjdFJlcHJlc2VudGF0aW9uPgogICAgICAgICAgICA8UE9FPgogICAgICAgICAgICAgICAgPFBPRVRpbWU+MjAyNi0wNS0wNVQxMDoxODozMFo8L1BPRVRpbWU+CiAgICAgICAgICAgICAgICA8VHlwZU9mUHJvb2Y+dXJuOmV0c2k6MDE5MTAyOnBvZXR5cGU6dmFsaWRhdGlvbjwvVHlwZU9mUHJvb2Y+CiAgICAgICAgICAgIDwvUE9FPgogICAgICAgIDwvVmFsaWRhdGlvbk9iamVjdD4KICAgICAgICA8VmFsaWRhdGlvbk9iamVjdCBpZD0iUi03QjRGM0NDMDdGNUNFMjQ1MDQ1QTk3MDA0RDQyNTkxNkE4N0MyNjlDRTE5MzdGNzA2MEFFRkY2MEI3OUU1QzY4Ij4KICAgICAgICAgICAgPE9iamVjdFR5cGU+dXJuOmV0c2k6MDE5MTAyOnZhbGlkYXRpb25PYmplY3Q6T0NTUFJlc3BvbnNlPC9PYmplY3RUeXBlPgogICAgICAgICAgICA8VmFsaWRhdGlvbk9iamVjdFJlcHJlc2VudGF0aW9uPgogICAgICAgICAgICAgICAgPERpZ2VzdEFsZ0FuZFZhbHVlPgogICAgICAgICAgICAgICAgICAgIDxuczI6RGlnZXN0TWV0aG9kIEFsZ29yaXRobT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS8wNC94bWxlbmMjc2hhMjU2Ii8+CiAgICAgICAgICAgICAgICAgICAgPG5zMjpEaWdlc3RWYWx1ZT5lMDg4d0g5YzRrVUVXcGNBVFVKWkZxaDhKcHpoazM5d1lLNy9ZTGVlWEdnPTwvbnMyOkRpZ2VzdFZhbHVlPgogICAgICAgICAgICAgICAgPC9EaWdlc3RBbGdBbmRWYWx1ZT4KICAgICAgICAgICAgPC9WYWxpZGF0aW9uT2JqZWN0UmVwcmVzZW50YXRpb24+CiAgICAgICAgICAgIDxQT0U+CiAgICAgICAgICAgICAgICA8UE9FVGltZT4yMDI2LTA1LTA1VDEwOjE4OjMwWjwvUE9FVGltZT4KICAgICAgICAgICAgICAgIDxUeXBlT2ZQcm9vZj51cm46ZXRzaTowMTkxMDI6cG9ldHlwZTp2YWxpZGF0aW9uPC9UeXBlT2ZQcm9vZj4KICAgICAgICAgICAgPC9QT0U+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uUmVwb3J0PgogICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50c0V2YWx1YXRpb25SZXBvcnQ+CiAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPnVybjpjZWY6ZHNzOmJiYjpmb3JtYXRDaGVja2luZzwvVmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPgogICAgICAgICAgICAgICAgICAgICAgICA8Q29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxTdGF0dXM+dXJuOmV0c2k6MDE5MTAyOmNvbnN0cmFpbnRTdGF0dXM6ZGlzYWJsZWQ8L1N0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9Db25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPnVybjpjZWY6ZHNzOmJiYjppZGVudGlmaWNhdGlvbk9mVGhlU2lnbmluZ0NlcnRpZmljYXRlPC9WYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+CiAgICAgICAgICAgICAgICAgICAgICAgIDxDb25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFN0YXR1cz51cm46ZXRzaTowMTkxMDI6Y29uc3RyYWludFN0YXR1czphcHBsaWVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvQ29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8TWFpbkluZGljYXRpb24+dXJuOmV0c2k6MDE5MTAyOm1haW5pbmRpY2F0aW9uOnBhc3NlZDwvTWFpbkluZGljYXRpb24+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8L1ZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj51cm46Y2VmOmRzczpiYmI6dmFsaWRhdGlvbkNvbnRleHRJbml0aWFsaXphdGlvbjwvVmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPgogICAgICAgICAgICAgICAgICAgICAgICA8Q29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxTdGF0dXM+dXJuOmV0c2k6MDE5MTAyOmNvbnN0cmFpbnRTdGF0dXM6ZGlzYWJsZWQ8L1N0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9Db25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPnVybjpjZWY6ZHNzOmJiYjpjcnlwdG9ncmFwaGljVmVyaWZpY2F0aW9uPC9WYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+CiAgICAgICAgICAgICAgICAgICAgICAgIDxDb25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFN0YXR1cz51cm46ZXRzaTowMTkxMDI6Y29uc3RyYWludFN0YXR1czphcHBsaWVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvQ29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8TWFpbkluZGljYXRpb24+dXJuOmV0c2k6MDE5MTAyOm1haW5pbmRpY2F0aW9uOnBhc3NlZDwvTWFpbkluZGljYXRpb24+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8L1ZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uQ29uc3RyYWludD4KICAgICAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj51cm46Y2VmOmRzczpiYmI6c2lnbmF0dXJlQWNjZXB0YW5jZVZhbGlkYXRpb248L1ZhbGlkYXRpb25Db25zdHJhaW50SWRlbnRpZmllcj4KICAgICAgICAgICAgICAgICAgICAgICAgPENvbnN0cmFpbnRTdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8U3RhdHVzPnVybjpldHNpOjAxOTEwMjpjb25zdHJhaW50U3RhdHVzOmFwcGxpZWQ8L1N0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9Db25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgICAgICA8VmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxNYWluSW5kaWNhdGlvbj51cm46ZXRzaTowMTkxMDI6bWFpbmluZGljYXRpb246cGFzc2VkPC9NYWluSW5kaWNhdGlvbj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9WYWxpZGF0aW9uU3RhdHVzPgogICAgICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvbkNvbnN0cmFpbnQ+CiAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgICAgICAgICA8VmFsaWRhdGlvbkNvbnN0cmFpbnRJZGVudGlmaWVyPnVybjpjZWY6ZHNzOmJiYjp4NTA5Q2VydGlmaWNhdGVWYWxpZGF0aW9uPC9WYWxpZGF0aW9uQ29uc3RyYWludElkZW50aWZpZXI+CiAgICAgICAgICAgICAgICAgICAgICAgIDxDb25zdHJhaW50U3RhdHVzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFN0YXR1cz51cm46ZXRzaTowMTkxMDI6Y29uc3RyYWludFN0YXR1czphcHBsaWVkPC9TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvQ29uc3RyYWludFN0YXR1cz4KICAgICAgICAgICAgICAgICAgICAgICAgPFZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8TWFpbkluZGljYXRpb24+dXJuOmV0c2k6MDE5MTAyOm1haW5pbmRpY2F0aW9uOnBhc3NlZDwvTWFpbkluZGljYXRpb24+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvVmFsaWRhdGlvblN0YXR1cz4KICAgICAgICAgICAgICAgICAgICA8L1ZhbGlkYXRpb25Db25zdHJhaW50PgogICAgICAgICAgICAgICAgPC9WYWxpZGF0aW9uQ29uc3RyYWludHNFdmFsdWF0aW9uUmVwb3J0PgogICAgICAgICAgICAgICAgPFNpZ25lckluZm9ybWF0aW9uPgogICAgICAgICAgICAgICAgICAgIDxTaWduZXJDZXJ0aWZpY2F0ZSBWT1JlZmVyZW5jZT0iQy03MTZBQUVDMjE3MjQ2QkI4NTE1RUZFRDE2ODdEMjQ4QjZBNENFODQzRTQ3RjhBNTlCQjA5QTkzRTM1NDhFRTUwIi8+CiAgICAgICAgICAgICAgICAgICAgPFNpZ25lcj5BcnViYVBFQyBFVSBRdWFsaWZpZWQgQ2VydGlmaWNhdGVzIE9DU1AgUmVzcG9uZGVyIEcxPC9TaWduZXI+CiAgICAgICAgICAgICAgICA8L1NpZ25lckluZm9ybWF0aW9uPgogICAgICAgICAgICAgICAgPFNpZ25hdHVyZVZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgICAgICAgICAgPE1haW5JbmRpY2F0aW9uPnVybjpldHNpOjAxOTEwMjptYWluaW5kaWNhdGlvbjpwYXNzZWQ8L01haW5JbmRpY2F0aW9uPgogICAgICAgICAgICAgICAgICAgIDxBc3NvY2lhdGVkVmFsaWRhdGlvblJlcG9ydERhdGE+CiAgICAgICAgICAgICAgICAgICAgICAgIDxUcnVzdEFuY2hvciBWT1JlZmVyZW5jZT0iQy1DRDZENTcwQTU3NTdDOTlBRTk2MzM0OTk2NjY5Nzc2MkJGQTUwQjM2QjE0NjEyMzVBMzI1MjYyN0NBRjk3RDgwIi8+CiAgICAgICAgICAgICAgICAgICAgICAgIDxDZXJ0aWZpY2F0ZUNoYWluPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFNpZ25pbmdDZXJ0aWZpY2F0ZSBWT1JlZmVyZW5jZT0iQy03MTZBQUVDMjE3MjQ2QkI4NTE1RUZFRDE2ODdEMjQ4QjZBNENFODQzRTQ3RjhBNTlCQjA5QTkzRTM1NDhFRTUwIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VHJ1c3RBbmNob3IgVk9SZWZlcmVuY2U9IkMtQ0Q2RDU3MEE1NzU3Qzk5QUU5NjMzNDk5NjY2OTc3NjJCRkE1MEIzNkIxNDYxMjM1QTMyNTI2MjdDQUY5N0Q4MCIvPgogICAgICAgICAgICAgICAgICAgICAgICA8L0NlcnRpZmljYXRlQ2hhaW4+CiAgICAgICAgICAgICAgICAgICAgICAgIDxDcnlwdG9JbmZvcm1hdGlvbj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxWYWxpZGF0aW9uT2JqZWN0SWQgVk9SZWZlcmVuY2U9IlItN0I0RjNDQzA3RjVDRTI0NTA0NUE5NzAwNEQ0MjU5MTZBODdDMjY5Q0UxOTM3RjcwNjBBRUZGNjBCNzlFNUM2OCIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEFsZ29yaXRobT5odHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNyc2Etc2hhMjU2PC9BbGdvcml0aG0+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8U2VjdXJlQWxnb3JpdGhtPnRydWU8L1NlY3VyZUFsZ29yaXRobT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxOb3RBZnRlcj4yMDI5LTAxLTAxVDAwOjAwOjAwWjwvTm90QWZ0ZXI+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvQ3J5cHRvSW5mb3JtYXRpb24+CiAgICAgICAgICAgICAgICAgICAgPC9Bc3NvY2lhdGVkVmFsaWRhdGlvblJlcG9ydERhdGE+CiAgICAgICAgICAgICAgICA8L1NpZ25hdHVyZVZhbGlkYXRpb25TdGF0dXM+CiAgICAgICAgICAgIDwvVmFsaWRhdGlvblJlcG9ydD4KICAgICAgICA8L1ZhbGlkYXRpb25PYmplY3Q+CiAgICAgICAgPFZhbGlkYXRpb25PYmplY3QgaWQ9IkQtRjlDQjEyRjNCODA5ODAwMDEyOEZEM0M5MzA4MkRDRjRBNDUxNzczQjQ5NEY3RkFDNjg3MDYzOTZDNDEwQUU4MyI+CiAgICAgICAgICAgIDxPYmplY3RUeXBlPnVybjpldHNpOjAxOTEwMjp2YWxpZGF0aW9uT2JqZWN0OnNpZ25lZERhdGE8L09iamVjdFR5cGU+CiAgICAgICAgICAgIDxWYWxpZGF0aW9uT2JqZWN0UmVwcmVzZW50YXRpb24+CiAgICAgICAgICAgICAgICA8RGlnZXN0QWxnQW5kVmFsdWU+CiAgICAgICAgICAgICAgICAgICAgPG5zMjpEaWdlc3RNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGVuYyNzaGEyNTYiLz4KICAgICAgICAgICAgICAgICAgICA8bnMyOkRpZ2VzdFZhbHVlPmd6TWtQYldmWUtzaktSSTArSUJXb2dQK3E4WnpyMXNWK09PSmZQLzkrS009PC9uczI6RGlnZXN0VmFsdWU+CiAgICAgICAgICAgICAgICA8L0RpZ2VzdEFsZ0FuZFZhbHVlPgogICAgICAgICAgICA8L1ZhbGlkYXRpb25PYmplY3RSZXByZXNlbnRhdGlvbj4KICAgICAgICAgICAgPFBPRT4KICAgICAgICAgICAgICAgIDxQT0VUaW1lPjIwMjYtMDUtMDVUMTA6MTg6MzBaPC9QT0VUaW1lPgogICAgICAgICAgICAgICAgPFR5cGVPZlByb29mPnVybjpldHNpOjAxOTEwMjpwb2V0eXBlOnZhbGlkYXRpb248L1R5cGVPZlByb29mPgogICAgICAgICAgICA8L1BPRT4KICAgICAgICA8L1ZhbGlkYXRpb25PYmplY3Q+CiAgICA8L1NpZ25hdHVyZVZhbGlkYXRpb25PYmplY3RzPgo8L1ZhbGlkYXRpb25SZXBvcnQ+Cg==",
+  "DiagnosticData": {
+    "DocumentName": "ricardian-Vallombrosa.pdf.p7m",
+    "ValidationDate": "2026-05-05T10:18:30Z",
+    "ContainerInfo": null,
+    "PDFAInfo": null,
+    "ConnectionInfo": null,
+    "Signature": [
+      {
+        "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF",
+        "DAIdentifier": null,
+        "SignatureFilename": "ricardian-Vallombrosa.pdf.p7m",
+        "ErrorMessage": null,
+        "ClaimedSigningTime": "2026-05-05T10:14:51Z",
+        "ExpirationTime": null,
+        "SignatureFormat": "CAdES-BASELINE-B",
+        "JWSSerializationType": null,
+        "SignatureType": null,
+        "StructuralValidation": {
+          "Message": [],
+          "valid": true
+        },
+        "DigestMatcher": [
+          {
+            "DataFound": true,
+            "DataIntact": true,
+            "ObjectReference": null,
+            "DigestMethod": "SHA256",
+            "DigestValue": "gzMkPbWfYKsjKRI0+IBWogP+q8Zzr1sV+OOJfP/9+KM=",
+            "match": null,
+            "type": "MESSAGE_DIGEST",
+            "id": null,
+            "uri": null,
+            "documentName": null,
+            "duplicated": null
+          }
+        ],
+        "BasicSignature": {
+          "EncryptionAlgoUsedToSignThisToken": "RSA",
+          "KeyLengthUsedToSignThisToken": "2048",
+          "DigestAlgoUsedToSignThisToken": "SHA256",
+          "SignatureIntact": true,
+          "SignatureValid": true
+        },
+        "SigningCertificate": {
+          "PublicKey": null,
+          "Certificate": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26"
+        },
+        "ChainItem": [
+          {
+            "Certificate": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26"
+          },
+          {
+            "Certificate": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+          }
+        ],
+        "ContentType": "1.2.840.113549.1.7.1",
+        "MimeType": null,
+        "ContentIdentifier": null,
+        "ContentHints": null,
+        "SignatureProductionPlace": null,
+        "CommitmentTypeIndication": [],
+        "SignerRole": [],
+        "Policy": null,
+        "SignaturePolicyStore": null,
+        "SignerInfo": [
+          {
+            "IssuerName": "CN=ArubaPEC EU Qualified Certificates CA G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C=IT",
+            "SerialNumber": 2.110833166475524e+37,
+            "Ski": null,
+            "Current": true
+          }
+        ],
+        "PDFRevision": null,
+        "VRIDictionaryCreationTime": null,
+        "SignerDocumentRepresentations": null,
+        "FoundCertificates": {
+          "RelatedCertificate": [
+            {
+              "Origin": [
+                "SIGNED_DATA"
+              ],
+              "CertificateRef": [
+                {
+                  "Origin": "SIGNING_CERTIFICATE",
+                  "IssuerSerial": {
+                    "value": "MIHNMIG4pIG1MIGyMQswCQYDVQQGEwJJVDEPMA0GA1UEBwwGQXJlenpvMRgwFgYDVQQKDA9BcnViYVBFQyBTLnAuQS4xGjAYBgNVBGEMEVZBVElULTAxODc5MDIwNTE3MSkwJwYDVQQLDCBRdWFsaWZpZWQgVHJ1c3QgU2VydmljZSBQcm92aWRlcjExMC8GA1UEAwwoQXJ1YmFQRUMgRVUgUXVhbGlmaWVkIENlcnRpZmljYXRlcyBDQSBHMQIQD+FRGf8ItYX01sYnT86OPg==",
+                    "match": true
+                  },
+                  "DigestAlgoAndValue": {
+                    "DigestMethod": "SHA256",
+                    "DigestValue": "pBJka1j1Bus3jJqWingSAB5LnaXWJiNAGTANANx+aiY=",
+                    "match": true
+                  },
+                  "SerialInfo": null,
+                  "X509Url": null
+                }
+              ],
+              "Certificate": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26"
+            }
+          ],
+          "OrphanCertificate": []
+        },
+        "FoundRevocations": {
+          "RelatedRevocation": [],
+          "OrphanRevocation": []
+        },
+        "FoundTimestamp": [],
+        "FoundEvidenceRecord": [],
+        "SignatureScope": [
+          {
+            "Scope": "FULL",
+            "Name": null,
+            "Description": "Full document",
+            "Transformation": null,
+            "SignerData": "D-F9CB12F3B8098000128FD3C93082DCF4A451773B494F7FAC68706396C410AE83"
+          }
+        ],
+        "SignatureDigestReference": {
+          "CanonicalizationMethod": null,
+          "DigestMethod": "SHA256",
+          "DigestValue": "ocDBlnEBxBqsyN9lQp9G941voOVwoNCxzadJgDJetAs="
+        },
+        "DataToBeSignedRepresentation": {
+          "DigestMethod": "SHA256",
+          "DigestValue": "JsVffAiKV74YINg+tx0S9TFtLoRNYSQ0/wQaTvi6ypw=",
+          "match": null
+        },
+        "SignatureValue": "Ewl5KUtjbPf7Q2uw3hOfYRbroxTBzHSUPFTOvMDekg3EuCGLNKUX+kfIcUY0Po35nurV3AQKKGG3N2Es5iO6cnEt5qUGLz4YqQPQlvcqoc69VS6EYdquWy6kPRG7G93MzM7NPx9yw5vLJ1VGFl9N/RoW+jWQ0eS5Erlph1ldPoKi5c97Mu7kMLCHnF0wupmDejCNEr0ak4QTpNVMkdH8OlKXD1ubnDeCMk2FoMlCXvhlxq0g9hPLWD4R40l//p3s20ikCqxZtvh5VPm+rc8JfZ8J9dTEtvlipS8gaVyGFSjF6FOnIDAWZT9d/6zm93wK7aUoM8RuNgnv9btszxnWnw==",
+        "Duplicated": null,
+        "CounterSignature": null,
+        "Parent": null
+      }
+    ],
+    "EvidenceRecord": [],
+    "Certificate": [
+      {
+        "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+        "SubjectDistinguishedName": [
+          {
+            "value": "cn=arubapec eu qualified certificates ocsp responder g1,ou=qualified trust service provider,2.5.4.97=#0c1156415449542d3031383739303230353137,o=arubapec s.p.a.,l=arezzo,c=it",
+            "Format": "CANONICAL"
+          },
+          {
+            "value": "CN=ArubaPEC EU Qualified Certificates OCSP Responder G1,OU=Qualified Trust Service Provider,2.5.4.97=#0c1156415449542d3031383739303230353137,O=ArubaPEC S.p.A.,L=Arezzo,C=IT",
+            "Format": "RFC2253"
+          }
+        ],
+        "IssuerDistinguishedName": [
+          {
+            "value": "cn=arubapec eu qualified certificates ca g1,ou=qualified trust service provider,2.5.4.97=#0c1156415449542d3031383739303230353137,o=arubapec s.p.a.,l=arezzo,c=it",
+            "Format": "CANONICAL"
+          },
+          {
+            "value": "CN=ArubaPEC EU Qualified Certificates CA G1,OU=Qualified Trust Service Provider,2.5.4.97=#0c1156415449542d3031383739303230353137,O=ArubaPEC S.p.A.,L=Arezzo,C=IT",
+            "Format": "RFC2253"
+          }
+        ],
+        "SerialNumber": 7211017626660599000,
+        "SubjectSerialNumber": null,
+        "CommonName": "ArubaPEC EU Qualified Certificates OCSP Responder G1",
+        "Locality": "Arezzo",
+        "State": null,
+        "CountryName": "IT",
+        "OrganizationIdentifier": "VATIT-01879020517",
+        "OrganizationName": "ArubaPEC S.p.A.",
+        "OrganizationalUnit": "Qualified Trust Service Provider",
+        "Title": null,
+        "GivenName": null,
+        "Surname": null,
+        "Pseudonym": null,
+        "Email": null,
+        "Source": [
+          "OCSP_RESPONSE"
+        ],
+        "NotAfter": "2029-04-26T15:42:44Z",
+        "NotBefore": "2023-04-28T15:42:44Z",
+        "PublicKeySize": 2048,
+        "PublicKeyEncryptionAlgo": "RSA",
+        "EntityKey": "EK-66283CA2B7A2B21572EE28EE29A43827355461E7B89F075CFB13B4C30B2C4316",
+        "IssuerEntityKey": {
+          "value": "EK-017C6AFADCFC409A781E70A94D9874AF069169F884E45BC7188E9BDBE3C1F6F8",
+          "key": true,
+          "subjectName": true
+        },
+        "BasicSignature": {
+          "EncryptionAlgoUsedToSignThisToken": "RSA",
+          "KeyLengthUsedToSignThisToken": "4096",
+          "DigestAlgoUsedToSignThisToken": "SHA256",
+          "SignatureIntact": true,
+          "SignatureValid": true
+        },
+        "SigningCertificate": {
+          "PublicKey": null,
+          "Certificate": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+        },
+        "ChainItem": [
+          {
+            "Certificate": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+          }
+        ],
+        "Trusted": {
+          "value": false,
+          "startDate": null,
+          "sunsetDate": null
+        },
+        "SelfSigned": false,
+        "certificateExtensions": [
+          {
+            "AuthorityKeyIdentifier": {
+              "keyIdentifier": "xm87hXvRJrF4mkKkJWkM9v96oGc=",
+              "authorityCertIssuerSerial": null,
+              "octets": null,
+              "OID": "2.5.29.35",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "SubjectKeyIdentifier": {
+              "ski": "cgDWhR6d76a/UUk1bY6Vm9LpV5I=",
+              "octets": null,
+              "OID": "2.5.29.14",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "BasicConstraints": {
+              "octets": null,
+              "OID": "2.5.29.19",
+              "description": null,
+              "critical": true,
+              "CA": false,
+              "pathLenConstraint": null
+            }
+          },
+          {
+            "KeyUsages": {
+              "keyUsageBit": [
+                "digitalSignature"
+              ],
+              "octets": null,
+              "OID": "2.5.29.15",
+              "description": null,
+              "critical": true
+            }
+          },
+          {
+            "ExtendedKeyUsages": {
+              "extendedKeyUsageOid": [
+                {
+                  "value": "1.3.6.1.5.5.7.3.9",
+                  "Description": "ocspSigning"
+                }
+              ],
+              "octets": null,
+              "OID": "2.5.29.37",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "CRLDistributionPoints": {
+              "crlUrl": [
+                "http://crl01.pec.it/va/arubapec-eidas-g1/crl"
+              ],
+              "octets": null,
+              "OID": "2.5.29.31",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "IdPkixOcspNoCheck": {
+              "octets": null,
+              "OID": "1.3.6.1.5.5.7.48.1.5",
+              "description": null,
+              "critical": false,
+              "present": true
+            }
+          },
+          {
+            "CertificateExtension": {
+              "octets": "BBQwEoEQaW5mb0BhcnViYXBlYy5pdA==",
+              "OID": "2.5.29.18",
+              "description": "issuerAlternativeName",
+              "critical": false
+            }
+          }
+        ],
+        "TrustServiceProvider": [
+          {
+            "TSPName": [
+              {
+                "value": "Aruba Posta Elettronica Certificata S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "Aruba Posta Elettronica Certificata S.p.A.",
+                "lang": "it"
+              }
+            ],
+            "TSPTradeName": [
+              {
+                "value": "ArubaPEC S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "Aruba PEC S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "ArubaPEC S.p.A.",
+                "lang": "it"
+              }
+            ],
+            "TSPRegistrationIdentifier": [
+              "VATIT-01879020517"
+            ],
+            "TrustService": [
+              {
+                "ServiceName": [
+                  {
+                    "value": "CN=ArubaPEC EU Qualified Certificates CA G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C =IT",
+                    "lang": "en"
+                  }
+                ],
+                "ServiceType": "http://uri.etsi.org/TrstSvc/Svctype/CA/QC",
+                "Status": "http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted",
+                "StartDate": "2017-05-10T13:45:00Z",
+                "EndDate": null,
+                "Qualifier": null,
+                "AdditionalServiceInfoUri": [
+                  "http://uri.etsi.org/TrstSvc/TrustedList/SvcInfoExt/ForeSignatures"
+                ],
+                "ServiceSupplyPoint": null,
+                "ExpiredCertsRevocationInfo": "2017-04-24T06:28:06Z",
+                "MRATrustServiceMapping": null,
+                "ServiceDigitalIdentifier": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+                "enactedMRA": null
+              }
+            ],
+            "TL": "TL-716A43AE73126C30D04EFADFCDFBCD0542830FA604B0192756664DE72B204FA1",
+            "LOTL": "LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B"
+          }
+        ],
+        "CertificateRevocation": null,
+        "Base64Encoded": null,
+        "DigestAlgoAndValue": {
+          "DigestMethod": "SHA256",
+          "DigestValue": "cWquwhcka7hRXv7RaH0ki2pM6EPkf4pZuwmpPjVI7lA=",
+          "match": null
+        },
+        "Duplicated": null
+      },
+      {
+        "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+        "SubjectDistinguishedName": [
+          {
+            "value": "2.5.4.46=#131457535245462d3434333736353635393735313032,cn=antonio castaldo,2.5.4.5=#131654494e49542d4353544e544e35345033304232323757,2.5.4.42=#0c07414e544f4e494f,2.5.4.4=#0c0843415354414c444f,c=it",
+            "Format": "CANONICAL"
+          },
+          {
+            "value": "2.5.4.46=#131457535245462d3434333736353635393735313032,CN=ANTONIO CASTALDO,2.5.4.5=#131654494e49542d4353544e544e35345033304232323757,2.5.4.42=#0c07414e544f4e494f,2.5.4.4=#0c0843415354414c444f,C=IT",
+            "Format": "RFC2253"
+          }
+        ],
+        "IssuerDistinguishedName": [
+          {
+            "value": "cn=arubapec eu qualified certificates ca g1,ou=qualified trust service provider,2.5.4.97=#0c1156415449542d3031383739303230353137,o=arubapec s.p.a.,l=arezzo,c=it",
+            "Format": "CANONICAL"
+          },
+          {
+            "value": "CN=ArubaPEC EU Qualified Certificates CA G1,OU=Qualified Trust Service Provider,2.5.4.97=#0c1156415449542d3031383739303230353137,O=ArubaPEC S.p.A.,L=Arezzo,C=IT",
+            "Format": "RFC2253"
+          }
+        ],
+        "SerialNumber": 2.110833166475524e+37,
+        "SubjectSerialNumber": "TINIT-CSTNTN54P30B227W",
+        "CommonName": "ANTONIO CASTALDO",
+        "Locality": null,
+        "State": null,
+        "CountryName": "IT",
+        "OrganizationIdentifier": null,
+        "OrganizationName": null,
+        "OrganizationalUnit": null,
+        "Title": null,
+        "GivenName": "ANTONIO",
+        "Surname": "CASTALDO",
+        "Pseudonym": null,
+        "Email": null,
+        "Source": [
+          "SIGNATURE"
+        ],
+        "NotAfter": "2028-04-26T07:46:47Z",
+        "NotBefore": "2025-03-19T14:54:47Z",
+        "PublicKeySize": 2048,
+        "PublicKeyEncryptionAlgo": "RSA",
+        "EntityKey": "EK-E791E8D8F4B6609CB491F4E09A0FF70F35BBB7DF0B098CA8A048D5AAEAFB1B",
+        "IssuerEntityKey": {
+          "value": "EK-017C6AFADCFC409A781E70A94D9874AF069169F884E45BC7188E9BDBE3C1F6F8",
+          "key": true,
+          "subjectName": true
+        },
+        "BasicSignature": {
+          "EncryptionAlgoUsedToSignThisToken": "RSA",
+          "KeyLengthUsedToSignThisToken": "4096",
+          "DigestAlgoUsedToSignThisToken": "SHA256",
+          "SignatureIntact": true,
+          "SignatureValid": true
+        },
+        "SigningCertificate": {
+          "PublicKey": null,
+          "Certificate": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+        },
+        "ChainItem": [
+          {
+            "Certificate": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+          }
+        ],
+        "Trusted": {
+          "value": false,
+          "startDate": null,
+          "sunsetDate": null
+        },
+        "SelfSigned": false,
+        "certificateExtensions": [
+          {
+            "AuthorityKeyIdentifier": {
+              "keyIdentifier": "xm87hXvRJrF4mkKkJWkM9v96oGc=",
+              "authorityCertIssuerSerial": null,
+              "octets": null,
+              "OID": "2.5.29.35",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "SubjectKeyIdentifier": {
+              "ski": "9x7LEYe92lAQQdtyjuLqjd2qvTQ=",
+              "octets": null,
+              "OID": "2.5.29.14",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "KeyUsages": {
+              "keyUsageBit": [
+                "nonRepudiation"
+              ],
+              "octets": null,
+              "OID": "2.5.29.15",
+              "description": null,
+              "critical": true
+            }
+          },
+          {
+            "CertificatePolicies": {
+              "certificatePolicy": [
+                {
+                  "value": "0.4.0.194112.1.2",
+                  "Description": "qcp-natural-qscd",
+                  "cpsUrl": null
+                },
+                {
+                  "value": "1.3.6.1.4.1.29741.1.7.1",
+                  "Description": null,
+                  "cpsUrl": "https://www.pec.it/repository/arubapec-qualif-cps.pdf"
+                },
+                {
+                  "value": "1.3.76.16.6",
+                  "Description": null,
+                  "cpsUrl": null
+                }
+              ],
+              "octets": null,
+              "OID": "2.5.29.32",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "AuthorityInformationAccess": {
+              "caIssuersUrl": [
+                "http://cacert.pec.it/certs/arubapec-eidas-g1"
+              ],
+              "ocspUrl": [
+                "http://ocsp01.pec.it/va/arubapec-eidas-g1"
+              ],
+              "octets": null,
+              "OID": "1.3.6.1.5.5.7.1.1",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "CRLDistributionPoints": {
+              "crlUrl": [
+                "http://crl01.pec.it/va/arubapec-eidas-g1/crl"
+              ],
+              "octets": null,
+              "OID": "2.5.29.31",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "QcStatements": {
+              "QcCompliance": {
+                "present": true
+              },
+              "QcEuLimitValue": null,
+              "QcEuRetentionPeriod": 20,
+              "QcSSCD": {
+                "present": true
+              },
+              "PdsLocation": [
+                {
+                  "value": "https://www.pec.it/repository/arubapec-qualif-pds-it.pdf",
+                  "lang": "it"
+                },
+                {
+                  "value": "https://www.pec.it/repository/arubapec-qualif-pds-en.pdf",
+                  "lang": "en"
+                }
+              ],
+              "QcType": [],
+              "CountryName": [],
+              "SemanticsIdentifier": null,
+              "PSD2QcInfo": null,
+              "QSCDCountryName": null,
+              "QcIdentMethod": null,
+              "OtherOID": null,
+              "MRACertificateMapping": null,
+              "octets": null,
+              "OID": "1.3.6.1.5.5.7.1.3",
+              "description": null,
+              "critical": false,
+              "enactedMRA": null
+            }
+          },
+          {
+            "CertificateExtension": {
+              "octets": "BBQwEoEQaW5mb0BhcnViYXBlYy5pdA==",
+              "OID": "2.5.29.18",
+              "description": "issuerAlternativeName",
+              "critical": false
+            }
+          }
+        ],
+        "TrustServiceProvider": [
+          {
+            "TSPName": [
+              {
+                "value": "Aruba Posta Elettronica Certificata S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "Aruba Posta Elettronica Certificata S.p.A.",
+                "lang": "it"
+              }
+            ],
+            "TSPTradeName": [
+              {
+                "value": "ArubaPEC S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "Aruba PEC S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "ArubaPEC S.p.A.",
+                "lang": "it"
+              }
+            ],
+            "TSPRegistrationIdentifier": [
+              "VATIT-01879020517"
+            ],
+            "TrustService": [
+              {
+                "ServiceName": [
+                  {
+                    "value": "CN=ArubaPEC EU Qualified Certificates CA G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C =IT",
+                    "lang": "en"
+                  }
+                ],
+                "ServiceType": "http://uri.etsi.org/TrstSvc/Svctype/CA/QC",
+                "Status": "http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted",
+                "StartDate": "2017-05-10T13:45:00Z",
+                "EndDate": null,
+                "Qualifier": [],
+                "AdditionalServiceInfoUri": [
+                  "http://uri.etsi.org/TrstSvc/TrustedList/SvcInfoExt/ForeSignatures"
+                ],
+                "ServiceSupplyPoint": null,
+                "ExpiredCertsRevocationInfo": "2017-04-24T06:28:06Z",
+                "MRATrustServiceMapping": null,
+                "ServiceDigitalIdentifier": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+                "enactedMRA": null
+              }
+            ],
+            "TL": "TL-716A43AE73126C30D04EFADFCDFBCD0542830FA604B0192756664DE72B204FA1",
+            "LOTL": "LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B"
+          }
+        ],
+        "CertificateRevocation": [
+          {
+            "Status": "GOOD",
+            "Reason": null,
+            "RevocationDate": null,
+            "Revocation": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68"
+          }
+        ],
+        "Base64Encoded": null,
+        "DigestAlgoAndValue": {
+          "DigestMethod": "SHA256",
+          "DigestValue": "pBJka1j1Bus3jJqWingSAB5LnaXWJiNAGTANANx+aiY=",
+          "match": null
+        },
+        "Duplicated": null
+      },
+      {
+        "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+        "SubjectDistinguishedName": [
+          {
+            "value": "cn=arubapec eu qualified certificates ca g1,ou=qualified trust service provider,2.5.4.97=#0c1156415449542d3031383739303230353137,o=arubapec s.p.a.,l=arezzo,c=it",
+            "Format": "CANONICAL"
+          },
+          {
+            "value": "CN=ArubaPEC EU Qualified Certificates CA G1,OU=Qualified Trust Service Provider,2.5.4.97=#0c1156415449542d3031383739303230353137,O=ArubaPEC S.p.A.,L=Arezzo,C=IT",
+            "Format": "RFC2253"
+          }
+        ],
+        "IssuerDistinguishedName": [
+          {
+            "value": "cn=arubapec eu qualified certificates ca g1,ou=qualified trust service provider,2.5.4.97=#0c1156415449542d3031383739303230353137,o=arubapec s.p.a.,l=arezzo,c=it",
+            "Format": "CANONICAL"
+          },
+          {
+            "value": "CN=ArubaPEC EU Qualified Certificates CA G1,OU=Qualified Trust Service Provider,2.5.4.97=#0c1156415449542d3031383739303230353137,O=ArubaPEC S.p.A.,L=Arezzo,C=IT",
+            "Format": "RFC2253"
+          }
+        ],
+        "SerialNumber": 5569542151146973000,
+        "SubjectSerialNumber": null,
+        "CommonName": "ArubaPEC EU Qualified Certificates CA G1",
+        "Locality": "Arezzo",
+        "State": null,
+        "CountryName": "IT",
+        "OrganizationIdentifier": "VATIT-01879020517",
+        "OrganizationName": "ArubaPEC S.p.A.",
+        "OrganizationalUnit": "Qualified Trust Service Provider",
+        "Title": null,
+        "GivenName": null,
+        "Surname": null,
+        "Pseudonym": null,
+        "Email": null,
+        "Source": [
+          "TRUSTED_LIST"
+        ],
+        "NotAfter": "2037-04-21T06:28:06Z",
+        "NotBefore": "2017-04-26T06:28:06Z",
+        "PublicKeySize": 4096,
+        "PublicKeyEncryptionAlgo": "RSA",
+        "EntityKey": "EK-017C6AFADCFC409A781E70A94D9874AF069169F884E45BC7188E9BDBE3C1F6F8",
+        "IssuerEntityKey": {
+          "value": "EK-017C6AFADCFC409A781E70A94D9874AF069169F884E45BC7188E9BDBE3C1F6F8",
+          "key": true,
+          "subjectName": true
+        },
+        "BasicSignature": {
+          "EncryptionAlgoUsedToSignThisToken": "RSA",
+          "KeyLengthUsedToSignThisToken": "4096",
+          "DigestAlgoUsedToSignThisToken": "SHA256",
+          "SignatureIntact": true,
+          "SignatureValid": true
+        },
+        "SigningCertificate": null,
+        "ChainItem": [],
+        "Trusted": {
+          "value": true,
+          "startDate": "2017-05-10T13:45:00Z",
+          "sunsetDate": null
+        },
+        "SelfSigned": true,
+        "certificateExtensions": [
+          {
+            "AuthorityKeyIdentifier": {
+              "keyIdentifier": "xm87hXvRJrF4mkKkJWkM9v96oGc=",
+              "authorityCertIssuerSerial": null,
+              "octets": null,
+              "OID": "2.5.29.35",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "SubjectKeyIdentifier": {
+              "ski": "xm87hXvRJrF4mkKkJWkM9v96oGc=",
+              "octets": null,
+              "OID": "2.5.29.14",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "BasicConstraints": {
+              "octets": null,
+              "OID": "2.5.29.19",
+              "description": null,
+              "critical": true,
+              "CA": true,
+              "pathLenConstraint": 0
+            }
+          },
+          {
+            "KeyUsages": {
+              "keyUsageBit": [
+                "keyCertSign",
+                "crlSign"
+              ],
+              "octets": null,
+              "OID": "2.5.29.15",
+              "description": null,
+              "critical": true
+            }
+          },
+          {
+            "CertificatePolicies": {
+              "certificatePolicy": [
+                {
+                  "value": "1.3.6.1.4.1.29741",
+                  "Description": null,
+                  "cpsUrl": "https://www.pec.it/repository/arubapec-qualif-cps.pdf"
+                }
+              ],
+              "octets": null,
+              "OID": "2.5.29.32",
+              "description": null,
+              "critical": false
+            }
+          },
+          {
+            "SubjectAlternativeNames": {
+              "subjectAlternativeName": [
+                {
+                  "value": "info@arubapec.it",
+                  "type": "rfc822Name"
+                }
+              ],
+              "octets": null,
+              "OID": "2.5.29.17",
+              "description": null,
+              "critical": false
+            }
+          }
+        ],
+        "TrustServiceProvider": [
+          {
+            "TSPName": [
+              {
+                "value": "Aruba Posta Elettronica Certificata S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "Aruba Posta Elettronica Certificata S.p.A.",
+                "lang": "it"
+              }
+            ],
+            "TSPTradeName": [
+              {
+                "value": "ArubaPEC S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "Aruba PEC S.p.A.",
+                "lang": "en"
+              },
+              {
+                "value": "ArubaPEC S.p.A.",
+                "lang": "it"
+              }
+            ],
+            "TSPRegistrationIdentifier": [
+              "VATIT-01879020517"
+            ],
+            "TrustService": [
+              {
+                "ServiceName": [
+                  {
+                    "value": "CN=ArubaPEC EU Qualified Certificates CA G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C =IT",
+                    "lang": "en"
+                  }
+                ],
+                "ServiceType": "http://uri.etsi.org/TrstSvc/Svctype/CA/QC",
+                "Status": "http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/granted",
+                "StartDate": "2017-05-10T13:45:00Z",
+                "EndDate": null,
+                "Qualifier": null,
+                "AdditionalServiceInfoUri": [
+                  "http://uri.etsi.org/TrstSvc/TrustedList/SvcInfoExt/ForeSignatures"
+                ],
+                "ServiceSupplyPoint": null,
+                "ExpiredCertsRevocationInfo": "2017-04-24T06:28:06Z",
+                "MRATrustServiceMapping": null,
+                "ServiceDigitalIdentifier": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+                "enactedMRA": null
+              }
+            ],
+            "TL": "TL-716A43AE73126C30D04EFADFCDFBCD0542830FA604B0192756664DE72B204FA1",
+            "LOTL": "LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B"
+          }
+        ],
+        "CertificateRevocation": null,
+        "Base64Encoded": null,
+        "DigestAlgoAndValue": {
+          "DigestMethod": "SHA256",
+          "DigestValue": "zW1XCldXyZrpYzSZZml3Yr+lCzaxRhI1oyUmJ8r5fYA=",
+          "match": null
+        },
+        "Duplicated": null
+      }
+    ],
+    "Revocation": [
+      {
+        "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+        "Origin": "EXTERNAL",
+        "Type": "OCSP",
+        "SourceAddress": "http://ocsp01.pec.it/va/arubapec-eidas-g1",
+        "ProductionDate": "2026-05-05T10:18:31Z",
+        "ThisUpdate": "2026-05-05T09:47:37Z",
+        "NextUpdate": "2026-05-06T09:47:37Z",
+        "CRLNumber": null,
+        "ExpiredCertsOnCRL": null,
+        "ArchiveCutOff": "2017-04-26T06:28:06Z",
+        "CertHashExtensionPresent": false,
+        "CertHashExtensionMatch": false,
+        "BasicSignature": {
+          "EncryptionAlgoUsedToSignThisToken": "RSA",
+          "KeyLengthUsedToSignThisToken": "2048",
+          "DigestAlgoUsedToSignThisToken": "SHA256",
+          "SignatureIntact": true,
+          "SignatureValid": true
+        },
+        "SigningCertificate": {
+          "PublicKey": null,
+          "Certificate": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50"
+        },
+        "ChainItem": [
+          {
+            "Certificate": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50"
+          },
+          {
+            "Certificate": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+          }
+        ],
+        "FoundCertificates": {
+          "RelatedCertificate": [
+            {
+              "Origin": [
+                "BASIC_OCSP_RESP"
+              ],
+              "CertificateRef": [
+                {
+                  "Origin": "SIGNING_CERTIFICATE",
+                  "IssuerSerial": null,
+                  "DigestAlgoAndValue": null,
+                  "SerialInfo": {
+                    "IssuerName": "CN=ArubaPEC EU Qualified Certificates OCSP Responder G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C=IT",
+                    "SerialNumber": null,
+                    "Ski": null,
+                    "Current": null
+                  },
+                  "X509Url": null
+                }
+              ],
+              "Certificate": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50"
+            }
+          ],
+          "OrphanCertificate": []
+        },
+        "Base64Encoded": null,
+        "DigestAlgoAndValue": {
+          "DigestMethod": "SHA256",
+          "DigestValue": "e088wH9c4kUEWpcATUJZFqh8Jpzhk39wYK7/YLeeXGg=",
+          "match": null
+        },
+        "Duplicated": null
+      }
+    ],
+    "Timestamp": [],
+    "OrphanTokens": null,
+    "SignerData": [
+      {
+        "Id": "D-F9CB12F3B8098000128FD3C93082DCF4A451773B494F7FAC68706396C410AE83",
+        "ReferencedName": null,
+        "DigestAlgoAndValue": {
+          "DigestMethod": "SHA256",
+          "DigestValue": "gzMkPbWfYKsjKRI0+IBWogP+q8Zzr1sV+OOJfP/9+KM=",
+          "match": null
+        },
+        "Duplicated": null,
+        "Parent": null
+      }
+    ],
+    "TrustedList": [
+      {
+        "Id": "TL-716A43AE73126C30D04EFADFCDFBCD0542830FA604B0192756664DE72B204FA1",
+        "CountryCode": "IT",
+        "Url": "https://eidas.agid.gov.it/TL/TSL-IT.xml",
+        "TSLType": "http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUgeneric",
+        "SequenceNumber": 219,
+        "Version": 6,
+        "LastLoading": "2026-05-05T10:09:11Z",
+        "IssueDate": "2026-04-28T22:00:01Z",
+        "NextUpdate": "2026-10-27T14:00:00Z",
+        "WellSigned": true,
+        "StructuralValidation": {
+          "Message": null,
+          "valid": true
+        },
+        "LOTL": null,
+        "parent": "LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B",
+        "mra": null
+      },
+      {
+        "Id": "LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B",
+        "CountryCode": "EU",
+        "Url": "https://ec.europa.eu/tools/lotl/eu-lotl.xml",
+        "TSLType": "http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUlistofthelists",
+        "SequenceNumber": 387,
+        "Version": 6,
+        "LastLoading": "2026-05-05T10:09:00Z",
+        "IssueDate": "2026-04-30T12:20:19Z",
+        "NextUpdate": "2026-10-21T12:20:19Z",
+        "WellSigned": true,
+        "StructuralValidation": {
+          "Message": null,
+          "valid": true
+        },
+        "LOTL": true,
+        "parent": null,
+        "mra": null
+      }
+    ]
+  },
+  "SimpleReport": {
+    "ValidationPolicy": {
+      "PolicyName": "QES AES/QC AES TL based",
+      "PolicyDescription": "Validates electronic signatures and indicates whether they are advanced electronic signatures (AES), AES supported by a qualified certificate (AES/QC) or a\n\t\tqualified electronic signature (QES). All certificates and their related chains supporting the signatures are validated against the EU Member State Trusted Lists (this includes\n\t\tsigner's certificate and certificates used to validate certificate validity status services - CRLs, OCSP, and time-stamps).\n\t"
+    },
+    "DocumentName": "ricardian-Vallombrosa.pdf.p7m",
+    "ValidSignaturesCount": 1,
+    "SignaturesCount": 1,
+    "ContainerType": null,
+    "PDFAInfo": null,
+    "signatureOrTimestampOrEvidenceRecord": [
+      {
+        "Signature": {
+          "SigningTime": "2026-05-05T10:14:51Z",
+          "BestSignatureTime": "2026-05-05T10:18:30Z",
+          "SignedBy": "ANTONIO CASTALDO",
+          "SignatureLevel": {
+            "value": "QESig",
+            "description": "Qualified Electronic Signature"
+          },
+          "SignatureScope": [
+            {
+              "value": "Full document",
+              "Id": "D-F9CB12F3B8098000128FD3C93082DCF4A451773B494F7FAC68706396C410AE83",
+              "name": null,
+              "scope": "FULL"
+            }
+          ],
+          "Timestamps": null,
+          "EvidenceRecords": null,
+          "Filename": null,
+          "CertificateChain": {
+            "Certificate": [
+              {
+                "QualifiedName": "ANTONIO CASTALDO",
+                "TrustAnchors": null,
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                "trusted": null,
+                "sunsetDate": null
+              },
+              {
+                "QualifiedName": "ArubaPEC EU Qualified Certificates CA G1",
+                "TrustAnchors": {
+                  "TrustAnchor": [
+                    {
+                      "TSLType": "http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUgeneric",
+                      "TrustServiceProvider": "Aruba Posta Elettronica Certificata S.p.A.",
+                      "TrustServiceProviderRegistrationId": "VATIT-01879020517",
+                      "TrustServiceName": [
+                        "CN=ArubaPEC EU Qualified Certificates CA G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C =IT"
+                      ],
+                      "countryCode": "IT"
+                    }
+                  ]
+                },
+                "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+                "trusted": true,
+                "sunsetDate": null
+              }
+            ]
+          },
+          "Indication": "TOTAL_PASSED",
+          "SubIndication": null,
+          "AdESValidationDetails": null,
+          "QualificationDetails": null,
+          "ExtensionPeriodMin": "2026-05-06T09:47:37Z",
+          "ExtensionPeriodMax": "2028-04-26T07:46:47Z",
+          "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF",
+          "CounterSignature": null,
+          "ParentId": null,
+          "SignatureFormat": "CAdES-BASELINE-B"
+        }
+      }
+    ],
+    "Semantic": null,
+    "ValidationTime": "2026-05-05T10:18:30Z"
+  },
+  "DetailedReport": {
+    "signatureOrTimestampOrEvidenceRecord": [
+      {
+        "Signature": {
+          "ValidationProcessBasicSignature": {
+            "Constraint": [
+              {
+                "Name": {
+                  "value": "Is the result of the 'Format Checking' building block conclusive?",
+                  "Key": "BSV_IFCRC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF-FC",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the result of the 'Identification of Signing Certificate' building block conclusive?",
+                  "Key": "BSV_IISCRC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF-ISC",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the result of the 'Validation Context Initialization' building block conclusive?",
+                  "Key": "BSV_IVCIRC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF-VCI",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the result of the 'X.509 Certificate Validation' building block conclusive?",
+                  "Key": "BSV_IXCVRC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF-XCV",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the result of the 'Cryptographic Verification' building block conclusive?",
+                  "Key": "BSV_ICVRC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF-CV",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the result of the 'Signature Acceptance Validation' building block conclusive?",
+                  "Key": "BSV_ISAVRC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF-SAV",
+                "BlockType": null
+              }
+            ],
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "Title": "Validation Process for Basic Signatures",
+            "ProofOfExistence": {
+              "Time": "2026-05-05T10:18:30Z",
+              "TimestampId": null
+            }
+          },
+          "Timestamp": [],
+          "EvidenceRecord": [],
+          "ValidationProcessLongTermData": {
+            "CRS": [
+              {
+                "RAC": [],
+                "AcceptableRevocationId": null,
+                "Constraint": [
+                  {
+                    "Name": {
+                      "value": "Is the result of the revocation data basic validation process acceptable?",
+                      "Key": "ADEST_RORPIIC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Id = R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                    "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                    "BlockType": "REV_BBB"
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the revocation acceptance check conclusive?",
+                      "Key": "BBB_XCV_RAC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Id = R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68, thisUpdate = 2026-05-05 09:47, production time = 2026-05-05 10:18",
+                    "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                    "BlockType": "RAC"
+                  },
+                  {
+                    "Name": {
+                      "value": "Is an acceptable revocation data present for the certificate?",
+                      "Key": "BBB_XCV_IARDPFC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Latest acceptable revocation : R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                    "Id": null,
+                    "BlockType": null
+                  }
+                ],
+                "Conclusion": {
+                  "Indication": "PASSED",
+                  "SubIndication": null,
+                  "Errors": null,
+                  "Warnings": null,
+                  "Infos": null
+                },
+                "Title": "Certificate Revocation Data Selector",
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                "LatestAcceptableRevocationId": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68"
+              }
+            ],
+            "RFC": null,
+            "Constraint": [
+              {
+                "Name": {
+                  "value": "Is the result of the Basic Validation Process acceptable?",
+                  "Key": "LTV_ABSV"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the revocation data present for the certificate?",
+                  "Key": "BBB_XCV_IRDPFC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                "BlockType": "LTV_SUB_XCV"
+              },
+              {
+                "Name": {
+                  "value": "Is an acceptable revocation data present for the certificate?",
+                  "Key": "BBB_XCV_IARDPFC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": "Latest acceptable revocation : R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                "BlockType": "CRS"
+              },
+              {
+                "Name": {
+                  "value": "Is the best-signature-time not before the issuance date of the signing certificate?",
+                  "Key": "TSV_IBSTAIDOSC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": "Best-signature-time : 2026-05-05 10:18, certificate notBefore : 2025-03-19 14:54",
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Are cryptographic constraints met for the signed data objects?",
+                  "Key": "ACCM"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": "Digest algorithm SHA256 at validation time : 2026-05-05 10:18",
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF",
+                "BlockType": "AOV"
+              },
+              {
+                "Name": {
+                  "value": "Is the result of the 'Signature Acceptance Validation' building block conclusive?",
+                  "Key": "BSV_ISAVRC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF-SAV",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Are cryptographic constraints met for the signature's certificate chain?",
+                  "Key": "ACCM"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2026-05-05 10:18",
+                "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF",
+                "BlockType": "AOV"
+              },
+              {
+                "Name": {
+                  "value": "Are cryptographic constraints met for the revocation data signature?",
+                  "Key": "ACCM"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18 (Id : R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68)",
+                "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                "BlockType": "AOV"
+              }
+            ],
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "Title": "Validation Process for Signatures with Time and Signatures with Long-Term Validation Data",
+            "ProofOfExistence": {
+              "Time": "2026-05-05T10:18:30Z",
+              "TimestampId": null
+            }
+          },
+          "ValidationProcessArchivalData": {
+            "Constraint": [
+              {
+                "Name": {
+                  "value": "Is the result of the LTV validation process acceptable?",
+                  "Key": "ARCH_LTVV"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": "LTV"
+              },
+              {
+                "Name": {
+                  "value": "Is long term availability and integrity of validation material present?",
+                  "Key": "ARCH_LTAIVMP"
+                },
+                "Status": "INFORMATION",
+                "Error": null,
+                "Warning": null,
+                "Info": {
+                  "value": "No long term availability and integrity of validation material is present!",
+                  "Key": "ARCH_LTAIVMP_ANS"
+                },
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": "LTA"
+              }
+            ],
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "Title": "Validation Process for Signatures with Archival Data",
+            "ProofOfExistence": {
+              "Time": "2026-05-05T10:18:30Z",
+              "TimestampId": null
+            }
+          },
+          "ValidationSignatureQualification": {
+            "ValidationCertificateQualification": [
+              {
+                "Constraint": [
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a trust service at certificate issuance time?",
+                      "Key": "QUAL_HAS_ATTIME"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a CA/QC?",
+                      "Key": "QUAL_HAS_CAQC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "May a related trust service issue certificates of a suitable type?",
+                      "Key": "QUAL_HAS_TS_CERT_TYPE"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the trust service consistent?",
+                      "Key": "QUAL_TL_SERV_CONS"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Trust service name : CN=ArubaPEC EU Qualified Certificates CA G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C =IT",
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a trust service with a granted status?",
+                      "Key": "QUAL_HAS_GRANTED"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Does the trusted certificate match the trust service?",
+                      "Key": "QUAL_IS_TRUST_CERT_MATCH_SERVICE"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a qualified certificate issuing trust service with valid status?",
+                      "Key": "QUAL_HAS_VALID_CAQC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a consistent by QC trust service declaration?",
+                      "Key": "QUAL_HAS_CONSISTENT_BY_QC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate qualified at issuance time?",
+                      "Key": "QUAL_QC_AT_CC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Can the certificate type be issued by a found trust service?",
+                      "Key": "QUAL_HAS_CERT_TYPE_COVERAGE"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate type unambiguously identified at issuance time?",
+                      "Key": "QUAL_CERT_TYPE_AT_CC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Certificate type is for eSig",
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a consistent by QSCD trust service declaration?",
+                      "Key": "QUAL_HAS_CONSISTENT_BY_QSCD"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Does the private key reside in a QSCD at issuance time?",
+                      "Key": "QUAL_QSCD_AT_CC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  }
+                ],
+                "Conclusion": {
+                  "Indication": "PASSED",
+                  "SubIndication": null,
+                  "Errors": [],
+                  "Warnings": [],
+                  "Infos": []
+                },
+                "Title": "Certificate Qualification at certificate issuance time",
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                "DateTime": "2025-03-19T14:54:47Z",
+                "ValidationTime": "CERTIFICATE_ISSUANCE_TIME",
+                "CertificateQualification": "QC for eSig with QSCD"
+              },
+              {
+                "Constraint": [
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a trust service at best signature time?",
+                      "Key": "QUAL_HAS_ATTIME"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a CA/QC?",
+                      "Key": "QUAL_HAS_CAQC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "May a related trust service issue certificates of a suitable type?",
+                      "Key": "QUAL_HAS_TS_CERT_TYPE"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the trust service consistent?",
+                      "Key": "QUAL_TL_SERV_CONS"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Trust service name : CN=ArubaPEC EU Qualified Certificates CA G1, OU=Qualified Trust Service Provider, OID.2.5.4.97=VATIT-01879020517, O=ArubaPEC S.p.A., L=Arezzo, C =IT",
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a trust service with a granted status?",
+                      "Key": "QUAL_HAS_GRANTED"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Does the trusted certificate match the trust service?",
+                      "Key": "QUAL_IS_TRUST_CERT_MATCH_SERVICE"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a qualified certificate issuing trust service with valid status?",
+                      "Key": "QUAL_HAS_VALID_CAQC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a consistent by QC trust service declaration?",
+                      "Key": "QUAL_HAS_CONSISTENT_BY_QC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate qualified at (best) signing time?",
+                      "Key": "QUAL_QC_AT_ST"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Can the certificate type be issued by a found trust service?",
+                      "Key": "QUAL_HAS_CERT_TYPE_COVERAGE"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate type unambiguously identified at (best) signing time?",
+                      "Key": "QUAL_CERT_TYPE_AT_ST"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Certificate type is for eSig",
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Is the certificate related to a consistent by QSCD trust service declaration?",
+                      "Key": "QUAL_HAS_CONSISTENT_BY_QSCD"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  },
+                  {
+                    "Name": {
+                      "value": "Does the private key reside in a QSCD at (best) signing time?",
+                      "Key": "QUAL_QSCD_AT_ST"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  }
+                ],
+                "Conclusion": {
+                  "Indication": "PASSED",
+                  "SubIndication": null,
+                  "Errors": [],
+                  "Warnings": [],
+                  "Infos": []
+                },
+                "Title": "Certificate Qualification at best signature time",
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                "DateTime": "2026-05-05T10:18:30Z",
+                "ValidationTime": "BEST_SIGNATURE_TIME",
+                "CertificateQualification": "QC for eSig with QSCD"
+              }
+            ],
+            "QWACProcess": null,
+            "Constraint": [
+              {
+                "Name": {
+                  "value": "Is the signature/seal an acceptable AdES digital signature (ETSI EN 319 102-1)?",
+                  "Key": "QUAL_IS_ADES"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Has a trusted list been reached for the certificate chain?",
+                  "Key": "QUAL_CERT_TRUSTED_LIST_REACHED"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the list of trusted lists acceptable?",
+                  "Key": "QUAL_LIST_OF_TRUSTED_LISTS_ACCEPT"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": "Trusted List : https://ec.europa.eu/tools/lotl/eu-lotl.xml",
+                "Id": "LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the trusted list acceptable?",
+                  "Key": "QUAL_TRUSTED_LIST_ACCEPT"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": "Trusted List : https://eidas.agid.gov.it/TL/TSL-IT.xml",
+                "Id": "TL-716A43AE73126C30D04EFADFCDFBCD0542830FA604B0192756664DE72B204FA1",
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Has an acceptable trusted list been found?",
+                  "Key": "QUAL_VALID_TRUSTED_LIST_PRESENT"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the certificate qualified at (best) signing time?",
+                  "Key": "QUAL_QC_AT_ST"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the certificate type unambiguously identified at (best) signing time?",
+                  "Key": "QUAL_CERT_TYPE_AT_ST"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Is the certificate qualified at issuance time?",
+                  "Key": "QUAL_QC_AT_CC"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              },
+              {
+                "Name": {
+                  "value": "Does the private key reside in a QSCD at (best) signing time?",
+                  "Key": "QUAL_QSCD_AT_ST"
+                },
+                "Status": "OK",
+                "Error": null,
+                "Warning": null,
+                "Info": null,
+                "AdditionalInfo": null,
+                "Id": null,
+                "BlockType": null
+              }
+            ],
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "Title": "Signature Qualification",
+            "SignatureQualification": "QESig"
+          },
+          "Conclusion": {
+            "Indication": "TOTAL_PASSED",
+            "SubIndication": null,
+            "Errors": null,
+            "Warnings": null,
+            "Infos": null
+          },
+          "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF",
+          "CounterSignature": null
+        }
+      }
+    ],
+    "BasicBuildingBlocks": [
+      {
+        "FC": null,
+        "ISC": {
+          "CertificateChain": {
+            "ChainItem": [
+              {
+                "Source": "OCSP_RESPONSE",
+                "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50"
+              },
+              {
+                "Source": "TRUSTED_LIST",
+                "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+              }
+            ]
+          },
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Is there an identified candidate for the signing certificate?",
+                "Key": "BBB_ICS_ISCI"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Identification of the Signing Certificate"
+        },
+        "VCI": null,
+        "XCV": {
+          "SubXCV": [
+            {
+              "CrossCertificate": null,
+              "EquivalentCertificate": null,
+              "CRS": null,
+              "RFC": null,
+              "RevocationInfo": null,
+              "Constraint": [
+                {
+                  "Name": {
+                    "value": "Is the certificate signature intact?",
+                    "Key": "BBB_XCV_ICSI"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Does the certificate's issuer DN match the subject DN of the issuer certificate?",
+                    "Key": "BBB_XCV_DCIDNMSDNIC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the certificate's policy tree valid?",
+                    "Key": "BBB_XCV_ICPTV"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Do certificate's subject names satisfy the imposed name constraints?",
+                    "Key": "BBB_XCV_DCSBSINC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Does the certificate contain the authority key identifier certificate extension?",
+                    "Key": "BBB_XCV_IAKIP"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Are all found critical certificate extensions supported?",
+                    "Key": "BBB_XCV_DCCUCE"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the revocation data check required for the certificate?",
+                    "Key": "BBB_XCV_IRDCSFC"
+                  },
+                  "Status": "IGNORED",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+                  "BlockType": "RAC_SUB_XCV"
+                },
+                {
+                  "Name": {
+                    "value": "Are cryptographic constraints met for the certificate?",
+                    "Key": "ACCM"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18 (Id : C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50)",
+                  "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+                  "BlockType": "AOV_XCV"
+                },
+                {
+                  "Name": {
+                    "value": "Is the current time in the validity range of the signer's certificate?",
+                    "Key": "BBB_XCV_ICTIVRSC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Validation time : 2026-05-05 10:18, certificate validity : 2023-04-28 15:42 - 2029-04-26 15:42",
+                  "Id": null,
+                  "BlockType": null
+                }
+              ],
+              "Conclusion": {
+                "Indication": "PASSED",
+                "SubIndication": null,
+                "Errors": [],
+                "Warnings": [],
+                "Infos": []
+              },
+              "Title": "Certificate",
+              "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+              "TrustAnchor": false,
+              "SelfSigned": false
+            },
+            {
+              "CrossCertificate": null,
+              "EquivalentCertificate": null,
+              "CRS": null,
+              "RFC": null,
+              "RevocationInfo": null,
+              "Constraint": [
+                {
+                  "Name": {
+                    "value": "Is the validation time before the certificate's trust sunset date?",
+                    "Key": "BBB_XCV_IVTBCTSD"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Certificate's trust anchor does not have (yet) a sunset date",
+                  "Id": null,
+                  "BlockType": "SUB_XCV_TA"
+                }
+              ],
+              "Conclusion": {
+                "Indication": "PASSED",
+                "SubIndication": null,
+                "Errors": [],
+                "Warnings": [],
+                "Infos": []
+              },
+              "Title": "Certificate",
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+              "TrustAnchor": true,
+              "SelfSigned": true
+            }
+          ],
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Can the certificate chain be built till a trust anchor?",
+                "Key": "BBB_XCV_CCCBB"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the validation time before the certificate's trust sunset date?",
+                "Key": "BBB_XCV_IVTBCTSD"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Certificate's trust anchor does not have (yet) a sunset date",
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+              "BlockType": "SUB_XCV_TA"
+            },
+            {
+              "Name": {
+                "value": "Has a prospective certificate chain valid at validation time been found?",
+                "Key": "BBB_XCV_HPCCVVT"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Validation time : 2026-05-05 10:18",
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the certificate validation conclusive?",
+                "Key": "BBB_XCV_SUB"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+              "BlockType": "SUB_XCV"
+            },
+            {
+              "Name": {
+                "value": "Is the certificate validation conclusive?",
+                "Key": "BBB_XCV_SUB"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+              "BlockType": "SUB_XCV"
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "X509 Certificate Validation"
+        },
+        "CV": {
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Is revocation's signature intact?",
+                "Key": "BBB_CV_ISIR"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Cryptographic Verification"
+        },
+        "SAV": {
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the revocation data signature?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18",
+              "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+              "BlockType": "AOV"
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Signature Acceptance Validation"
+        },
+        "AOV": {
+          "SignatureCryptographicValidation": {
+            "Algorithm": {
+              "Name": "RSA with SHA256",
+              "Uri": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+              "KeyLength": "2048"
+            },
+            "NotAfter": "2029-01-01T00:00:00Z",
+            "ConcernedMaterialDescription": null,
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "TokenId": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68"
+          },
+          "SignedAttributesValidation": null,
+          "DigestMatchersValidation": null,
+          "CertificateChainCryptographicValidation": {
+            "CertificateCryptographicValidation": [
+              {
+                "Algorithm": {
+                  "Name": "RSA with SHA256",
+                  "Uri": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+                  "KeyLength": "4096"
+                },
+                "NotAfter": "2029-01-01T00:00:00Z",
+                "ConcernedMaterialDescription": null,
+                "Conclusion": {
+                  "Indication": "PASSED",
+                  "SubIndication": null,
+                  "Errors": [],
+                  "Warnings": [],
+                  "Infos": []
+                },
+                "TokenId": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50"
+              }
+            ]
+          },
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the revocation data signature?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18",
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the revocation data's issuer certificate?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2026-05-05 10:18",
+              "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+              "BlockType": "AOV_XCV"
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Algorithm Obsolescence Validation",
+          "ValidationTime": "2026-05-05T10:18:30Z"
+        },
+        "PSV": null,
+        "PSV_CRS": null,
+        "PCV": null,
+        "VTS": null,
+        "CertificateChain": {
+          "ChainItem": [
+            {
+              "Source": "OCSP_RESPONSE",
+              "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50"
+            },
+            {
+              "Source": "TRUSTED_LIST",
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+            }
+          ]
+        },
+        "Conclusion": {
+          "Indication": "PASSED",
+          "SubIndication": null,
+          "Errors": [],
+          "Warnings": [],
+          "Infos": []
+        },
+        "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+        "Type": "REVOCATION"
+      },
+      {
+        "FC": {
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Does the signature format correspond to an expected format?",
+                "Key": "BBB_FC_IEFF"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signature identification not ambiguous?",
+                "Key": "BBB_FC_ISD"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signed references identification not ambiguous?",
+                "Key": "BBB_FC_ISRIA"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Format Checking"
+        },
+        "ISC": {
+          "CertificateChain": {
+            "ChainItem": [
+              {
+                "Source": "SIGNATURE",
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26"
+              },
+              {
+                "Source": "TRUSTED_LIST",
+                "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+              }
+            ]
+          },
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Is there an identified candidate for the signing certificate?",
+                "Key": "BBB_ICS_ISCI"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signed attribute: 'cert-digest' of the certificate present?",
+                "Key": "BBB_ICS_ISACDP"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Does the certificate digest value match a digest value found in the certificate reference(s)?",
+                "Key": "BBB_ICS_ICDVV"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Are the issuer distinguished name and the serial number equal?",
+                "Key": "BBB_ICS_AIDNASNE"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Identification of the Signing Certificate"
+        },
+        "VCI": {
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Is the signature policy known?",
+                "Key": "BBB_VCI_ISPK"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Validation Context Initialization"
+        },
+        "XCV": {
+          "SubXCV": [
+            {
+              "CrossCertificate": null,
+              "EquivalentCertificate": null,
+              "CRS": {
+                "RAC": [
+                  {
+                    "RevocationThisUpdate": "2026-05-05T09:47:37Z",
+                    "RevocationProductionDate": "2026-05-05T10:18:31Z",
+                    "CRS": null,
+                    "Constraint": [
+                      {
+                        "Name": {
+                          "value": "Is the revocation status known?",
+                          "Key": "BBB_XCV_ISCUKN"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Has signing certificate been found for the revocation data?",
+                          "Key": "BBB_XCV_REVOC_ISSUER_KNOWN"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Can the certificate chain be built till a trust anchor?",
+                          "Key": "BBB_XCV_CCCBB"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Is revocation's signature intact?",
+                          "Key": "BBB_CV_ISIR"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Is there a 'thisUpdate' field in the revocation data?",
+                          "Key": "BBB_XCV_REVOC_THIS_UPDATE_PRESENT"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Has the revocation data been produced during the issuer certificate validity range?",
+                          "Key": "BBB_XCV_REVOC_ISSUER_VALID_AT_PROD"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": "Revocation data has been produced at 2026-05-05 10:18 which is in the certificate validity range : 2023-04-28 15:42 - 2029-04-26 15:42",
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Does the ResponderId match the OCSP issuer certificate?",
+                          "Key": "BBB_XCV_REVOC_RESPID_MATCH"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Is it not self issued OCSP Response?",
+                          "Key": "BBB_XCV_REVOC_SELF_ISSUED_OCSP"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Has the revocation data been issued after certificate's issuance time?",
+                          "Key": "BBB_XCV_REVOC_AFTER_CERT_NOT_BEFORE"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": "Revocation thisUpdate 2026-05-05 09:47, certificate validity range : 2025-03-19 14:54 - 2028-04-26 07:46",
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Is the revocation data known to contain information about the certificate?",
+                          "Key": "BBB_XCV_REVOC_HAS_CERT_INFO"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": "Revocation thisUpdate 2026-05-05 09:47 is in the certificate validity range : 2025-03-19 14:54 - 2028-04-26 07:46",
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Is certificate's signature intact?",
+                          "Key": "BBB_CV_ISIC"
+                        },
+                        "Status": "OK",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": "Id = C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+                        "Id": null,
+                        "BlockType": null
+                      },
+                      {
+                        "Name": {
+                          "value": "Is the revocation data check required for the certificate?",
+                          "Key": "BBB_XCV_IRDCSFC"
+                        },
+                        "Status": "IGNORED",
+                        "Error": null,
+                        "Warning": null,
+                        "Info": null,
+                        "AdditionalInfo": null,
+                        "Id": "C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50",
+                        "BlockType": "RAC_SUB_XCV"
+                      }
+                    ],
+                    "Conclusion": {
+                      "Indication": "PASSED",
+                      "SubIndication": null,
+                      "Errors": [],
+                      "Warnings": [],
+                      "Infos": []
+                    },
+                    "Title": "Revocation Acceptance Checker",
+                    "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68"
+                  }
+                ],
+                "AcceptableRevocationId": null,
+                "Constraint": [
+                  {
+                    "Name": {
+                      "value": "Is the revocation acceptance check conclusive?",
+                      "Key": "BBB_XCV_RAC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Id = R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68, thisUpdate = 2026-05-05 09:47, production time = 2026-05-05 10:18",
+                    "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                    "BlockType": "RAC"
+                  },
+                  {
+                    "Name": {
+                      "value": "Is an acceptable revocation data present for the certificate?",
+                      "Key": "BBB_XCV_IARDPFC"
+                    },
+                    "Status": "OK",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": "Latest acceptable revocation : R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                    "Id": null,
+                    "BlockType": null
+                  }
+                ],
+                "Conclusion": {
+                  "Indication": "PASSED",
+                  "SubIndication": null,
+                  "Errors": [],
+                  "Warnings": [],
+                  "Infos": []
+                },
+                "Title": "Certificate Revocation Data Selector",
+                "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                "LatestAcceptableRevocationId": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68"
+              },
+              "RFC": {
+                "Constraint": [
+                  {
+                    "Name": {
+                      "value": "Is the revocation information fresh for the certificate?",
+                      "Key": "BBB_RFC_IRIF"
+                    },
+                    "Status": "IGNORED",
+                    "Error": null,
+                    "Warning": null,
+                    "Info": null,
+                    "AdditionalInfo": null,
+                    "Id": null,
+                    "BlockType": null
+                  }
+                ],
+                "Conclusion": {
+                  "Indication": "PASSED",
+                  "SubIndication": null,
+                  "Errors": [],
+                  "Warnings": [],
+                  "Infos": []
+                },
+                "Title": "Revocation Freshness Checker",
+                "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68"
+              },
+              "RevocationInfo": null,
+              "Constraint": [
+                {
+                  "Name": {
+                    "value": "Is the certificate unique?",
+                    "Key": "QUAL_UNIQUE_CERT"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is a pseudonym used?",
+                    "Key": "BBB_XCV_PSEUDO_USE"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is certificate not self-signed?",
+                    "Key": "BBB_XCV_ISNSSC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the certificate signature intact?",
+                    "Key": "BBB_XCV_ICSI"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Does the certificate's issuer DN match the subject DN of the issuer certificate?",
+                    "Key": "BBB_XCV_DCIDNMSDNIC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Does the certificate have an expected key-usage?",
+                    "Key": "BBB_XCV_ISCGKU"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Key usage : [NON_REPUDIATION]",
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the authority info access present?",
+                    "Key": "BBB_XCV_AIA_PRES"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the certificate's policy tree valid?",
+                    "Key": "BBB_XCV_ICPTV"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Do certificate's subject names satisfy the imposed name constraints?",
+                    "Key": "BBB_XCV_DCSBSINC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Does the certificate contain the authority key identifier certificate extension?",
+                    "Key": "BBB_XCV_IAKIP"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Are all found critical certificate extensions supported?",
+                    "Key": "BBB_XCV_DCCUCE"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Are all found certificate extensions allowed for the certificate?",
+                    "Key": "BBB_XCV_DCCFCE"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the revocation info access present?",
+                    "Key": "BBB_XCV_REVOC_PRES"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the revocation data present for the certificate?",
+                    "Key": "BBB_XCV_IRDPFC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": "LTV_SUB_XCV"
+                },
+                {
+                  "Name": {
+                    "value": "Is an acceptable revocation data present for the certificate?",
+                    "Key": "BBB_XCV_IARDPFC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Latest acceptable revocation : R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                  "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                  "BlockType": "CRS"
+                },
+                {
+                  "Name": {
+                    "value": "Is the certificate not revoked?",
+                    "Key": "BBB_XCV_ISCR"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the certificate not on hold?",
+                    "Key": "BBB_XCV_ISCOH"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": null,
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the revocation freshness check conclusive?",
+                    "Key": "BBB_XCV_RFC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Id = R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                  "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                  "BlockType": "RFC"
+                },
+                {
+                  "Name": {
+                    "value": "Are cryptographic constraints met for the certificate?",
+                    "Key": "ACCM"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18 (Id : C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26)",
+                  "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+                  "BlockType": "AOV_XCV"
+                },
+                {
+                  "Name": {
+                    "value": "Are cryptographic constraints met for the revocation data signature?",
+                    "Key": "ACCM"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18",
+                  "Id": "R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68",
+                  "BlockType": "AOV"
+                },
+                {
+                  "Name": {
+                    "value": "Is the current time in the validity range of the signer's certificate?",
+                    "Key": "BBB_XCV_ICTIVRSC"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Validation time : 2026-05-05 10:18, certificate validity : 2025-03-19 14:54 - 2028-04-26 07:46",
+                  "Id": null,
+                  "BlockType": null
+                },
+                {
+                  "Name": {
+                    "value": "Is the current time in the validity range of the certificate of the issuer of the revocation information?",
+                    "Key": "BBB_XCV_ICTIVRCIRI"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Issuer certificate C-716AAEC217246BB8515EFED1687D248B6A4CE843E47F8A59BB09A93E3548EE50 of revocation data R-7B4F3CC07F5CE245045A97004D425916A87C269CE1937F7060AEFF60B79E5C68 with validity range : 2023-04-28 15:42 - 2029-04-26 15:42 and validation time 2026-05-05 10:18",
+                  "Id": null,
+                  "BlockType": null
+                }
+              ],
+              "Conclusion": {
+                "Indication": "PASSED",
+                "SubIndication": null,
+                "Errors": [],
+                "Warnings": [],
+                "Infos": []
+              },
+              "Title": "Certificate",
+              "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+              "TrustAnchor": false,
+              "SelfSigned": false
+            },
+            {
+              "CrossCertificate": null,
+              "EquivalentCertificate": null,
+              "CRS": null,
+              "RFC": null,
+              "RevocationInfo": null,
+              "Constraint": [
+                {
+                  "Name": {
+                    "value": "Is the validation time before the certificate's trust sunset date?",
+                    "Key": "BBB_XCV_IVTBCTSD"
+                  },
+                  "Status": "OK",
+                  "Error": null,
+                  "Warning": null,
+                  "Info": null,
+                  "AdditionalInfo": "Certificate's trust anchor does not have (yet) a sunset date",
+                  "Id": null,
+                  "BlockType": "SUB_XCV_TA"
+                }
+              ],
+              "Conclusion": {
+                "Indication": "PASSED",
+                "SubIndication": null,
+                "Errors": [],
+                "Warnings": [],
+                "Infos": []
+              },
+              "Title": "Certificate",
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+              "TrustAnchor": true,
+              "SelfSigned": true
+            }
+          ],
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Can the certificate chain be built till a trust anchor?",
+                "Key": "BBB_XCV_CCCBB"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the validation time before the certificate's trust sunset date?",
+                "Key": "BBB_XCV_IVTBCTSD"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Certificate's trust anchor does not have (yet) a sunset date",
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+              "BlockType": "SUB_XCV_TA"
+            },
+            {
+              "Name": {
+                "value": "Has a prospective certificate chain valid at validation time been found?",
+                "Key": "BBB_XCV_HPCCVVT"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Validation time : 2026-05-05 10:18",
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the certificate validation conclusive?",
+                "Key": "BBB_XCV_SUB"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+              "BlockType": "SUB_XCV"
+            },
+            {
+              "Name": {
+                "value": "Is the certificate validation conclusive?",
+                "Key": "BBB_XCV_SUB"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80",
+              "BlockType": "SUB_XCV"
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "X509 Certificate Validation"
+        },
+        "CV": {
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Has the reference data object been found?",
+                "Key": "BBB_CV_IRDOF"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Reference : MESSAGE_DIGEST",
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the reference data object intact?",
+                "Key": "BBB_CV_IRDOI"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Reference : MESSAGE_DIGEST",
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signature intact?",
+                "Key": "BBB_CV_ISI"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Cryptographic Verification"
+        },
+        "SAV": {
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Is the structure of the signature valid?",
+                "Key": "BBB_SAV_ISSV"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signed attribute: 'signing-certificate' present?",
+                "Key": "BBB_ICS_ISASCP"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signed attribute: 'signing-certificate' present only once?",
+                "Key": "BBB_ICS_ISASCPU"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Does the 'Signing Certificate' attribute contain references only to the certificate chain?",
+                "Key": "BBB_SAV_DSCACRCC"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signed qualifying property: 'signing-time' present?",
+                "Key": "BBB_SAV_ISQPSTP"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signed qualifying property: 'signing-time' within the signing-certificate's validity range?",
+                "Key": "BBB_SAV_ISQPSTWSCVR"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Is the signed qualifying property: 'message-digest' or 'SignedProperties' present?",
+                "Key": "BBB_SAV_ISQPMDOSPP"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": null,
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the signature creation?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18",
+              "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF",
+              "BlockType": "AOV"
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Signature Acceptance Validation"
+        },
+        "AOV": {
+          "SignatureCryptographicValidation": {
+            "Algorithm": {
+              "Name": "RSA with SHA256",
+              "Uri": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+              "KeyLength": "2048"
+            },
+            "NotAfter": "2029-01-01T00:00:00Z",
+            "ConcernedMaterialDescription": null,
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "TokenId": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF"
+          },
+          "SignedAttributesValidation": {
+            "Algorithm": {
+              "Name": "SHA256",
+              "Uri": "http://www.w3.org/2001/04/xmlenc#sha256",
+              "KeyLength": null
+            },
+            "NotAfter": null,
+            "ConcernedMaterialDescription": null,
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "TokenId": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF"
+          },
+          "DigestMatchersValidation": {
+            "Algorithm": {
+              "Name": "SHA256",
+              "Uri": "http://www.w3.org/2001/04/xmlenc#sha256",
+              "KeyLength": null
+            },
+            "NotAfter": null,
+            "ConcernedMaterialDescription": "signature creation",
+            "Conclusion": {
+              "Indication": "PASSED",
+              "SubIndication": null,
+              "Errors": [],
+              "Warnings": [],
+              "Infos": []
+            },
+            "TokenId": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF"
+          },
+          "CertificateChainCryptographicValidation": {
+            "CertificateCryptographicValidation": [
+              {
+                "Algorithm": {
+                  "Name": "RSA with SHA256",
+                  "Uri": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+                  "KeyLength": "4096"
+                },
+                "NotAfter": "2029-01-01T00:00:00Z",
+                "ConcernedMaterialDescription": null,
+                "Conclusion": {
+                  "Indication": "PASSED",
+                  "SubIndication": null,
+                  "Errors": [],
+                  "Warnings": [],
+                  "Infos": []
+                },
+                "TokenId": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26"
+              }
+            ]
+          },
+          "Constraint": [
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the signature creation?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 2048 at validation time : 2026-05-05 10:18",
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the signing certificate reference?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Digest algorithm SHA256 at validation time : 2026-05-05 10:18 for signing certificate reference with Id : C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+              "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+              "BlockType": "AOV_XCV"
+            },
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the message digest?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Digest algorithm SHA256 at validation time : 2026-05-05 10:18 for message digest",
+              "Id": null,
+              "BlockType": null
+            },
+            {
+              "Name": {
+                "value": "Are cryptographic constraints met for the signing certificate?",
+                "Key": "ACCM"
+              },
+              "Status": "OK",
+              "Error": null,
+              "Warning": null,
+              "Info": null,
+              "AdditionalInfo": "Signature algorithm RSA with SHA256 with key size 4096 at validation time : 2026-05-05 10:18",
+              "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26",
+              "BlockType": "AOV_XCV"
+            }
+          ],
+          "Conclusion": {
+            "Indication": "PASSED",
+            "SubIndication": null,
+            "Errors": [],
+            "Warnings": [],
+            "Infos": []
+          },
+          "Title": "Algorithm Obsolescence Validation",
+          "ValidationTime": "2026-05-05T10:18:30Z"
+        },
+        "PSV": null,
+        "PSV_CRS": null,
+        "PCV": null,
+        "VTS": null,
+        "CertificateChain": {
+          "ChainItem": [
+            {
+              "Source": "SIGNATURE",
+              "Id": "C-A412646B58F506EB378C9A968A7812001E4B9DA5D626234019300D00DC7E6A26"
+            },
+            {
+              "Source": "TRUSTED_LIST",
+              "Id": "C-CD6D570A5757C99AE963349966697762BFA50B36B1461235A3252627CAF97D80"
+            }
+          ]
+        },
+        "Conclusion": {
+          "Indication": "PASSED",
+          "SubIndication": null,
+          "Errors": [],
+          "Warnings": [],
+          "Infos": []
+        },
+        "Id": "S-96075E9A55CA5E57428A6166DAA819A7943F94841F21243648258E280BAEAFDF",
+        "Type": "SIGNATURE"
+      }
+    ],
+    "TLAnalysis": [
+      {
+        "Constraint": [
+          {
+            "Name": {
+              "value": "Is the trusted list fresh?",
+              "Key": "QUAL_TL_FRESH"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Is the trusted list not expired?",
+              "Key": "QUAL_TL_EXP"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Does the trusted list have the expected version?",
+              "Key": "QUAL_TL_VERSION"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Is the structure of the trusted list valid?",
+              "Key": "QUAL_TL_SV"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Is the trusted list well signed?",
+              "Key": "QUAL_TL_WS"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          }
+        ],
+        "Conclusion": {
+          "Indication": "PASSED",
+          "SubIndication": null,
+          "Errors": [],
+          "Warnings": [],
+          "Infos": []
+        },
+        "Title": "List Of Trusted Lists EU",
+        "CountryCode": "EU",
+        "URL": "https://ec.europa.eu/tools/lotl/eu-lotl.xml",
+        "Id": "LOTL-EC2AE37FE9A43B48B1CFE2A57EBEE2BD6373EDFF36537EB1BC905747ACBF4C3B"
+      },
+      {
+        "Constraint": [
+          {
+            "Name": {
+              "value": "Is the trusted list fresh?",
+              "Key": "QUAL_TL_FRESH"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Is the trusted list not expired?",
+              "Key": "QUAL_TL_EXP"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Does the trusted list have the expected version?",
+              "Key": "QUAL_TL_VERSION"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Is the structure of the trusted list valid?",
+              "Key": "QUAL_TL_SV"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          },
+          {
+            "Name": {
+              "value": "Is the trusted list well signed?",
+              "Key": "QUAL_TL_WS"
+            },
+            "Status": "OK",
+            "Error": null,
+            "Warning": null,
+            "Info": null,
+            "AdditionalInfo": null,
+            "Id": null,
+            "BlockType": null
+          }
+        ],
+        "Conclusion": {
+          "Indication": "PASSED",
+          "SubIndication": null,
+          "Errors": [],
+          "Warnings": [],
+          "Infos": []
+        },
+        "Title": "Trusted List IT",
+        "CountryCode": "IT",
+        "URL": "https://eidas.agid.gov.it/TL/TSL-IT.xml",
+        "Id": "TL-716A43AE73126C30D04EFADFCDFBCD0542830FA604B0192756664DE72B204FA1"
+      }
+    ],
+    "Semantic": null,
+    "ValidationTime": "2026-05-05T10:18:30Z"
+  }
+}
