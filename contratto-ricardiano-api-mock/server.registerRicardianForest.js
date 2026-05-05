@@ -22,7 +22,26 @@ const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
 
-const { validateWithUpgrade, dssHealthCheck } = require("./lib/dssClient");
+const { validateCades, dssHealthCheck } = require("./lib/dssClient");
+
+const cron = require("node-cron");
+
+cron.schedule("0 3 * * *", () => {
+  const TEN_YEARS_MS = 10 * 365 * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - TEN_YEARS_MS;
+
+  for (const dir of [RICARDIAN_DIR, CADES_DIR]) {
+    const files = fs.readdirSync(dir);
+    for (const f of files) {
+      const fp = path.join(dir, f);
+      const stat = fs.statSync(fp);
+      if (stat.mtimeMs < cutoff) {
+        fs.unlinkSync(fp);
+        logger.info({ file: fp }, "Retention enforcement: file rimosso (>10 anni)");
+      }
+    }
+  }
+});
 
 // --------------------
 // CONFIG
@@ -3328,6 +3347,30 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
 
     const trustResult = await verifyCadesSignatureTrustHybrid(finalP7mPath, caFilePath);
 
+    // ----------------------------------------------------------------
+    // VALIDAZIONE DSS (EU LOTL) — sostituisce/integra il check OpenSSL
+    // ----------------------------------------------------------------
+    let dssResult = null;
+    let dssReportPath = null;
+
+    try {
+      dssResult = await validateCades(finalP7mPath);
+
+      if (dssResult.ok) {
+        // Persisti il report DSS come evidenza (Blocco 5.4)
+        const reportFileName = `validation-${safeName}-${Date.now()}.json`;
+        dssReportPath = path.join(CADES_DIR, reportFileName);
+        fs.writeFileSync(dssReportPath, JSON.stringify(dssResult.rawReport, null, 2));
+        console.log(`[DSS] Validation report salvato: ${reportFileName}`);
+        console.log(`[DSS] Indication: ${dssResult.indication}, Level: ${dssResult.signatureLevel}`);
+      } else {
+        console.warn(`[DSS] Validazione fallita: ${dssResult.error}`);
+      }
+    } catch (e) {
+      console.warn(`[DSS] Eccezione nella validazione: ${e.message}`);
+      dssResult = { ok: false, error: e.message };
+    }
+
     let cadesUri = toFileUri(finalP7mPath);
     let ipfs = null;
 
@@ -3369,7 +3412,51 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
       trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
       caFilePath,
       trustProvider: trustResult.provider || null,
+      // DSS — validazione EU LOTL
+      dssOk: dssResult?.ok || false,
+      dssIndication: dssResult?.indication || null,           // TOTAL_PASSED | TOTAL_FAILED | INDETERMINATE
+      dssSubIndication: dssResult?.subIndication || null,
+      dssSignatureLevel: dssResult?.signatureLevel || null,   // QESig | AdESig-QC | AdESig | NA
+      dssSignatureFormat: dssResult?.signatureFormat || null, // CAdES-BASELINE-B/T/LT/LTA
+      dssIsQualified: dssResult?.isQualified || false,
+      dssIsAdvancedWithQc: dssResult?.isAdvancedWithQc || false,
+      dssQcCompliance: dssResult?.qcCompliance || false,
+      dssQcSSCD: dssResult?.qcSSCD || false,
+      dssHasTimestamp: dssResult?.hasTimestamp || false,
+      dssReportPath: dssReportPath,
+      dssReportFileName: dssReportPath ? path.basename(dssReportPath) : null,
     };
+
+    // ----------------------------------------------------------------
+    // Aggiorna il ricardiano runtime con il livello di firma DSS (Blocco 5.5)
+    // Soddisfa il campo legal.documentSignature.userCountersignature.legalQualification
+    // del Ricardian v3.0
+    // ----------------------------------------------------------------
+    const r = state.ricardians?.[forestUnitId];
+    if (r?.ricardianForest?.legal?.documentSignature?.userCountersignature) {
+      const userSig = r.ricardianForest.legal.documentSignature.userCountersignature;
+
+      if (dssResult?.ok) {
+        userSig.legalQualification = dssResult.signatureLevel;
+        userSig.validationReportRef = dssReportPath ? path.basename(dssReportPath) : null;
+        userSig.validationIndication = dssResult.indication;
+        userSig.signatureFormat = dssResult.signatureFormat;
+        userSig.qcCompliance = dssResult.qcCompliance;
+        userSig.qcSSCD = dssResult.qcSSCD;
+        userSig.hasTimestamp = dssResult.hasTimestamp;
+      } else {
+        userSig.legalQualification = "VALIDATION_FAILED";
+        userSig.validationError = dssResult?.error || "Validazione DSS non disponibile";
+      }
+
+      // Riscrivi il ricardiano JSON aggiornato (utile per audit successivi)
+      try {
+        const ricardianJsonPath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
+        fs.writeFileSync(ricardianJsonPath, JSON.stringify(r.ricardianForest, null, 2));
+      } catch (e) {
+        console.warn(`[DSS] Impossibile riscrivere il ricardiano JSON: ${e.message}`);
+      }
+    }
 
     return res.json({
       ok: true,
@@ -3409,6 +3496,21 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
         cadesUri,
         ipfsUri: ipfs?.ipfsUri || null,
         cid: ipfs?.cid || null
+      },
+      // DSS validation (Blocco 5.4 / 5.5)
+      dss: dssResult?.ok ? {
+        indication: dssResult.indication,
+        subIndication: dssResult.subIndication,
+        signatureLevel: dssResult.signatureLevel,
+        signatureFormat: dssResult.signatureFormat,
+        isQualified: dssResult.isQualified,
+        qcCompliance: dssResult.qcCompliance,
+        qcSSCD: dssResult.qcSSCD,
+        hasTimestamp: dssResult.hasTimestamp,
+        reportFileName: dssReportPath ? path.basename(dssReportPath) : null
+      } : {
+        ok: false,
+        error: dssResult?.error || "DSS validation non disponibile"
       },
       note: "Il PDF estratto dal .p7m coincide con il PDF registrato in baseline."
     });
