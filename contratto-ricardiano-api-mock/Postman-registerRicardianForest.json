@@ -248,7 +248,7 @@
     { "key": "subscriberLegalEntity", "value": "Azienda Forestale Test SRL", "description": "Ragione sociale del Sottoscrittore (P.IVA o persona fisica). OBBLIGATORIO per WRITE." },
     { "key": "subscriberIdentifier", "value": "IT12345678901", "description": "P.IVA per persona giuridica, CF per persona fisica. OBBLIGATORIO per WRITE." },
     { "key": "subscriberMethod", "value": "contractual", "description": "Metodo di identificazione: contractual | SPID-L2 | SPID-L3 | CIE | EUDIWallet" },
-    { "key": "forestUnitId", "value": "" },
+    { "key": "forestUnitId", "value": "Vallombrosa" },
     { "key": "merkleRoot", "value": "" },
     { "key": "ricardianHash", "value": "" },
     { "key": "storageUri", "value": "" },
