@@ -532,7 +532,7 @@ async function topviewImportLatest() {
   const keys = Object.keys(forestUnits);
   if (!keys.length) throw new Error("Nessuna forest unit disponibile su TopView");
 
-  const selectedForestKey = keys[keys.length - 2];
+  const selectedForestKey = keys[keys.length - 3];
   const unit = forestUnits[selectedForestKey];
 
   state.forestUnitsRemote = forestUnits;
@@ -3589,10 +3589,11 @@ app.post("/api/contract/write", async (req, res) => {
     let imported;
 
     if (!forestUnitId) {
+      imported = await topviewImportForestUnitById(forestUnitId);
       imported = await topviewImportLatest();
       forestUnitId = imported.forestUnitId;
     } else {
-      imported = await topviewImportForestUnitById(forestUnitId);
+      imported = await topviewImportLatest();
     }
 
     const forestData = imported.unit;
