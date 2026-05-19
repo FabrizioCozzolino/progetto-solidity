@@ -59,7 +59,7 @@
     "dataConsumer": "Può verificare l'integrità e la provenienza dei dati attraverso le evidenze on-chain e off-chain, ma non può modificarli."
   },
   "technical": {
-    "merkleRootUnified": "0x518424e11db43f651040fa3cd20853e893dfc06ac63edd82abb3ad9669853f6d",
+    "merkleRootUnified": "0xf6403e63ccb91a34b4f8c815f48244b62c5c4bd523bf4db49162e5f70049f748",
     "batchFormat": "JSON",
     "storage": "LOCAL_FILE",
     "hashAlgorithm": "keccak256",
@@ -82,8 +82,13 @@
       },
       "userCountersignature": {
         "type": "CAdES (formato DER) — livello determinato a runtime",
-        "legalQualification": "TBD — determinato dalla verifica DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
-        "validationReportRef": null
+        "legalQualification": "QESig",
+        "validationReportRef": "validation-Vallombrosa-1779184814915.json",
+        "validationIndication": "TOTAL_PASSED",
+        "signatureFormat": "CAdES-BASELINE-B",
+        "qcCompliance": false,
+        "qcSSCD": false,
+        "hasTimestamp": false
       }
     },
     "statement": "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile e dal livello di firma effettivamente apposto e verificato."
@@ -211,9 +216,9 @@
     "versioning": "La versione 3.0 ridefinisce l'enunciazione degli effetti legali rispetto alle versioni precedenti per allinearli alla pipeline di verifica effettivamente implementata."
   },
   "timestamps": {
-    "createdAt": "2026-05-12T10:39:29.311Z"
+    "createdAt": "2026-05-19T09:54:26.235Z"
   },
-  "ricardianHash": "0x7e502bc1a5865e62004b48cc49b4c6bac097d22fee9b563cf30b0b940d535940",
+  "ricardianHash": "0xd3c451069bbb788d31eaf568206f17912a6b7fb7141a342331796c0b4febd4e0",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -245,11 +250,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x7e502bc1a5865e62004b48cc49b4c6bac097d22fee9b563cf30b0b940d535940",
-        "merkleRoot": "0x518424e11db43f651040fa3cd20853e893dfc06ac63edd82abb3ad9669853f6d",
-        "createdAt": "2026-05-12T10:39:29.311Z"
+        "ricardianHash": "0xd3c451069bbb788d31eaf568206f17912a6b7fb7141a342331796c0b4febd4e0",
+        "merkleRoot": "0xf6403e63ccb91a34b4f8c815f48244b62c5c4bd523bf4db49162e5f70049f748",
+        "createdAt": "2026-05-19T09:54:26.235Z"
       },
-      "signature": "0xa3da3883dc014c43258ed0805ed586e152fece7aa7feec9691d15f04f3c5bdc720d0557edca74506b00a71aa7dd3d0b52bfb8746094ea6c556f08e53ccaf4e191c"
+      "signature": "0xbae0d9b0975505ffa3fc07c6de93149bdd5bedf3147b0ffaf2ee65ac4dcdf0490700ee5f769178d5ad07406e27458cf00aa0dd5ae43a74604ee2fdecafcbbfd51c"
     }
   }
 }
