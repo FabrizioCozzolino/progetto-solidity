@@ -55,21 +55,12 @@ REQUISITI
 
 Docker
 
-Docker Compose
-
 AVVIO
 
-docker compose up --build
-
-AVVIO IN BACKGROUNG
-
 docker compose up --build -d
+
+docker compose logs -f ricardian-api
 
 ARRESTO
 
 docker compose down
-
-Avvia DSS
-
-cd C:\dss-service\dss-demo-bundle-6.4
-.\Webapp-Startup.bat
