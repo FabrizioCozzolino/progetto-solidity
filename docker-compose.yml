@@ -1,4 +1,9 @@
 services:
+  # -------------------------------------------------------------------------
+  # API Node.js (server contratto ricardiano) - invariata, solo:
+  #  - aggiunta DSS_URL che punta al servizio "dss" via rete docker
+  #  - depends_on con healthcheck cosi' il Node parte SOLO quando DSS e' pronto
+  # -------------------------------------------------------------------------
   ricardian-api:
     build:
       context: .
@@ -19,6 +24,9 @@ services:
       CADES_DIR: /app/contratto-ricardiano-api-mock/storage/cades
       TMP_DIR: /app/contratto-ricardiano-api-mock/storage/tmp
       CADES_CA_FILE: /app/certs/trusted-ca.pem
+      # Non e' piu' localhost: dentro la rete docker-compose il container
+      # Tomcat e' raggiungibile col nome del servizio ("dss")
+      DSS_URL: http://dss:8080/services/rest
 
     volumes:
       - ./contratto-ricardiano-api-mock/storage:/app/contratto-ricardiano-api-mock/storage
@@ -27,6 +35,10 @@ services:
       - ./environment_variables.env:/app/environment_variables.env:ro
       - ./certs:/app/certs:ro
 
+    depends_on:
+      dss:
+        condition: service_healthy
+
     restart: unless-stopped
 
     healthcheck:
@@ -34,3 +46,39 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # -------------------------------------------------------------------------
+  # DSS (Digital Signature Services) su Tomcat
+  # Sostituisce l'avvio manuale di Webapp-Startup.bat
+  # -------------------------------------------------------------------------
+  dss:
+    build:
+      context: ./dss          # cartella con Dockerfile e bundle tomcat
+      dockerfile: Dockerfile
+
+    container_name: dss
+
+    # Esposta sull'host solo se vuoi testare la UI demo dal browser
+    # (http://localhost:8080). Se non ti serve, commenta tutto il blocco ports.
+    ports:
+      - "8080:8080"
+
+    # Persistenza della cache TSL/LOTL (lista trust UE). Senza questo,
+    # ad ogni restart DSS riscarica tutto da zero (lento, ~minuti).
+    volumes:
+      - dss-cache:/root/.dss
+
+    restart: unless-stopped
+
+    # Tomcat + deploy delle webapp DSS impiega 30-90s la prima volta.
+    # start_period dice a docker di NON marcare il container unhealthy
+    # durante l'avvio iniziale.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 600s
+
+volumes:
+  dss-cache:

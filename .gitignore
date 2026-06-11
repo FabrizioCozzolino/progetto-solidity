@@ -21,3 +21,4 @@ ignition/deployments/chain-31337
 2025_05_13_REST_API_DigiMedFor_GetForestUnits.rest 
 ".env" 
 "environment_variables.env" 
+dss/dss-demo-bundle-6.4/

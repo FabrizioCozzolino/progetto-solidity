@@ -1,0 +1,22 @@
+# JRE bundled del .bat di Windows - inutile, usiamo Temurin dall'immagine base
+dss-demo-bundle-6.4/java
+
+# Script Windows del bundle - nel container Linux non servono
+dss-demo-bundle-6.4/Webapp-Startup.bat
+dss-demo-bundle-6.4/Webapp-Shutdown.bat
+
+# Runtime Tomcat: si rigenera al primo avvio dentro il container
+dss-demo-bundle-6.4/apache-tomcat-11.0.18/logs
+dss-demo-bundle-6.4/apache-tomcat-11.0.18/work
+dss-demo-bundle-6.4/apache-tomcat-11.0.18/temp
+
+# Webapp ROOT esplosa da Tomcat su Windows.
+# Tomcat la riestrarra' pulita da ROOT.war al primo avvio del container.
+# Pattern senza wildcard ne' trailing slash: comportamento deterministico.
+dss-demo-bundle-6.4/apache-tomcat-11.0.18/webapps/ROOT
+
+# Documentazione/licenze del bundle
+dss-demo-bundle-6.4/LICENSE
+dss-demo-bundle-6.4/NOTICE
+dss-demo-bundle-6.4/README
+dss/dss-demo-bundle-6.4/
