@@ -1,0 +1,31 @@
+1) EU LOTL: fare lista acronimi o specificarli a fianco
+
+5.1) Detiene la titolarità dei dati e autorizza la loro registrazione e verifica mediante sottoscrizione della DPA rasmessa dal fornitore. Garantisce tramite i propri data
+producer (operatori forestali via app mobile e operatori drone per rilievi aerei georeferenziati), la
+correttezza della raccolta sul campo e la coerenza del processo di generazione.
+
+2.1) (operatore forestale via app mobile e operatore drone per rilievi aerei
+georeferenziati) levare parentesi
+
+2.2) cliente finale del sottoscrittore
+
+6.2-6.3) renderlo più discorsivo e non apuuntato
+
+7.7) L'evidence pack esportabile include: ricardianHash, merkleRoot, snapshot del dataset, timestamp DLT, firma di sistema 
+EIP-712, riferimenti on-chain (txHash, blockNumber) e, se presenti, controfirma CAdES e relativo report DS eliminare o aggiungere ad un articolo
+
+8.1) non issuer fornitore, fai rferimento ad articoli precedenti
+
+4.1-5.1-8.4) da rivedere meglio, controllando bene il GDPR
+
+9.5) eliminarlo, o opzionale
+
+11.3) canecellare frasetta
+
+Aggiungi qrcode per verifica su sepolia
+
+tabella nel B.2 canecellare prima colonna, la seconda chiamala articolo e la terza della funzione on-chain
+
+La mappatura ha funzione ricognitiva del collegamento fra codice e clausole metterla prima della tabella
+
+(Fare una guida per annamaria per quanto riguarda il file e domande che mi manderà)
