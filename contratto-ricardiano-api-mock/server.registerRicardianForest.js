@@ -15,6 +15,7 @@ const ethers = require("ethers");
 const fs = require("fs");
 const crypto = require("crypto");
 const PDFDocument = require("pdfkit");
+const QRCode = require("qrcode");
 const multer = require("multer");
 
 const { create } = require("ipfs-http-client");
@@ -716,7 +717,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
 
 
  const ricardianBase = {
-  version: "4.0",
+  version: "4.1",
   type: "RicardianForestTracking",
 
   parties: {
@@ -761,9 +762,9 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   purpose: "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash). Il dataset resta off-chain; on-chain sono registrati esclusivamente hash crittografici e URI di reperimento.",
 
   rightsAndDuties: {
-    issuer: "Garantisce la disponibilità del servizio di ancoraggio, la corretta esecuzione di hashing, firma EIP-712 e registrazione on-chain; mette a disposizione la procedura di verifica documentata in verificationProcedure; opera come Responsabile del trattamento ex art. 28 GDPR sulla base del DPA sottoscritto separatamente con il Sottoscrittore.",
-    subscriber: "Detiene la titolarità dei dati e autorizza la loro registrazione e verifica; risponde della liceità del trattamento ex GDPR e valuta la necessità di DPIA ex art. 35 GDPR; garantisce, tramite i propri data producer (operatori forestali via app mobile e operatori drone per rilievi aerei georeferenziati), la correttezza della raccolta sul campo e la coerenza del processo di generazione.",
-    dataConsumer: "Cliente finale, auditor autorizzato o terzo verificatore: può verificare integrità e provenienza tramite le evidenze on-chain e off-chain, non può modificare i dati."
+    issuer: "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Responsabile del trattamento ai sensi dell'art. 28 GDPR, operando per conto e su istruzione del Sottoscrittore sulla base del Data Processing Agreement (DPA) sottoscritto separatamente fra le parti.",
+    subscriber: "Detiene la titolarità dei Dati e ne autorizza la registrazione e la verifica mediante sottoscrizione del DPA trasmesso dal Fornitore. Quale Titolare del trattamento ai sensi del GDPR, risponde della liceità del trattamento e valuta la necessità di una valutazione d'impatto (DPIA) ex art. 35 GDPR per il proprio caso d'uso. Garantisce inoltre, per il tramite dei propri data producer, l'operatore forestale che opera via app mobile e l'operatore drone che esegue rilievi aerei georeferenziati, la correttezza della raccolta sul campo e la coerenza del processo di generazione dei Dati.",
+    dataConsumer: "Cliente finale del Sottoscrittore, auditor autorizzato o terzo verificatore: può verificare integrità e provenienza dei Dati tramite le evidenze on-chain e off-chain, senza poter modificare i Dati medesimi."
   },
 
   technical: {
@@ -773,7 +774,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
     batchFormat: "JSON",
     storage: storageMode,
     signatureFormats: {
-      systemSignature: "EIP-712 (apposta dall'Issuer per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
+      systemSignature: "EIP-712 (apposta dal fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
       userSignature: "CAdES-BES o superiore (DER) sul PDF ricardiano; livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL"
     }
   },
@@ -787,8 +788,8 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
     documentSignature: {
       systemSignature: {
         type: "Firma elettronica semplice di sistema (EIP-712)",
-        purpose: "Attesta la provenienza dell'ancoraggio dalla piattaforma Issuer.",
-        legalQualification: "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo dell'Issuer e non del Sottoscrittore."
+        purpose: "Attesta la provenienza dell'ancoraggio dalla piattaforma fornitore.",
+        legalQualification: "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo del fornitore e non del Sottoscrittore."
       },
       userCountersignature: {
         type: "CAdES (formato DER) - livello determinato a runtime",
@@ -809,24 +810,24 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
 
   dataGovernance: {
     gdprMeasures: {
-      lawfulBasis: "Documentata nel DPA fra Issuer (Responsabile) e Sottoscrittore (Titolare)",
+      lawfulBasis: "Documentata nel DPA fra Fornitore (Responsabile) e Sottoscrittore (Titolare)",
       dataMinimisation: "On-chain solo hash; mai payload di dati personali in chiaro",
       retentionPolicy: {
         onChainEvidence: "Perpetua per natura della rete (solo hash, non dati personali)",
         offChainEvidence: "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
-      personalDataHandling: "Issuer agisce come Responsabile del trattamento ex art. 28 GDPR. Il Titolare del trattamento è il Sottoscrittore.",
+      personalDataHandling: "La ripartizione dei ruoli privacy fra le parti è quella già delineata agli artt. 4 e 5: il Sottoscrittore è Titolare del trattamento, mentre il Fornitore agisce quale Responsabile ai sensi dell'art. 28 GDPR sulla base del DPA fra le parti",
       dataSubjectRights: "Esercitabili presso il Sottoscrittore (Titolare). Le evidenze on-chain non consentono identificazione diretta degli interessati.",
       ipfsUsageStatement: "Limitato a payload privi di dati personali."
     },
-    dpiaStatus: "Valutazione in capo al Sottoscrittore ex art. 35 GDPR per il proprio caso d'uso specifico."
+    dpiaStatus: "La valutazione circa la necessità di una DPIA resta in capo al Sottoscrittore, quale Titolare del trattamento, da condursi ex art. 35 GDPR in relazione al proprio specifico caso d'uso e al rischio per i diritti e le libertà degli interessati."
   },
 
   disclaimers: {
-    qualifiedTrustServiceStatus: "L'Issuer non è Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
-    archivalStatus: "L'Issuer non è conservatore accreditato AgID. Per la conservazione a norma è raccomandata l'integrazione con conservatore accreditato terzo.",
-    certifications: "L'Issuer non rilascia certificazioni ISO 19115, 19157, 27001, 38200 né attestazioni di compliance INSPIRE, EBSI o EU Forest Monitoring. L'architettura è tecnicamente compatibile con tali quadri; l'eventuale certificazione resta in capo al Sottoscrittore se di interesse commerciale.",
-    eudr: "L'Issuer non genera la Due Diligence Statement EUDR né integra TRACES NT. Le evidenze geolocalizzate costituiscono supporto strumentale alla due diligence del Sottoscrittore ex Reg. (UE) 2023/1115, non compliance integrale.",
+    qualifiedTrustServiceStatus: "Il fornitore non è Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
+    archivalStatus: "Il fornitore non è conservatore accreditato AgID. Per la conservazione a norma è raccomandata l'integrazione con conservatore accreditato terzo.",
+    certifications: "Il fornitore non rilascia certificazioni ISO 19115, 19157, 27001, 38200 né attestazioni di compliance INSPIRE, EBSI o EU Forest Monitoring. L'architettura è tecnicamente compatibile con tali quadri; l'eventuale certificazione resta in capo al Sottoscrittore se di interesse commerciale.",
+    eudr: "Il fornitore non genera la Due Diligence Statement EUDR né integra TRACES NT. Le evidenze geolocalizzate costituiscono supporto strumentale alla due diligence del Sottoscrittore ex Reg. (UE) 2023/1115, non compliance integrale.",
     legalAdvice: "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
 
@@ -1231,6 +1232,7 @@ async function verifyMerkleProofsInternal(forestUnitId) {
 // --------------------
 function generateRicardianPdf(ricardian, outPath) {
   return new Promise((resolve, reject) => {
+    (async () => {
     const doc = new PDFDocument({ size: "A4", margin: 50, autoFirstPage: true });
     const stream = fs.createWriteStream(outPath);
     doc.pipe(stream);
@@ -1325,6 +1327,22 @@ function generateRicardianPdf(ricardian, outPath) {
     const networkName = NETWORK_NAMES[chainId] || `rete EVM (chainId ${domain.chainId || "-"})`;
     const explorerBase = EXPLORER_BASES[chainId] || "https://sepolia.etherscan.io/";
     const verifyingContract = safe(domain.verifyingContract);
+
+    // QR code per la verifica on-chain (pagina dell'explorer, es. Sepolia).
+    const verifyUrl = verifyingContract
+      ? `${explorerBase}address/${verifyingContract}`
+      : explorerBase;
+    let verifyQrDataUrl = null;
+    try {
+      verifyQrDataUrl = await QRCode.toDataURL(verifyUrl, {
+        margin: 1,
+        width: 240,
+        errorCorrectionLevel: "M",
+        color: { dark: COLORS.accent, light: "#FFFFFF" }
+      });
+    } catch (_e) {
+      verifyQrDataUrl = null; // in caso di errore, il PDF prosegue senza QR
+    }
 
     const t = ricardian?.technical || {};
     const tsv = ricardian?.legal?.timeStampValidation || {};
@@ -1473,15 +1491,15 @@ function generateRicardianPdf(ricardian, outPath) {
     }
 
     /**
-     * Tabella a 3 colonne per il mapping evento/funzione on-chain ->
-     * clausola contrattuale -> effetto giuridico (Allegato Tecnico B).
+     * Tabella a 2 colonne per la mappatura clausola contrattuale -> funzione/evento
+     * on-chain (Allegato Tecnico B). Ogni riga: [Articolo, Funzione on-chain].
      */
     function mappingTable(rows) {
-      const cols = [W * 0.34, W * 0.18, W * 0.48];
-      const xs = [M, M + cols[0], M + cols[0] + cols[1]];
+      const cols = [W * 0.28, W * 0.72];
+      const xs = [M, M + cols[0]];
       const pad = 6;
 
-      const headers = ["Funzione / evento on-chain", "Clausola", "Effetto giuridico sintetico"];
+      const headers = ["Articolo", "Funzione on-chain"];
       const headerH = 22;
       ensureSpace(headerH + 30);
       let y = doc.y;
@@ -1495,22 +1513,18 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.y = y + headerH;
 
       rows.forEach((r, idx) => {
-        doc.font("Courier").fontSize(8);
-        const h0 = doc.heightOfString(r[0], { width: cols[0] - pad * 2, lineGap: 1.5 });
         doc.font("Helvetica-Bold").fontSize(9);
+        const h0 = doc.heightOfString(r[0], { width: cols[0] - pad * 2, lineGap: 1.5 });
+        doc.font("Courier").fontSize(8);
         const h1 = doc.heightOfString(r[1], { width: cols[1] - pad * 2, lineGap: 1.5 });
-        doc.font("Helvetica").fontSize(9);
-        const h2 = doc.heightOfString(r[2], { width: cols[2] - pad * 2, lineGap: 1.5 });
-        const rowH = Math.max(h0, h1, h2) + 12;
+        const rowH = Math.max(h0, h1) + 12;
         ensureSpace(rowH + 4);
         const ry = doc.y;
 
-        doc.font("Courier").fontSize(8).fillColor(COLORS.text);
-        doc.text(r[0], xs[0] + pad, ry + 6, { width: cols[0] - pad * 2, lineGap: 1.5 });
         doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.accent);
+        doc.text(r[0], xs[0] + pad, ry + 6, { width: cols[0] - pad * 2, lineGap: 1.5 });
+        doc.font("Courier").fontSize(8).fillColor(COLORS.text);
         doc.text(r[1], xs[1] + pad, ry + 6, { width: cols[1] - pad * 2, lineGap: 1.5 });
-        doc.font("Helvetica").fontSize(9).fillColor(COLORS.text);
-        doc.text(r[2], xs[2] + pad, ry + 6, { width: cols[2] - pad * 2, lineGap: 1.5 });
 
         doc.y = ry + rowH;
         if (idx !== rows.length - 1) {
@@ -1554,7 +1568,7 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.save().strokeColor(COLORS.accent).lineWidth(1.5);
       doc.moveTo(M + W * 0.35, sepY).lineTo(M + W * 0.65, sepY).stroke();
       doc.restore();
-      doc.y = sepY + 25;
+      doc.y = sepY + 18;
 
       // Forest Unit
       const fuY = doc.y;
@@ -1572,7 +1586,7 @@ function generateRicardianPdf(ricardian, outPath) {
         `Type: ${safe(ricardian?.type)} - Version: ${safe(ricardian?.version)}`,
         M, fuY + 53, { width: W, align: "center" }
       );
-      doc.y = fuY + fuH + 25;
+      doc.y = fuY + fuH + 16;
 
       // Parti
       const partiesY = doc.y;
@@ -1614,7 +1628,7 @@ function generateRicardianPdf(ricardian, outPath) {
           colSubX + 10, partiesY + partiesH - 18, { width: colW - 20 });
       }
 
-      doc.y = partiesY + partiesH + 25;
+      doc.y = partiesY + partiesH + 16;
 
       // Identificatori tecnici (sintesi; dettagli negli Allegati)
       const techY = doc.y;
@@ -1645,7 +1659,7 @@ function generateRicardianPdf(ricardian, outPath) {
         doc.font("Courier").fontSize(8).fillColor(COLORS.text);
         doc.text(`Contract: ${verifyingContract}`, M + 10 + (W - 20) / 2, ty, { width: (W - 20) / 2 });
       }
-      doc.y = techY + techH + 25;
+      doc.y = techY + techH + 16;
 
       // Callout validazione temporale
       const badgeY = doc.y;
@@ -1660,11 +1674,27 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.font("Helvetica").fontSize(9).fillColor("#FFFFFF");
       doc.text("ai sensi dell'art. 41 Reg. (UE) 910/2014, in combinato disposto con art. 8-ter c.3 L. 12/2019",
         M, badgeY + 26, { width: W, align: "center" });
-      doc.y = badgeY + badgeH + 18;
+doc.y = badgeY + badgeH + 12;
 
-      doc.font("Helvetica").fontSize(9).fillColor(COLORS.faint);
+      // QR code di verifica on-chain (scansionabile per aprire l'explorer, es. Sepolia)
+      if (verifyQrDataUrl) {
+        const qrSize = 76;
+        const qrX = (doc.page.width - qrSize) / 2;
+        const qrY = doc.y;
+        try {
+          doc.image(verifyQrDataUrl, qrX, qrY, { width: qrSize, height: qrSize });
+        } catch (_e) { /* se l'immagine non è valida, si prosegue senza */ }
+        doc.font("Helvetica").fontSize(8).fillColor(COLORS.muted);
+        doc.text("Inquadra il QR per verificare l'ancoraggio on-chain",
+          M, qrY + qrSize + 5, { width: W, align: "center" });
+        doc.font("Courier").fontSize(7).fillColor(COLORS.link);
+        doc.text(truncate(verifyUrl, 78), M, qrY + qrSize + 16, { width: W, align: "center" });
+        doc.y = qrY + qrSize + 26;
+      }
+
+      doc.font("Helvetica").fontSize(8.5).fillColor(COLORS.faint);
       doc.text("Data di creazione", M, doc.y, { width: W, align: "center" });
-      doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.muted);
+      doc.font("Helvetica-Bold").fontSize(10.5).fillColor(COLORS.muted);
       doc.text(fmtDate(ricardian?.timestamps?.createdAt), M, doc.y + 2, { width: W, align: "center" });
 
       addFooter();
@@ -1740,13 +1770,15 @@ function generateRicardianPdf(ricardian, outPath) {
       "verifica di appartenenza di ogni singolo elemento mediante Merkle proof."
     );
     definition("Firma di Sistema (EIP-712)",
-      "la firma elettronica apposta dall'Issuer sui dati di ancoraggio secondo lo standard " +
+      "la firma elettronica apposta dal fornitore sui dati di ancoraggio secondo lo standard " +
       "EIP-712, che attesta la provenienza dell'ancoraggio dalla piattaforma del Fornitore."
     );
     definition("Controfirma CAdES",
-      "l'eventuale firma elettronica in formato CAdES (DER) apposta dal Sottoscrittore sul " +
-      "presente documento, il cui livello (semplice, avanzata o qualificata) è determinato a " +
-      "runtime mediante validazione DSS contro la EU LOTL."
+      "l'eventuale firma elettronica in formato CAdES (CMS Advanced Electronic Signatures, in " +
+      "formato DER) apposta dal Sottoscrittore sul presente documento, il cui livello (semplice, " +
+      "avanzata o qualificata) è determinato a runtime mediante validazione DSS contro la EU LOTL " +
+      "(European Union List of Trusted Lists, l'elenco ufficiale dei prestatori di servizi fiduciari " +
+      "qualificati pubblicato dalla Commissione europea)."
     );
     definition("Servizio",
       "l'insieme delle funzionalità offerte dalla piattaforma web del Fornitore per la " +
@@ -1769,7 +1801,7 @@ function generateRicardianPdf(ricardian, outPath) {
     clause("2.3",
       "In particolare, per ciascuna registrazione il Servizio provvede: alla costruzione di " +
       "un albero di Merkle sul dataset off-chain; alla firma EIP-712 dell'ancoraggio da " +
-      "parte dell'Issuer; alla registrazione on-chain del Ricardian hash e della Merkle root " +
+      "parte del fornitore; alla registrazione on-chain del Ricardian hash e della Merkle root " +
       "su rete EVM pubblica; nonché, ove richiesta, alla raccolta della Controfirma CAdES " +
       "del presente documento da parte del Sottoscrittore."
     );
@@ -1837,13 +1869,13 @@ function generateRicardianPdf(ricardian, outPath) {
       "chiavi private utilizzate per la sottoscrizione delle operazioni."
     );
     clause("5.3",
-      "I ruoli operativi di data producer (operatore forestale via app mobile e operatore " +
-      "drone per rilievi aerei georeferenziati) sono definiti sotto l'autorità e la " +
-      "responsabilità del Sottoscrittore, che garantisce la correttezza della raccolta sul " +
-      "campo e la coerenza del processo di generazione dei Dati."
+      "I ruoli operativi di data producer, ossia l'operatore forestale che opera tramite " +
+      "app mobile e l'operatore drone che esegue rilievi aerei georeferenziati, sono definiti " +
+      "sotto l'autorità e la responsabilità del Sottoscrittore, il quale garantisce la " +
+      "correttezza della raccolta sul campo e la coerenza del processo di generazione dei Dati."
     );
     clause("5.4",
-      `Il ruolo di data consumer è così disciplinato: ${safe(rd.dataConsumer)}`
+      `Il ruolo di data consumer è ricoperto dal ${safe(rd.dataConsumer).charAt(0).toLowerCase()}${safe(rd.dataConsumer).slice(1)}`
     );
 
     // ==================================================================
@@ -1851,19 +1883,22 @@ function generateRicardianPdf(ricardian, outPath) {
     // ==================================================================
     articleTitle(6, "Firme elettroniche e validazione temporale");
     clause("6.1",
-      `Firma di sistema dell'Issuer. ${safe(sysSig.purpose)} La firma è apposta nel formato ` +
-      `${safe(sysSig.type)} dall'indirizzo identificato nell'Allegato Tecnico B. ` +
-      `${safe(sysSig.legalQualification)}`
+      `Sull'ancoraggio il Fornitore appone una firma elettronica di sistema in formato ` +
+      `${safe(sysSig.type)}, generata dall'indirizzo indicato nell'Allegato Tecnico B. ` +
+      `${safe(sysSig.purpose)} ${safe(sysSig.legalQualification)}`
     );
     clause("6.2",
-      `Controfirma del Sottoscrittore. Il Sottoscrittore può apporre sul presente documento ` +
-      `una controfirma nel formato ${safe(userSig.type)}. Il livello effettivo della firma è ` +
-      "determinato a runtime dalla validazione DSS contro la EU LOTL. " +
+      `Oltre alla firma di sistema, il Sottoscrittore ha facoltà di apporre sul presente ` +
+      `documento una propria controfirma elettronica in formato ${safe(userSig.type)}, così da ` +
+      "ricondurre l'ancoraggio alla propria volontà negoziale. Il livello effettivo di tale " +
+      "controfirma non è predeterminato, ma viene accertato di volta in volta al momento della " +
+      "verifica, attraverso la validazione DSS condotta contro la EU LOTL. " +
       `${safe(userSig.legalQualification)}`
     );
     clause("6.3",
-      `Validazione temporale. La riferibilità temporale delle registrazioni ha livello ` +
-      `\u201C${safe(tsv.level)}\u201D ai sensi di ${safe(tsv.basis)}. ${safe(tsv.effects)}`
+      `Quanto alla collocazione temporale delle registrazioni, le parti danno atto che essa ` +
+      `gode di una validazione di livello \u201C${safe(tsv.level)}\u201D, fondata su ` +
+      `${safe(tsv.basis)}. ${safe(tsv.effects)}`
     );
 
     // ==================================================================
@@ -1887,10 +1922,12 @@ function generateRicardianPdf(ricardian, outPath) {
       "si considera definitiva e immodificabile, fatti salvi i rimedi previsti nel presente " +
       "contratto in caso di malfunzionamento o abuso."
     );
-    captionPara(
-      "L'evidence pack esportabile include: ricardianHash, merkleRoot, snapshot del dataset, " +
-      "timestamp DLT, firma di sistema EIP-712, riferimenti on-chain (txHash, blockNumber) e, " +
-      "se presenti, controfirma CAdES e relativo report DSS."
+    clause("7.7",
+      "A completamento della procedura, il Fornitore mette a disposizione un evidence pack " +
+      "esportabile che raccoglie l'insieme degli elementi probatori: il ricardianHash, la " +
+      "merkleRoot, lo snapshot del dataset, il timestamp DLT, la firma di sistema EIP-712 e i " +
+      "riferimenti on-chain (txHash e blockNumber); ove presenti, vi sono inclusi anche la " +
+      "controfirma CAdES e il relativo report di validazione DSS."
     );
 
     // ==================================================================
@@ -1898,8 +1935,10 @@ function generateRicardianPdf(ricardian, outPath) {
     // ==================================================================
     articleTitle(8, "Trattamento dei dati personali e sicurezza");
     clause("8.1",
-      `${safe(gdpr.personalDataHandling)} La base giuridica del trattamento è ` +
-      `${safe(gdpr.lawfulBasis).charAt(0).toLowerCase()}${safe(gdpr.lawfulBasis).slice(1)}.`
+      `${safe(gdpr.personalDataHandling)}. La base giuridica del trattamento è ` +
+      `${safe(gdpr.lawfulBasis).charAt(0).toLowerCase()}${safe(gdpr.lawfulBasis).slice(1)}, ` +
+      "documento al quale si rinvia per la disciplina di dettaglio dei reciproci obblighi in " +
+      "materia di protezione dei dati personali."
     );
     clause("8.2",
       `In attuazione del principio di minimizzazione, ${safe(gdpr.dataMinimisation).charAt(0).toLowerCase()}${safe(gdpr.dataMinimisation).slice(1)}. ` +
@@ -1910,26 +1949,28 @@ function generateRicardianPdf(ricardian, outPath) {
     clause("8.3",
       `I diritti degli interessati sono ${safe(gdpr.dataSubjectRights).charAt(0).toLowerCase()}${safe(gdpr.dataSubjectRights).slice(1)}`
     );
-    clause("8.4",
-      `Quanto alla valutazione d'impatto (DPIA): ${safe(ricardian?.dataGovernance?.dpiaStatus)}`
-    );
+    clause("8.4", safe(ricardian?.dataGovernance?.dpiaStatus));
 
     // ==================================================================
     // ART. 9 — RESPONSABILITÀ, LIMITAZIONI ED ESCLUSIONI
     // ==================================================================
     articleTitle(9, "Responsabilità, limitazioni ed esclusioni espresse");
-    clause("9.1",
+    // Numerazione dinamica: la clausola EUDR è opzionale e non lascia buchi se omessa.
+    let n9 = 0;
+    const c9 = (text) => clause(`9.${++n9}`, text);
+    c9(
       "Il Fornitore non risponde dell'indisponibilità o dei malfunzionamenti della rete " +
       "Blockchain, di hard fork, attacchi alla rete o mutamenti delle relative policy, né " +
       "dell'uso improprio del Servizio da parte del Sottoscrittore, salvo il caso di dolo o " +
       "colpa grave. Il Sottoscrittore manleva il Fornitore dai danni derivanti " +
       "dall'illiceità dei Dati trascritti o dalla violazione di diritti di terzi."
     );
-    clause("9.2", safe(disc.qualifiedTrustServiceStatus));
-    clause("9.3", safe(disc.archivalStatus));
-    clause("9.4", safe(disc.certifications));
-    clause("9.5", safe(disc.eudr));
-    clause("9.6", safe(disc.legalAdvice));
+    c9(safe(disc.qualifiedTrustServiceStatus));
+    c9(safe(disc.archivalStatus));
+    c9(safe(disc.certifications));
+    // Clausola EUDR opzionale: inclusa solo se valorizzata in disclaimers.eudr.
+    if (safe(disc.eudr)) c9(safe(disc.eudr));
+    c9(safe(disc.legalAdvice));
 
     // ==================================================================
     // ART. 10 — DURATA E CONSERVAZIONE DELLE EVIDENZE
@@ -1955,10 +1996,6 @@ function generateRicardianPdf(ricardian, outPath) {
       `normativa dell'Unione Europea applicabile, con particolare riferimento a: ${glList}.`
     );
     clause("11.2", `Per ogni controversia è competente il ${safe(ricardian?.jurisdiction?.courts).charAt(0).toLowerCase()}${safe(ricardian?.jurisdiction?.courts).slice(1)}.`);
-    captionPara(
-      "Reg. (UE) 2023/1115 (EUDR) e Reg. (UE) 2024/1183 (eIDAS 2.0) sono richiamati come quadro " +
-      "evolutivo, senza che il presente servizio ne attesti la compliance integrale."
-    );
 
     // ==================================================================
     // ART. 12 — DICHIARAZIONE FINALE
@@ -2000,25 +2037,27 @@ function generateRicardianPdf(ricardian, outPath) {
       ["Indirizzo Smart Contract", verifyingContract || "-"],
       ["Block explorer", verifyingContract ? `${explorerBase}address/${verifyingContract}` : explorerBase],
       ["Dominio EIP-712", `${safe(domain.name)} v${safe(domain.version)}`],
-      ["Signer (Issuer)", safe(eip.signer)],
+      ["Signer (Fornitore)", safe(eip.signer)],
       ["Firma EIP-712", safe(eip.signature)]
     ], { mono: new Set([1, 4, 5]) });
 
-    subTitle("B.2 Mappatura fra funzioni on-chain e clausole contrattuali");
-    mappingTable([
-      ["registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri)", "Artt. 2.3, 4.2, 7.6", "Registrazione valida dell'ancoraggio; adempimento dell'obbligazione di trascrizione del Fornitore"],
-      ["setRicardianPdfUri(forestUnitId, pdfUri)", "Artt. 7.4, 12.2", "Pubblicazione del riferimento al PDF ricardiano ai fini della verifica di integrità documentale"],
-      ["registerUserCountersignature(...)", "Art. 6.2", "Registrazione on-chain dell'evidenza della Controfirma CAdES del Sottoscrittore"],
-      ["verifyUnifiedProofWithRoot(leaf, proof, root)", "Artt. 7.2, 7.3", "Verifica di appartenenza di un elemento del Dataset alla Merkle root ancorata"]
-    ]);
-    captionPara(
-      "La mappatura ha funzione ricognitiva del collegamento fra codice e clausole. In caso di " +
-      "divergenza fra comportamento del codice e testo contrattuale prevale il testo (art. 3.2)."
+    subTitle("B.2 Mappatura fra clausole contrattuali e funzioni on-chain");
+    bodyPara(
+      "La mappatura che segue ha funzione meramente ricognitiva del collegamento fra le clausole " +
+      "del presente contratto e le funzioni eseguite on-chain. In caso di divergenza fra il " +
+      "comportamento del codice e il testo contrattuale prevale quest'ultimo, ai sensi dell'art. 3.2."
     );
+    mappingTable([
+      ["Artt. 2.3, 4.2, 7.6", "registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri)"],
+      ["Artt. 7.4, 12.2", "setRicardianPdfUri(forestUnitId, pdfUri)"],
+      ["Art. 6.2", "registerUserCountersignature(...)"],
+      ["Artt. 7.2, 7.3", "verifyUnifiedProofWithRoot(leaf, proof, root)"]
+    ]);
 
     doc.end();
     stream.on("finish", resolve);
     stream.on("error", reject);
+    })().catch(reject);
   });
 }
 
