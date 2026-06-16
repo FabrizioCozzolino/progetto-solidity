@@ -40,7 +40,7 @@
   "purpose": "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash). Il dataset resta off-chain; on-chain sono registrati esclusivamente hash crittografici e URI di reperimento.",
   "rightsAndDuties": {
     "issuer": "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Responsabile del trattamento ai sensi dell'art. 28 GDPR, operando per conto e su istruzione del Sottoscrittore sulla base del Data Processing Agreement (DPA) sottoscritto separatamente fra le parti.",
-    "subscriber": "Detiene la titolarità dei Dati e ne autorizza la registrazione e la verifica mediante sottoscrizione del DPA trasmesso dal Fornitore. Quale Titolare del trattamento ai sensi del GDPR, risponde della liceità del trattamento e valuta la necessità di una valutazione d'impatto (DPIA) ex art. 35 GDPR per il proprio caso d'uso. Garantisce inoltre, per il tramite dei propri data producer, l'operatore forestale che opera via app mobile e l'operatore drone che esegue rilievi aerei georeferenziati, la correttezza della raccolta sul campo e la coerenza del processo di generazione dei Dati.",
+    "subscriber": "Detiene la titolarità dei Dati e ne autorizza la registrazione e la verifica mediante sottoscrizione del DPA trasmesso dal Fornitore. Quale Titolare del trattamento ai sensi del GDPR, risponde dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR ed è tenuto a effettuare la valutazione d'impatto (DPIA) nei casi previsti dall'art. 35 GDPR, valutandone preliminarmente la ricorrenza in relazione al proprio caso d'uso.",
     "dataConsumer": "Cliente finale del Sottoscrittore, auditor autorizzato o terzo verificatore: può verificare integrità e provenienza dei Dati tramite le evidenze on-chain e off-chain, senza poter modificare i Dati medesimi."
   },
   "technical": {
@@ -50,7 +50,7 @@
     "batchFormat": "JSON",
     "storage": "LOCAL_FILE",
     "signatureFormats": {
-      "systemSignature": "EIP-712 (apposta dal fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
+      "systemSignature": "EIP-712 (apposta dal Fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
       "userSignature": "CAdES-BES o superiore (DER) sul PDF ricardiano; livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL"
     }
   },
@@ -62,13 +62,13 @@
     },
     "documentSignature": {
       "systemSignature": {
-        "type": "Firma elettronica semplice di sistema (EIP-712)",
-        "purpose": "Attesta la provenienza dell'ancoraggio dalla piattaforma fornitore.",
-        "legalQualification": "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo del fornitore e non del Sottoscrittore."
+        "type": "type: firma elettronica semplice di sistema secondo lo standard EIP-712 e CAdES",
+        "purpose": "Attesta la provenienza dell'ancoraggio dalla piattaforma del Fornitore.",
+        "legalQualification": "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo del Fornitore e non del Sottoscrittore."
       },
       "userCountersignature": {
         "type": "CAdES (formato DER) - livello determinato a runtime",
-        "legalQualification": "TBD - determinato dalla verifica DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
+        "legalQualification": "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
         "validationReportRef": null
       }
     },
@@ -90,22 +90,22 @@
         "offChainEvidence": "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
       "personalDataHandling": "La ripartizione dei ruoli privacy fra le parti è quella già delineata agli artt. 4 e 5: il Sottoscrittore è Titolare del trattamento, mentre il Fornitore agisce quale Responsabile ai sensi dell'art. 28 GDPR sulla base del DPA fra le parti",
-      "dataSubjectRights": "Esercitabili presso il Sottoscrittore (Titolare). Le evidenze on-chain non consentono identificazione diretta degli interessati.",
+      "dataSubjectRights": "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Sottoscrittore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
       "ipfsUsageStatement": "Limitato a payload privi di dati personali."
     },
-    "dpiaStatus": "La valutazione circa la necessità di una DPIA resta in capo al Sottoscrittore, quale Titolare del trattamento, da condursi ex art. 35 GDPR in relazione al proprio specifico caso d'uso e al rischio per i diritti e le libertà degli interessati."
+    "dpiaStatus": "Quale Titolare del trattamento, il Sottoscrittore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Sottoscrittore compete la valutazione preliminare circa la ricorrenza di tali condizioni nel proprio caso d'uso."
   },
   "disclaimers": {
-    "qualifiedTrustServiceStatus": "Il fornitore non è Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
-    "archivalStatus": "Il fornitore non è conservatore accreditato AgID. Per la conservazione a norma è raccomandata l'integrazione con conservatore accreditato terzo.",
-    "certifications": "Il fornitore non rilascia certificazioni ISO 19115, 19157, 27001, 38200 né attestazioni di compliance INSPIRE, EBSI o EU Forest Monitoring. L'architettura è tecnicamente compatibile con tali quadri; l'eventuale certificazione resta in capo al Sottoscrittore se di interesse commerciale.",
-    "eudr": "Il fornitore non genera la Due Diligence Statement EUDR né integra TRACES NT. Le evidenze geolocalizzate costituiscono supporto strumentale alla due diligence del Sottoscrittore ex Reg. (UE) 2023/1115, non compliance integrale.",
+    "qualifiedTrustServiceStatus": "Il Fornitore non è Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
+    "archivalStatus": "Il Fornitore non è conservatore accreditato AgID. Per la conservazione a norma è raccomandata l'integrazione con conservatore accreditato terzo.",
+    "certifications": "Il Fornitore non rilascia certificazioni ISO 19115, 19157, 27001, 38200 né attestazioni di compliance INSPIRE, EBSI o EU Forest Monitoring. L'architettura è tecnicamente compatibile con tali quadri; l'eventuale certificazione resta in capo al Sottoscrittore se di interesse commerciale.",
+    "eudr": "Il Fornitore non genera la Due Diligence Statement EUDR né integra TRACES NT. Le evidenze geolocalizzate costituiscono supporto strumentale alla due diligence del Sottoscrittore ex Reg. (UE) 2023/1115, non compliance integrale.",
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-06-15T16:09:57.352Z"
+    "createdAt": "2026-06-16T10:15:44.936Z"
   },
-  "ricardianHash": "0x5ff3742690db28e63f1d9cba80876613f58383ea25a579500b37ea6406ce1c33",
+  "ricardianHash": "0x3da8e71e76fa1d50f0f4674849178d7cd587ca9b95a3a196850af11b22653d3a",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -137,11 +137,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x5ff3742690db28e63f1d9cba80876613f58383ea25a579500b37ea6406ce1c33",
+        "ricardianHash": "0x3da8e71e76fa1d50f0f4674849178d7cd587ca9b95a3a196850af11b22653d3a",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-06-15T16:09:57.352Z"
+        "createdAt": "2026-06-16T10:15:44.936Z"
       },
-      "signature": "0x36a05ea439dbbaf81dbad272e92dfd9fc80f763e22e90d3f906b76c394fd756e5ede7d41a5668da833b2eb99c58ae864e73e2f7d1e55cece78dcba052662bfee1b"
+      "signature": "0x536c90b8003cdbcfb0b595fb041ecd589e4a222346b6dbeff1d382649695704d69b098ee40fcd9ca3e173c531ceb8aea71a6a9fea25554ec6b2a41d112cc5eba1c"
     }
   }
 }

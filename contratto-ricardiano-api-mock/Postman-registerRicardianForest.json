@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Register Ricardian Forest v3.0 - 6 CALLS (WRITE + WRITE 1.5 PDF + PDF + UPLOAD CADES + WRITE 2 CADES + VERIFY)",
+    "name": "Register Ricardian Forest v3.0 - 8 CALLS (WRITE + WRITE 1.5 PDF + PDF + UPLOAD CADES + WRITE 2 CADES + UPLOAD CADES CLIENT + WRITE 3 CLIENT COUNTERSIGN + VERIFY)",
     "_postman_id": "bbbbbbbb-1111-2222-3333-cccccccccccc",
-    "description": "Aggiornato per Ricardian v3.0. La call 1) WRITE ora richiede l'oggetto 'subscriber' (legalEntity, identifier, method) per soddisfare l'art. 8-ter c.2 L. 12/2019. Compila le variabili di collection {{subscriberLegalEntity}}, {{subscriberIdentifier}}, {{subscriberMethod}} con i dati del cliente reale prima di eseguire il flusso. Per ora method='contractual' è la Soluzione A (identificazione contrattuale, gratis); 'SPID-L2'/'SPID-L3'/'CIE'/'EUDIWallet' richiederanno integrazione futura.",
+    "description": "Aggiornato per Ricardian v3.0 con CONTROFIRMA CLIENTE (firma annidata .p7m.p7m). Flusso completo: 1) WRITE registra il Ricardian on-chain (richiede l'oggetto 'subscriber' per l'art. 8-ter c.2 L. 12/2019). 4) UPLOAD CADES carica e verifica il .p7m del firmatario. 5) WRITE 2 CADES registra on-chain la firma del firmatario. 5b) UPLOAD CADES CLIENT carica il .p7m.p7m del cliente (firma annidata sopra il p7m del firmatario): il server fa doppia estrazione, verifica che il p7m interno coincida con la firma del firmatario gia' registrata e che il PDF annidato coincida con la baseline. 5c) WRITE 3 CLIENT COUNTERSIGN registra on-chain la controfirma cliente in uno slot separato (prerequisito: WRITE 2 CADES gia' eseguito). 6) VERIFY ora esegue la DOPPIA verifica on-chain (firma firmatario + controfirma cliente). Compila {{subscriberLegalEntity}}, {{subscriberIdentifier}}, {{subscriberMethod}} prima del flusso.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -225,7 +225,138 @@
       ]
     },
     {
-      "name": "6) VERIFY (On-chain + proofs + optional IPFS hash + countersignature) -> uses {{forestUnitId}}",
+      "name": "5b) Upload CAdES CLIENT .p7m.p7m -> sets {{innerCadesHash}} {{clientCadesHash}} {{clientCadesUri}} {{clientSignerCommonName}} {{clientSignerSerialNumber}} {{clientValidOffchain}}",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{API_URL}}/api/ricardian/cades/client-upload",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "ricardian", "cades", "client-upload"]
+        },
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "forestUnitId",
+              "value": "{{forestUnitId}}",
+              "type": "text"
+            },
+            {
+              "key": "useIPFS",
+              "value": "false",
+              "type": "text"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": "",
+              "description": "Il .p7m.p7m: la firma del CLIENTE annidata sopra il .p7m del firmatario (call 4)."
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Prerequisito: la firma del firmatario deve essere stata caricata (call 4) e registrata (call 5).",
+              "const cadesHash = pm.collectionVariables.get('cadesHash');",
+              "if (!cadesHash) {",
+              "  console.warn('[!] cadesHash non impostato. Esegui prima la call 4 (Upload CAdES) e la call 5 (WRITE 2 CADES).');",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "console.log('UPLOAD CADES CLIENT response:', j);",
+              "if (j && j.ok !== true) {",
+              "  console.log('UPLOAD CADES CLIENT failed response:', j);",
+              "}",
+              "if (j && j.forestUnitId) pm.collectionVariables.set('forestUnitId', j.forestUnitId);",
+              "if (j && j.hashes && j.hashes.innerCadesHash) pm.collectionVariables.set('innerCadesHash', j.hashes.innerCadesHash);",
+              "if (j && j.hashes && j.hashes.clientCadesHash) pm.collectionVariables.set('clientCadesHash', j.hashes.clientCadesHash);",
+              "if (j && j.storage && j.storage.clientCadesUri) pm.collectionVariables.set('clientCadesUri', j.storage.clientCadesUri);",
+              "if (j && j.signer) {",
+              "  if (j.signer.commonName !== undefined) pm.collectionVariables.set('clientSignerCommonName', j.signer.commonName);",
+              "  if (j.signer.serialNumber !== undefined) pm.collectionVariables.set('clientSignerSerialNumber', j.signer.serialNumber);",
+              "  if (j.signer.organization !== undefined) pm.collectionVariables.set('clientSignerOrganization', j.signer.organization);",
+              "  if (j.signer.country !== undefined) pm.collectionVariables.set('clientSignerCountry', j.signer.country);",
+              "  if (j.signer.issuer !== undefined) pm.collectionVariables.set('clientSignerIssuer', j.signer.issuer);",
+              "  if (j.signer.validFrom !== undefined) pm.collectionVariables.set('clientSignerValidFrom', j.signer.validFrom);",
+              "  if (j.signer.validTo !== undefined) pm.collectionVariables.set('clientSignerValidTo', j.signer.validTo);",
+              "}",
+              "if (j && j.validOffchain !== undefined) pm.collectionVariables.set('clientValidOffchain', String(j.validOffchain));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5c) WRITE 3 CLIENT COUNTERSIGN -> sets {{clientCadesTxHash}} {{clientCadesBlockNumber}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{API_URL}}/api/contract/write-3-client-countersign",
+          "host": ["{{API_URL}}"],
+          "path": ["api", "contract", "write-3-client-countersign"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"forestUnitId\": \"{{forestUnitId}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Prerequisito on-chain: la firma del firmatario deve essere stata registrata (call 5 -> cadesTxHash).",
+              "const cadesTxHash = pm.collectionVariables.get('cadesTxHash');",
+              "if (!cadesTxHash) {",
+              "  console.warn('[!] cadesTxHash non impostato. Esegui prima la call 5 (WRITE 2 CADES) prima di registrare la controfirma cliente.');",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "console.log('WRITE 3 CLIENT COUNTERSIGN response:', j);",
+              "if (j && j.ok !== true) {",
+              "  console.log('WRITE 3 CLIENT COUNTERSIGN failed response:', j);",
+              "}",
+              "if (j && j.onchain && j.onchain.txHash) pm.collectionVariables.set('clientCadesTxHash', j.onchain.txHash);",
+              "if (j && j.onchain && j.onchain.blockNumber !== undefined) pm.collectionVariables.set('clientCadesBlockNumber', String(j.onchain.blockNumber));",
+              "if (j && j.clientCountersignature) {",
+              "  if (j.clientCountersignature.innerCadesHash) pm.collectionVariables.set('innerCadesHash', j.clientCountersignature.innerCadesHash);",
+              "  if (j.clientCountersignature.clientCadesHash) pm.collectionVariables.set('clientCadesHash', j.clientCountersignature.clientCadesHash);",
+              "  if (j.clientCountersignature.clientCadesUri) pm.collectionVariables.set('clientCadesUri', j.clientCountersignature.clientCadesUri);",
+              "  if (j.clientCountersignature.signerCommonName !== undefined) pm.collectionVariables.set('clientSignerCommonName', j.clientCountersignature.signerCommonName);",
+              "  if (j.clientCountersignature.signerSerialNumber !== undefined) pm.collectionVariables.set('clientSignerSerialNumber', j.clientCountersignature.signerSerialNumber);",
+              "  if (j.clientCountersignature.validOffchain !== undefined) pm.collectionVariables.set('clientValidOffchain', String(j.clientCountersignature.validOffchain));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6) VERIFY (On-chain + proofs + optional IPFS hash + countersignature + clientCountersignature) -> uses {{forestUnitId}}",
       "request": {
         "method": "POST",
         "header": [
@@ -240,7 +371,37 @@
           "mode": "raw",
           "raw": "{\n  \"forestUnitId\": \"{{forestUnitId}}\"\n}"
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "console.log('VERIFY response:', j);",
+              "",
+              "// --- Firma del firmatario (countersignature) ---",
+              "const cs = j && j.countersignature;",
+              "if (cs && cs.existsOnChain && cs.matches) {",
+              "  console.log('[firmatario] pdfHashMatches =', cs.matches.pdfHashMatches, '| cadesHashMatches =', cs.matches.cadesHashMatches, '| cadesUriMatches =', cs.matches.cadesUriMatches);",
+              "} else if (cs && cs.existsOnChain === false) {",
+              "  console.warn('[firmatario] controfirma NON presente on-chain.');",
+              "}",
+              "",
+              "// --- Controfirma del cliente (clientCountersignature) ---",
+              "const cc = j && j.clientCountersignature;",
+              "if (cc && cc.existsOnChain && cc.matches) {",
+              "  console.log('[cliente] innerCadesHashMatches =', cc.matches.innerCadesHashMatches, '| clientCadesHashMatches =', cc.matches.clientCadesHashMatches, '| clientCadesUriMatches =', cc.matches.clientCadesUriMatches, '| nestingMatchesUserSignature =', cc.matches.nestingMatchesUserSignature);",
+              "} else if (cc && cc.existsOnChain === false) {",
+              "  console.warn('[cliente] controfirma NON presente on-chain (esegui 5b e 5c).');",
+              "} else if (cc && cc.skipped) {",
+              "  console.warn('[cliente] verifica saltata:', cc.reason);",
+              "}"
+            ]
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -263,6 +424,14 @@
     { "key": "signerSerialNumber", "value": "" },
     { "key": "validOffchain", "value": "" },
     { "key": "cadesTxHash", "value": "" },
-    { "key": "cadesBlockNumber", "value": "" }
+    { "key": "cadesBlockNumber", "value": "" },
+    { "key": "innerCadesHash", "value": "", "description": "Hash del .p7m del firmatario (payload firmato dal cliente). Settato da 5b/5c." },
+    { "key": "clientCadesHash", "value": "", "description": "Hash del .p7m.p7m prodotto dal cliente. Settato da 5b/5c." },
+    { "key": "clientCadesUri", "value": "" },
+    { "key": "clientSignerCommonName", "value": "" },
+    { "key": "clientSignerSerialNumber", "value": "" },
+    { "key": "clientValidOffchain", "value": "" },
+    { "key": "clientCadesTxHash", "value": "" },
+    { "key": "clientCadesBlockNumber", "value": "" }
   ]
 }

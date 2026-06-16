@@ -316,4 +316,121 @@ contract ForestTracking {
             data.validOffchain
         );
     }
+
+    // ---------------------------------------------------------------
+    // CONTROFIRMA DEL CLIENTE (firma annidata .p7m.p7m sopra il p7m)
+    // Secondo slot on-chain, distinto dalla firma del firmatario.
+    // Prerequisito: la firma del firmatario (registerUserCountersignature)
+    // deve gia' esistere per questa forestUnitKey.
+    // ---------------------------------------------------------------
+    struct RicardianClientCountersignature {
+        bool exists;
+        bytes32 innerCadesHash;   // hash del .p7m del firmatario (payload firmato dal cliente)
+        bytes32 clientCadesHash;  // hash del .p7m.p7m prodotto dal cliente
+        string clientCadesUri;
+        string signerCommonName;
+        string signerSerialNumber;
+        uint256 signedAt;
+        uint256 recordedAt;
+        bool validOffchain;
+    }
+
+    mapping(string => RicardianClientCountersignature)
+        public ricardianClientCountersignatures;
+
+    event RicardianClientCountersigned(
+        string forestUnitKey,
+        bytes32 indexed innerCadesHash,
+        bytes32 indexed clientCadesHash,
+        string clientCadesUri,
+        string signerCommonName,
+        string signerSerialNumber,
+        uint256 signedAt,
+        uint256 recordedAt,
+        bool validOffchain
+    );
+
+    function registerClientCountersignature(
+        string memory forestUnitKey,
+        bytes32 innerCadesHash,
+        bytes32 clientCadesHash,
+        string memory clientCadesUri,
+        string memory signerCommonName,
+        string memory signerSerialNumber,
+        uint256 signedAt,
+        bool validOffchain
+    ) external onlyOwner {
+        require(
+            forestRicardians[forestUnitKey].ricardianHash != bytes32(0),
+            "Ricardian non registrato"
+        );
+        require(
+            ricardianUserCountersignatures[forestUnitKey].exists,
+            "Firma del firmatario non registrata"
+        );
+        require(
+            ricardianUserCountersignatures[forestUnitKey].cadesHash == innerCadesHash,
+            "innerCadesHash non coincide con la firma del firmatario"
+        );
+
+        ricardianClientCountersignatures[
+            forestUnitKey
+        ] = RicardianClientCountersignature({
+            exists: true,
+            innerCadesHash: innerCadesHash,
+            clientCadesHash: clientCadesHash,
+            clientCadesUri: clientCadesUri,
+            signerCommonName: signerCommonName,
+            signerSerialNumber: signerSerialNumber,
+            signedAt: signedAt,
+            recordedAt: block.timestamp,
+            validOffchain: validOffchain
+        });
+
+        emit RicardianClientCountersigned(
+            forestUnitKey,
+            innerCadesHash,
+            clientCadesHash,
+            clientCadesUri,
+            signerCommonName,
+            signerSerialNumber,
+            signedAt,
+            block.timestamp,
+            validOffchain
+        );
+    }
+
+    function getClientCountersignature(
+        string memory forestUnitKey
+    )
+        external
+        view
+        returns (
+            bool exists,
+            bytes32 innerCadesHash,
+            bytes32 clientCadesHash,
+            string memory clientCadesUri,
+            string memory signerCommonName,
+            string memory signerSerialNumber,
+            uint256 signedAt,
+            uint256 recordedAt,
+            bool validOffchain
+        )
+    {
+        RicardianClientCountersignature memory data = ricardianClientCountersignatures[
+            forestUnitKey
+        ];
+
+        return (
+            data.exists,
+            data.innerCadesHash,
+            data.clientCadesHash,
+            data.clientCadesUri,
+            data.signerCommonName,
+            data.signerSerialNumber,
+            data.signedAt,
+            data.recordedAt,
+            data.validOffchain
+        );
+    }
 }

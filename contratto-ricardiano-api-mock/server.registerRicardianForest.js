@@ -1,4 +1,4 @@
-const path = require("path");
+﻿const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../environment_variables.env") });
 
 const express = require("express");
@@ -147,7 +147,8 @@ const state = {
   lastImportedForestUnitKey: null,
   batches: {},
   ricardians: {},
-  cades: {}
+  cades: {},
+  clientCades: {}
 };
 
 state.writes = {};
@@ -763,7 +764,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
 
   rightsAndDuties: {
     issuer: "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Responsabile del trattamento ai sensi dell'art. 28 GDPR, operando per conto e su istruzione del Sottoscrittore sulla base del Data Processing Agreement (DPA) sottoscritto separatamente fra le parti.",
-    subscriber: "Detiene la titolarità dei Dati e ne autorizza la registrazione e la verifica mediante sottoscrizione del DPA trasmesso dal Fornitore. Quale Titolare del trattamento ai sensi del GDPR, risponde della liceità del trattamento e valuta la necessità di una valutazione d'impatto (DPIA) ex art. 35 GDPR per il proprio caso d'uso. Garantisce inoltre, per il tramite dei propri data producer, l'operatore forestale che opera via app mobile e l'operatore drone che esegue rilievi aerei georeferenziati, la correttezza della raccolta sul campo e la coerenza del processo di generazione dei Dati.",
+    subscriber: "Detiene la titolarità dei Dati e ne autorizza la registrazione e la verifica mediante sottoscrizione del DPA trasmesso dal Fornitore. Quale Titolare del trattamento ai sensi del GDPR, risponde dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR ed è tenuto a effettuare la valutazione d'impatto (DPIA) nei casi previsti dall'art. 35 GDPR, valutandone preliminarmente la ricorrenza in relazione al proprio caso d'uso.",
     dataConsumer: "Cliente finale del Sottoscrittore, auditor autorizzato o terzo verificatore: può verificare integrità e provenienza dei Dati tramite le evidenze on-chain e off-chain, senza poter modificare i Dati medesimi."
   },
 
@@ -774,7 +775,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
     batchFormat: "JSON",
     storage: storageMode,
     signatureFormats: {
-      systemSignature: "EIP-712 (apposta dal fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
+      systemSignature: "EIP-712 (apposta dal Fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
       userSignature: "CAdES-BES o superiore (DER) sul PDF ricardiano; livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL"
     }
   },
@@ -787,13 +788,13 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
     },
     documentSignature: {
       systemSignature: {
-        type: "Firma elettronica semplice di sistema (EIP-712)",
-        purpose: "Attesta la provenienza dell'ancoraggio dalla piattaforma fornitore.",
-        legalQualification: "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo del fornitore e non del Sottoscrittore."
+        type: "type: firma elettronica semplice di sistema secondo lo standard EIP-712 e CAdES",
+        purpose: "Attesta la provenienza dell'ancoraggio dalla piattaforma del Fornitore.",
+        legalQualification: "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo del Fornitore e non del Sottoscrittore."
       },
       userCountersignature: {
         type: "CAdES (formato DER) - livello determinato a runtime",
-        legalQualification: "TBD - determinato dalla verifica DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
+        legalQualification: "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
         validationReportRef: null
       }
     },
@@ -817,17 +818,17 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
         offChainEvidence: "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
       personalDataHandling: "La ripartizione dei ruoli privacy fra le parti è quella già delineata agli artt. 4 e 5: il Sottoscrittore è Titolare del trattamento, mentre il Fornitore agisce quale Responsabile ai sensi dell'art. 28 GDPR sulla base del DPA fra le parti",
-      dataSubjectRights: "Esercitabili presso il Sottoscrittore (Titolare). Le evidenze on-chain non consentono identificazione diretta degli interessati.",
+      dataSubjectRights: "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Sottoscrittore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
       ipfsUsageStatement: "Limitato a payload privi di dati personali."
     },
-    dpiaStatus: "La valutazione circa la necessità di una DPIA resta in capo al Sottoscrittore, quale Titolare del trattamento, da condursi ex art. 35 GDPR in relazione al proprio specifico caso d'uso e al rischio per i diritti e le libertà degli interessati."
+    dpiaStatus: "Quale Titolare del trattamento, il Sottoscrittore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Sottoscrittore compete la valutazione preliminare circa la ricorrenza di tali condizioni nel proprio caso d'uso."
   },
 
   disclaimers: {
-    qualifiedTrustServiceStatus: "Il fornitore non è Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
-    archivalStatus: "Il fornitore non è conservatore accreditato AgID. Per la conservazione a norma è raccomandata l'integrazione con conservatore accreditato terzo.",
-    certifications: "Il fornitore non rilascia certificazioni ISO 19115, 19157, 27001, 38200 né attestazioni di compliance INSPIRE, EBSI o EU Forest Monitoring. L'architettura è tecnicamente compatibile con tali quadri; l'eventuale certificazione resta in capo al Sottoscrittore se di interesse commerciale.",
-    eudr: "Il fornitore non genera la Due Diligence Statement EUDR né integra TRACES NT. Le evidenze geolocalizzate costituiscono supporto strumentale alla due diligence del Sottoscrittore ex Reg. (UE) 2023/1115, non compliance integrale.",
+    qualifiedTrustServiceStatus: "Il Fornitore non è Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
+    archivalStatus: "Il Fornitore non è conservatore accreditato AgID. Per la conservazione a norma è raccomandata l'integrazione con conservatore accreditato terzo.",
+    certifications: "Il Fornitore non rilascia certificazioni ISO 19115, 19157, 27001, 38200 né attestazioni di compliance INSPIRE, EBSI o EU Forest Monitoring. L'architettura è tecnicamente compatibile con tali quadri; l'eventuale certificazione resta in capo al Sottoscrittore se di interesse commerciale.",
+    eudr: "Il Fornitore non genera la Due Diligence Statement EUDR né integra TRACES NT. Le evidenze geolocalizzate costituiscono supporto strumentale alla due diligence del Sottoscrittore ex Reg. (UE) 2023/1115, non compliance integrale.",
     legalAdvice: "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
 
@@ -1160,6 +1161,176 @@ async function registerCountersignatureOnChainInternal({
     pdfHash,
     cadesHash,
     cadesUri,
+    signerCommonName,
+    signerSerialNumber,
+    signedAt,
+    validOffchain
+  );
+
+  const receipt = await tx.wait();
+
+  return {
+    txHash: receipt.transactionHash || tx.hash,
+    blockNumber: receipt.blockNumber,
+    signerAddress
+  };
+}
+
+// ----------------------------------------------------------------
+// CLIENT COUNTERSIGNATURE (firma annidata .p7m.p7m)
+// ----------------------------------------------------------------
+
+// Estrae il payload firmato da un container CAdES/PKCS7 (DER) senza
+// validare la firma (-noverify): serve solo a "sbucciare" un livello.
+async function unwrapCadesPayload(inputP7mPath, outPath) {
+  const attempts = [
+    ["cms", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", inputP7mPath, "-out", outPath],
+    ["smime", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", inputP7mPath, "-out", outPath]
+  ];
+  let lastErr = null;
+  for (const args of attempts) {
+    try {
+      await execFileAsync("openssl", args);
+      if (fs.existsSync(outPath) && fs.statSync(outPath).size > 0) {
+        return { ok: true };
+      }
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  return { ok: false, error: lastErr?.message || "Unwrap CAdES fallito" };
+}
+
+// Verifica un .p7m.p7m: sbuccia il livello esterno (firma cliente) -> ottiene
+// il .p7m del firmatario, poi sbuccia di nuovo -> ottiene il PDF. Valida via
+// DSS la firma esterna e controlla che il PDF finale combaci con la baseline.
+async function verifyAndExtractClientCountersignature(
+  clientP7mPath,
+  innerP7mOutPath,
+  extractedPdfOutPath
+) {
+  // 1) Validazione DSS della firma esterna (del cliente)
+  const dssResult = await validateCades(clientP7mPath);
+
+  // 2) Livello 1: sbuccia firma cliente -> .p7m del firmatario
+  const lvl1 = await unwrapCadesPayload(clientP7mPath, innerP7mOutPath);
+  if (!lvl1.ok) {
+    return { ok: false, error: "Estrazione p7m interno fallita", details: lvl1.error, dssResult };
+  }
+
+  // 3) Livello 2: sbuccia firma firmatario -> PDF
+  const lvl2 = await unwrapCadesPayload(innerP7mOutPath, extractedPdfOutPath);
+  if (!lvl2.ok) {
+    return { ok: false, error: "Estrazione PDF dal p7m interno fallita", details: lvl2.error, dssResult };
+  }
+
+  const validOffchain =
+    dssResult.ok &&
+    dssResult.indication === "TOTAL_PASSED" &&
+    ["QESig", "AdESig-QC"].includes(dssResult.signatureLevel);
+
+  return {
+    ok: true,
+    validOffchain,
+    signatureLevel: dssResult.signatureLevel,
+    indication: dssResult.indication,
+    subIndication: dssResult.subIndication,
+    signatureFormat: dssResult.signatureFormat,
+    qcCompliance: dssResult.qcCompliance,
+    qcSSCD: dssResult.qcSSCD,
+    hasTimestamp: dssResult.hasTimestamp,
+    rawReport: dssResult.rawReport
+  };
+}
+
+async function estimateRegisterClientCountersignatureInternal({
+  forestUnitId,
+  innerCadesHash,
+  clientCadesHash,
+  clientCadesUri,
+  signerCommonName,
+  signerSerialNumber,
+  signedAt,
+  validOffchain
+}) {
+  const contractAddress = deployed.ForestTracking;
+  const from = await signer.getAddress();
+
+  const data = contract.interface.encodeFunctionData("registerClientCountersignature", [
+    forestUnitId,
+    innerCadesHash,
+    clientCadesHash,
+    clientCadesUri,
+    signerCommonName,
+    signerSerialNumber,
+    signedAt,
+    validOffchain
+  ]);
+
+  const gasEstimate = await provider.estimateGas({ to: contractAddress, data, from });
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? ethers.parseUnits("20", "gwei");
+
+  const gasCostWei = gasEstimate * gasPrice;
+  const gasCostEth = Number(ethers.formatEther(gasCostWei));
+  const ethPrice = await getEthPriceInEuro();
+
+  return {
+    to: contractAddress,
+    from,
+    gasEstimate: gasEstimate.toString(),
+    gasPriceWei: gasPrice.toString(),
+    gasCostWei: gasCostWei.toString(),
+    gasCostEth,
+    ethEur: ethPrice,
+    eur: Number((gasCostEth * ethPrice).toFixed(2))
+  };
+}
+
+async function registerClientCountersignatureOnChainInternal({
+  forestUnitId,
+  innerCadesHash,
+  clientCadesHash,
+  clientCadesUri,
+  signerCommonName,
+  signerSerialNumber,
+  signedAt,
+  validOffchain
+}) {
+  const runner = await contract.runner;
+  const signerAddress = await runner.getAddress();
+  const balance = await runner.provider.getBalance(signerAddress);
+
+  const gas = await contract.registerClientCountersignature.estimateGas(
+    forestUnitId,
+    innerCadesHash,
+    clientCadesHash,
+    clientCadesUri,
+    signerCommonName,
+    signerSerialNumber,
+    signedAt,
+    validOffchain
+  );
+
+  const feeData = await runner.provider.getFeeData();
+  const price = feeData.maxFeePerGas ?? feeData.gasPrice;
+  const estimatedCost = gas * price;
+
+  if (balance < estimatedCost) {
+    const e = new Error("Insufficient funds");
+    e.meta = {
+      signerAddress,
+      balanceWei: balance.toString(),
+      estimatedCostWei: estimatedCost.toString()
+    };
+    throw e;
+  }
+
+  const tx = await contract.registerClientCountersignature(
+    forestUnitId,
+    innerCadesHash,
+    clientCadesHash,
+    clientCadesUri,
     signerCommonName,
     signerSerialNumber,
     signedAt,
@@ -1770,7 +1941,7 @@ doc.y = badgeY + badgeH + 12;
       "verifica di appartenenza di ogni singolo elemento mediante Merkle proof."
     );
     definition("Firma di Sistema (EIP-712)",
-      "la firma elettronica apposta dal fornitore sui dati di ancoraggio secondo lo standard " +
+      "la firma elettronica apposta dal Fornitore sui dati di ancoraggio secondo lo standard " +
       "EIP-712, che attesta la provenienza dell'ancoraggio dalla piattaforma del Fornitore."
     );
     definition("Controfirma CAdES",
@@ -1801,7 +1972,7 @@ doc.y = badgeY + badgeH + 12;
     clause("2.3",
       "In particolare, per ciascuna registrazione il Servizio provvede: alla costruzione di " +
       "un albero di Merkle sul dataset off-chain; alla firma EIP-712 dell'ancoraggio da " +
-      "parte del fornitore; alla registrazione on-chain del Ricardian hash e della Merkle root " +
+      "parte del Fornitore; alla registrazione on-chain del Ricardian hash e della Merkle root " +
       "su rete EVM pubblica; nonché, ove richiesta, alla raccolta della Controfirma CAdES " +
       "del presente documento da parte del Sottoscrittore."
     );
@@ -1883,8 +2054,8 @@ doc.y = badgeY + badgeH + 12;
     // ==================================================================
     articleTitle(6, "Firme elettroniche e validazione temporale");
     clause("6.1",
-      `Sull'ancoraggio il Fornitore appone una firma elettronica di sistema in formato ` +
-      `${safe(sysSig.type)}, generata dall'indirizzo indicato nell'Allegato Tecnico B. ` +
+      `Sull'ancoraggio il Fornitore appone la propria ${safe(sysSig.type).charAt(0).toLowerCase()}${safe(sysSig.type).slice(1)}, ` +
+      `generata dall'indirizzo indicato nell'Allegato Tecnico B. ` +
       `${safe(sysSig.purpose)} ${safe(sysSig.legalQualification)}`
     );
     clause("6.2",
@@ -1943,7 +2114,7 @@ doc.y = badgeY + badgeH + 12;
     clause("8.2",
       `In attuazione del principio di minimizzazione, ${safe(gdpr.dataMinimisation).charAt(0).toLowerCase()}${safe(gdpr.dataMinimisation).slice(1)}. ` +
       "Il contenuto sostanziale dei Dati è conservato off-chain secondo misure tecniche e " +
-      `organizzative adeguate. L'eventuale utilizzo di storage distribuito IPFS è ` +
+      `organizzative adeguate ai sensi dell'art. 32 GDPR. L'eventuale utilizzo di storage distribuito IPFS è ` +
       `${safe(gdpr.ipfsUsageStatement).charAt(0).toLowerCase()}${safe(gdpr.ipfsUsageStatement).slice(1)}`
     );
     clause("8.3",
@@ -3403,6 +3574,227 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
   }
 });
 
+// ----------------------------------------------------------------
+// UPLOAD CONTROFIRMA CLIENTE (.p7m.p7m — firma annidata sopra il p7m)
+// ----------------------------------------------------------------
+app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req, res) => {
+  let uploadedTempPath = req.file?.path || null;
+
+  try {
+    const forestUnitId = req.body?.forestUnitId;
+    const useIPFS = String(req.body?.useIPFS || "false").toLowerCase() === "true";
+
+    if (!forestUnitId) {
+      if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
+      return res.status(400).json({ error: "forestUnitId richiesto" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "File .p7m.p7m richiesto nel campo form-data 'file'" });
+    }
+
+    // Prerequisito: la firma del firmatario deve esistere off-chain (caricata
+    // con /api/ricardian/cades/upload) per poter verificare l'annidamento.
+    const inner = state.cades?.[forestUnitId];
+    if (!inner) {
+      if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
+      return res.status(404).json({
+        error: "Firma del firmatario non trovata. Carica prima il .p7m con /api/ricardian/cades/upload"
+      });
+    }
+
+    const baseline = ensurePdfBaselineIntegrity(forestUnitId);
+    const registeredPdfHash = baseline.registeredPdfHash;
+
+    const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
+    const finalClientP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.pdf.p7m.p7m`);
+    const innerP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.client-inner.pdf.p7m`);
+    const extractedPdfPath = path.join(CADES_DIR, `ricardian-${safeName}.client-extracted.pdf`);
+
+    fs.renameSync(uploadedTempPath, finalClientP7mPath);
+    uploadedTempPath = null;
+
+    const cleanup = () => {
+      for (const p of [finalClientP7mPath, innerP7mPath, extractedPdfPath]) {
+        try { if (fs.existsSync(p)) fs.unlinkSync(p); } catch {}
+      }
+    };
+
+    // Doppia estrazione + validazione DSS della firma esterna (cliente)
+    const verifyResult = await verifyAndExtractClientCountersignature(
+      finalClientP7mPath,
+      innerP7mPath,
+      extractedPdfPath
+    );
+
+    if (!verifyResult.ok) {
+      cleanup();
+      return res.status(400).json({
+        ok: false,
+        error: "Verifica controfirma cliente fallita",
+        details: verifyResult.error,
+        sub: verifyResult.details || null
+      });
+    }
+
+    if (!fs.existsSync(extractedPdfPath)) {
+      cleanup();
+      return res.status(400).json({ ok: false, error: "PDF non estratto dal .p7m.p7m" });
+    }
+
+    // 1) Il p7m interno estratto deve coincidere con il p7m del firmatario gia' registrato
+    const extractedInnerHash = sha256FileBytes32(innerP7mPath);
+    const innerMatches =
+      extractedInnerHash.toLowerCase() === String(inner.cadesHash).toLowerCase();
+
+    if (!innerMatches) {
+      cleanup();
+      return res.status(409).json({
+        ok: false,
+        error: "Il p7m interno non coincide con la firma del firmatario registrata",
+        forestUnitId,
+        hashes: {
+          expectedInnerCadesHash: inner.cadesHash,
+          extractedInnerCadesHash: extractedInnerHash
+        }
+      });
+    }
+
+    // 2) Il PDF finale deve coincidere con la baseline
+    const extractedPdfHash = sha256FileBytes32(extractedPdfPath);
+    const pdfMatches =
+      extractedPdfHash.toLowerCase() === String(registeredPdfHash).toLowerCase();
+
+    if (!pdfMatches) {
+      cleanup();
+      return res.status(409).json({
+        ok: false,
+        error: "Il PDF annidato non coincide con la baseline registrata",
+        forestUnitId,
+        hashes: { registeredPdfHash, extractedPdfHash }
+      });
+    }
+
+    const clientCadesHash = sha256FileBytes32(finalClientP7mPath);
+
+    // Info certificato della firma esterna (cliente)
+    const certInfo = await extractCertificateInfoFromP7m(finalClientP7mPath);
+
+    const caFilePath =
+      process.env.CADES_CA_FILE ||
+      path.resolve(__dirname, "../certs/trusted-ca.pem");
+    const trustResult = await verifyCadesSignatureTrustHybrid(finalClientP7mPath, caFilePath);
+
+    // DSS report come evidenza
+    let dssReportPath = null;
+    if (verifyResult.rawReport) {
+      try {
+        const reportFileName = `validation-client-${safeName}-${Date.now()}.json`;
+        dssReportPath = path.join(CADES_DIR, reportFileName);
+        fs.writeFileSync(dssReportPath, JSON.stringify(verifyResult.rawReport, null, 2));
+      } catch (e) {
+        console.warn(`[DSS] Impossibile salvare report client: ${e.message}`);
+      }
+    }
+
+    let clientCadesUri = toFileUri(finalClientP7mPath);
+    let ipfs = null;
+    if (useIPFS) {
+      ipfs = await uploadFileToIpfs(finalClientP7mPath, `ricardian-${safeName}.pdf.p7m.p7m`);
+      clientCadesUri = ipfs.ipfsUri;
+    }
+
+    const signedAt = Math.floor(Date.now() / 1000);
+
+    state.clientCades[forestUnitId] = {
+      forestUnitId,
+      clientP7mPath: finalClientP7mPath,
+      innerP7mPath,
+      extractedPdfPath,
+      innerCadesHash: inner.cadesHash,
+      clientCadesHash,
+      clientCadesUri,
+      pdfHash: registeredPdfHash,
+      extractedPdfHash,
+      signerCommonName: certInfo.signerCommonName || "",
+      signerSerialNumber: certInfo.signerSerialNumber || "",
+      signerOrganization: certInfo.organization || "",
+      signerCountry: certInfo.country || "",
+      issuer: certInfo.issuer || "",
+      validFrom: certInfo.validFrom || "",
+      validTo: certInfo.validTo || "",
+      signedAt,
+      validOffchain: verifyResult.validOffchain,
+      trustedSignature: trustResult.trusted,
+      trustProvider: trustResult.provider || null,
+      ipfsUri: ipfs?.ipfsUri || null,
+      cid: ipfs?.cid || null,
+      uploadedAt: new Date().toISOString(),
+      dssOk: verifyResult.indication === "TOTAL_PASSED",
+      dssIndication: verifyResult.indication || null,
+      dssSubIndication: verifyResult.subIndication || null,
+      dssSignatureLevel: verifyResult.signatureLevel || null,
+      dssSignatureFormat: verifyResult.signatureFormat || null,
+      dssHasTimestamp: verifyResult.hasTimestamp || false,
+      dssReportPath,
+      dssReportFileName: dssReportPath ? path.basename(dssReportPath) : null
+    };
+
+    return res.json({
+      ok: true,
+      forestUnitId,
+      validOffchain: verifyResult.validOffchain,
+      trustedSignature: trustResult.trusted,
+      trustProvider: trustResult.provider || null,
+      files: {
+        clientP7mPath: finalClientP7mPath,
+        innerP7mPath,
+        extractedPdfPath
+      },
+      hashes: {
+        registeredPdfHash,
+        extractedPdfHash,
+        innerCadesHash: inner.cadesHash,
+        extractedInnerCadesHash: extractedInnerHash,
+        clientCadesHash
+      },
+      signer: {
+        commonName: certInfo.signerCommonName,
+        serialNumber: certInfo.signerSerialNumber,
+        organization: certInfo.organization,
+        country: certInfo.country,
+        issuer: certInfo.issuer,
+        validFrom: certInfo.validFrom,
+        validTo: certInfo.validTo
+      },
+      storage: {
+        clientCadesUri,
+        ipfsUri: ipfs?.ipfsUri || null,
+        cid: ipfs?.cid || null
+      },
+      dss: {
+        indication: verifyResult.indication,
+        subIndication: verifyResult.subIndication,
+        signatureLevel: verifyResult.signatureLevel,
+        signatureFormat: verifyResult.signatureFormat,
+        hasTimestamp: verifyResult.hasTimestamp,
+        reportFileName: dssReportPath ? path.basename(dssReportPath) : null
+      },
+      note: "Controfirma cliente verificata: p7m interno e PDF annidato coincidono con i record registrati."
+    });
+  } catch (err) {
+    if (uploadedTempPath && fs.existsSync(uploadedTempPath)) {
+      try { fs.unlinkSync(uploadedTempPath); } catch {}
+    }
+    return res.status(500).json({
+      ok: false,
+      error: "Upload controfirma cliente failed",
+      details: err.message,
+      meta: err.meta || null
+    });
+  }
+});
+
 // --------------------
 // OFFICIAL #1: WRITE CONTRACT ON-CHAIN
 // --------------------
@@ -3802,6 +4194,108 @@ app.post("/api/contract/write-2-cades", async (req, res) => {
 });
 
 // --------------------
+// OFFICIAL #2b: WRITE CONTROFIRMA CLIENTE ON-CHAIN
+// --------------------
+app.post("/api/contract/write-3-client-countersign", async (req, res) => {
+  try {
+    const forestUnitId = req.body?.forestUnitId;
+    if (!forestUnitId) {
+      return res.status(400).json({ ok: false, error: "forestUnitId richiesto" });
+    }
+
+    const cc = state.clientCades?.[forestUnitId];
+    if (!cc) {
+      return res.status(404).json({
+        ok: false,
+        error: "Controfirma cliente non trovata. Carica prima il .p7m.p7m con /api/ricardian/cades/client-upload"
+      });
+    }
+
+    // Prerequisito on-chain: la firma del firmatario deve essere gia' registrata
+    const userCounter = await contract.getUserCountersignature(forestUnitId);
+    if (!userCounter[0]) {
+      return res.status(409).json({
+        ok: false,
+        error: "Firma del firmatario non registrata on-chain. Esegui prima /api/contract/write-2-cades"
+      });
+    }
+
+    if (cc.validOffchain !== true) {
+      return res.status(400).json({
+        ok: false,
+        error: "Registrazione rifiutata: la controfirma cliente non e' valida off-chain (DSS)"
+      });
+    }
+    if (cc.trustedSignature !== true) {
+      return res.status(400).json({
+        ok: false,
+        error: "Registrazione rifiutata: firma cliente non trusted"
+      });
+    }
+
+    const rawEstimate = await estimateRegisterClientCountersignatureInternal({
+      forestUnitId,
+      innerCadesHash: cc.innerCadesHash,
+      clientCadesHash: cc.clientCadesHash,
+      clientCadesUri: cc.clientCadesUri,
+      signerCommonName: cc.signerCommonName,
+      signerSerialNumber: cc.signerSerialNumber,
+      signedAt: cc.signedAt,
+      validOffchain: cc.validOffchain
+    });
+    const estimate = normalizeEstimateWithEur(rawEstimate);
+
+    const onchain = await registerClientCountersignatureOnChainInternal({
+      forestUnitId,
+      innerCadesHash: cc.innerCadesHash,
+      clientCadesHash: cc.clientCadesHash,
+      clientCadesUri: cc.clientCadesUri,
+      signerCommonName: cc.signerCommonName,
+      signerSerialNumber: cc.signerSerialNumber,
+      signedAt: cc.signedAt,
+      validOffchain: cc.validOffchain
+    });
+
+    state.writes[forestUnitId] = {
+      ...(state.writes[forestUnitId] || {}),
+      clientInnerCadesHash: cc.innerCadesHash,
+      clientCadesHash: cc.clientCadesHash,
+      clientCadesUri: cc.clientCadesUri,
+      clientSignerCommonName: cc.signerCommonName,
+      clientSignerSerialNumber: cc.signerSerialNumber,
+      clientSignedAt: cc.signedAt,
+      clientValidOffchain: cc.validOffchain,
+      clientCadesTxHash: onchain.txHash,
+      clientCadesBlockNumber: onchain.blockNumber
+    };
+
+    return res.json({
+      ok: true,
+      mode: "CADES_CLIENT_COUNTERSIGNATURE",
+      forestUnitId,
+      clientCountersignature: {
+        innerCadesHash: cc.innerCadesHash,
+        clientCadesHash: cc.clientCadesHash,
+        clientCadesUri: cc.clientCadesUri,
+        signerCommonName: cc.signerCommonName,
+        signerSerialNumber: cc.signerSerialNumber,
+        signedAt: cc.signedAt,
+        validOffchain: cc.validOffchain
+      },
+      estimate,
+      onchain
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error: "WRITE 3 CLIENT COUNTERSIGN failed",
+      details: err.message,
+      meta: err.meta
+    });
+  }
+});
+
+// --------------------
 // OFFICIAL #3: VERIFY
 // --------------------
 app.post("/api/contract/verify", async (req, res) => {
@@ -3813,6 +4307,7 @@ app.post("/api/contract/verify", async (req, res) => {
     const r = state.ricardians?.[forestUnitId];
     const b = state.batches?.[forestUnitId];
     const c = state.cades?.[forestUnitId];
+    const cc = state.clientCades?.[forestUnitId];
 
     const expectedRicardianHash = w.ricardianHash || r?.ricardianHash;
     const expectedMerkleRoot = w.merkleRoot || b?.root;
@@ -3930,6 +4425,85 @@ app.post("/api/contract/verify", async (req, res) => {
       };
     }
 
+    // ----------------------------------------------------------------
+    // Seconda verifica: controfirma CLIENTE (.p7m.p7m) on-chain
+    // ----------------------------------------------------------------
+    let clientCountersignature = { skipped: true, reason: "controfirma cliente non disponibile" };
+
+    try {
+      const onchainClient = await contract.getClientCountersignature(forestUnitId);
+      const onchainClientExists = onchainClient[0];
+
+      if (onchainClientExists) {
+        const expectedInnerCadesHash = cc?.innerCadesHash || w?.clientInnerCadesHash || null;
+        const expectedClientCadesHash = cc?.clientCadesHash || w?.clientCadesHash || null;
+        const expectedClientCadesUri = cc?.clientCadesUri || w?.clientCadesUri || null;
+
+        const onchainInnerCadesHash = onchainClient[1];
+        const onchainClientCadesHash = onchainClient[2];
+        const onchainClientCadesUri = onchainClient[3];
+        const onchainClientSignerCommonName = onchainClient[4];
+        const onchainClientSignerSerialNumber = onchainClient[5];
+        const onchainClientSignedAt = onchainClient[6];
+        const onchainClientRecordedAt = onchainClient[7];
+        const onchainClientValidOffchain = onchainClient[8];
+
+        // Coerenza dell'annidamento: l'innerCadesHash della firma cliente
+        // deve coincidere con il cadesHash della firma del firmatario on-chain.
+        const onchainInnerMatchesUserSig =
+          countersignature?.onchain?.cadesHash
+            ? String(onchainInnerCadesHash).toLowerCase() ===
+              String(countersignature.onchain.cadesHash).toLowerCase()
+            : null;
+
+        clientCountersignature = {
+          skipped: false,
+          existsOnChain: true,
+          onchain: {
+            innerCadesHash: onchainInnerCadesHash,
+            clientCadesHash: onchainClientCadesHash,
+            clientCadesUri: onchainClientCadesUri,
+            signerCommonName: onchainClientSignerCommonName,
+            signerSerialNumber: onchainClientSignerSerialNumber,
+            signedAt: onchainClientSignedAt.toString(),
+            recordedAt: onchainClientRecordedAt.toString(),
+            validOffchain: onchainClientValidOffchain
+          },
+          expected: {
+            innerCadesHash: expectedInnerCadesHash,
+            clientCadesHash: expectedClientCadesHash,
+            clientCadesUri: expectedClientCadesUri,
+            signerCommonName: cc?.signerCommonName || w?.clientSignerCommonName || null,
+            signerSerialNumber: cc?.signerSerialNumber || w?.clientSignerSerialNumber || null,
+            validOffchain: cc?.validOffchain ?? w?.clientValidOffchain ?? null
+          },
+          matches: {
+            innerCadesHashMatches: expectedInnerCadesHash
+              ? String(onchainInnerCadesHash).toLowerCase() === String(expectedInnerCadesHash).toLowerCase()
+              : true,
+            clientCadesHashMatches: expectedClientCadesHash
+              ? String(onchainClientCadesHash).toLowerCase() === String(expectedClientCadesHash).toLowerCase()
+              : true,
+            clientCadesUriMatches: expectedClientCadesUri
+              ? String(onchainClientCadesUri).toLowerCase() === String(expectedClientCadesUri).toLowerCase()
+              : true,
+            nestingMatchesUserSignature: onchainInnerMatchesUserSig
+          }
+        };
+      } else {
+        clientCountersignature = {
+          skipped: false,
+          existsOnChain: false
+        };
+      }
+    } catch (err) {
+      clientCountersignature = {
+        skipped: false,
+        error: "Errore lettura controfirma cliente on-chain",
+        details: err.message
+      };
+    }
+
     return res.json({
       ok: true,
       forestUnitId,
@@ -3962,7 +4536,8 @@ app.post("/api/contract/verify", async (req, res) => {
       },
       ipfsVerify,
       proofs,
-      countersignature
+      countersignature,
+      clientCountersignature
     });
   } catch (err) {
     return res.status(500).json({ ok: false, error: "VERIFY failed", details: err.message });
