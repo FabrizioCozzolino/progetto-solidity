@@ -57,7 +57,7 @@ Docker
 
 AVVIO
 
-docker compose up --build -d
+docker compose up -d --build
 
 docker compose logs -f ricardian-api
 
