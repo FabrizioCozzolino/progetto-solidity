@@ -1092,6 +1092,24 @@ async function setPdfUriOnChainInternal({ forestUnitId, pdfUri }) {
   const signerAddress = await runner.getAddress();
   const balance = await runner.provider.getBalance(signerAddress);
 
+  // Diagnostica: calcola il calldata esplicito e verifica gli argomenti
+  console.log("[SETPDFURI] forestUnitId:", JSON.stringify(forestUnitId), "pdfUri:", JSON.stringify(pdfUri));
+  if (forestUnitId == null || pdfUri == null) {
+    throw new Error(`[SETPDFURI] argomenti mancanti: forestUnitId=${forestUnitId} pdfUri=${pdfUri}`);
+  }
+  const callData = contract.interface.encodeFunctionData("setRicardianPdfUri", [forestUnitId, pdfUri]);
+  console.log("[SETPDFURI] calldata:", callData.slice(0, 20), "len:", callData.length);
+
+  // Simula la chiamata per ottenere il revert reason esatto del require
+  try {
+    await contract.setRicardianPdfUri.staticCall(forestUnitId, pdfUri);
+  } catch (simErr) {
+    console.error("[SETPDFURI] staticCall revert:", simErr.reason || simErr.shortMessage || simErr.message);
+    const e = new Error("setRicardianPdfUri reverted (sim): " + (simErr.reason || simErr.shortMessage || simErr.message));
+    e.meta = { forestUnitId, pdfUri, contractAddress: deployed.ForestTracking };
+    throw e;
+  }
+
   const gas = await contract.setRicardianPdfUri.estimateGas(forestUnitId, pdfUri);
   const feeData = await runner.provider.getFeeData();
   const price = feeData.maxFeePerGas ?? feeData.gasPrice;
@@ -1107,7 +1125,12 @@ async function setPdfUriOnChainInternal({ forestUnitId, pdfUri }) {
     throw e;
   }
 
-  const tx = await contract.setRicardianPdfUri(forestUnitId, pdfUri);
+  // Invio con calldata esplicito per evitare tx con data vuoto
+  const tx = await runner.sendTransaction({
+    to: deployed.ForestTracking,
+    data: callData,
+    gasLimit: (gas * 12n) / 10n
+  });
   const receipt = await tx.wait();
 
   return {
@@ -3295,7 +3318,13 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
     console.log("[CADES] pre-rename CADES_DIR:", CADES_DIR);
     console.log("[CADES] pre-rename TMP_DIR:", TMP_DIR);
 
-    fs.renameSync(uploadedTempPath, finalP7mPath);
+    try {
+      fs.copyFileSync(uploadedTempPath, finalP7mPath);
+      try { fs.unlinkSync(uploadedTempPath); } catch {}
+    } catch (e) {
+      console.error("[CADES] copy FAILED:", e.code, e.message, "src=", uploadedTempPath, "srcExists=", fs.existsSync(uploadedTempPath), "dstDir=", CADES_DIR, "dstDirExists=", fs.existsSync(CADES_DIR));
+      throw e;
+    }
     uploadedTempPath = null;
 
     const probe = (label) => {
@@ -3611,7 +3640,13 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
     const innerP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.client-inner.pdf.p7m`);
     const extractedPdfPath = path.join(CADES_DIR, `ricardian-${safeName}.client-extracted.pdf`);
 
-    fs.renameSync(uploadedTempPath, finalClientP7mPath);
+    try {
+      fs.copyFileSync(uploadedTempPath, finalClientP7mPath);
+      try { fs.unlinkSync(uploadedTempPath); } catch {}
+    } catch (e) {
+      console.error("[CADES] client copy FAILED:", e.code, e.message, "src=", uploadedTempPath, "srcExists=", fs.existsSync(uploadedTempPath), "dstDir=", CADES_DIR, "dstDirExists=", fs.existsSync(CADES_DIR));
+      throw e;
+    }
     uploadedTempPath = null;
 
     const cleanup = () => {

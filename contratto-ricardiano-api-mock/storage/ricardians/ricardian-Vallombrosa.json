@@ -68,8 +68,13 @@
       },
       "userCountersignature": {
         "type": "CAdES (formato DER) - livello determinato a runtime",
-        "legalQualification": "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
-        "validationReportRef": null
+        "legalQualification": "QESig",
+        "validationReportRef": "validation-Vallombrosa-1782209519068.json",
+        "validationIndication": "TOTAL_PASSED",
+        "signatureFormat": "CAdES-BASELINE-B",
+        "qcCompliance": false,
+        "qcSSCD": false,
+        "hasTimestamp": false
       }
     },
     "statement": "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile e dal livello di firma effettivamente apposto e verificato."
@@ -103,9 +108,9 @@
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-06-16T10:15:44.936Z"
+    "createdAt": "2026-06-23T10:07:02.774Z"
   },
-  "ricardianHash": "0x3da8e71e76fa1d50f0f4674849178d7cd587ca9b95a3a196850af11b22653d3a",
+  "ricardianHash": "0x98427c3ff5c2a81718d7ee5b2022263ffa7089ddf8d489636ee3d88ea397d514",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -113,7 +118,7 @@
         "name": "RicardianForestTracking",
         "version": "1",
         "chainId": 11155111,
-        "verifyingContract": "0x9360eA0825A4514dB7333cae2A0b2095812369f5"
+        "verifyingContract": "0xfD3CB8bcef651e308EB18236DEb03958c3c9EAc6"
       },
       "types": {
         "RicardianForest": [
@@ -137,11 +142,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x3da8e71e76fa1d50f0f4674849178d7cd587ca9b95a3a196850af11b22653d3a",
+        "ricardianHash": "0x98427c3ff5c2a81718d7ee5b2022263ffa7089ddf8d489636ee3d88ea397d514",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-06-16T10:15:44.936Z"
+        "createdAt": "2026-06-23T10:07:02.774Z"
       },
-      "signature": "0x536c90b8003cdbcfb0b595fb041ecd589e4a222346b6dbeff1d382649695704d69b098ee40fcd9ca3e173c531ceb8aea71a6a9fea25554ec6b2a41d112cc5eba1c"
+      "signature": "0xa8832bba397e10c5d0c8f94dfffa942990f3726511adb0cb423d50c8f2ec65c30fb369ce5ee73ae2a321daa4c1698e6e2e8115ea64317ff54bd10a342f58b0571b"
     }
   }
 }
