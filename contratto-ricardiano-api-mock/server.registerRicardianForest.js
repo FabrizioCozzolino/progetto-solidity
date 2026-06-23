@@ -723,7 +723,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
 
   parties: {
     issuer: {
-      role: "Fornitore della piattaforma di tracciabilità e ancoraggio on-chain; Responsabile del trattamento ex art. 28 GDPR",
+      role: "Fornitore della piattaforma di tracciabilità e ancoraggio on-chain; Titolare del trattamento dei dati personali ai sensi dell'art. 4 n. 7 GDPR",
       legalEntity: "TopView Srl",
       identification: {
         method: "contractual",
@@ -731,7 +731,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
       }
     },
     subscriber: {
-      role: "Utente della piattaforma; Data Owner e Titolare del trattamento dei dati forestali",
+      role: "Utente della piattaforma; conferisce i dati forestali per la registrazione, senza assumere il ruolo di titolare o responsabile del trattamento dei dati personali",
       // Popolato da subscriberData passato dal chiamante (vedi /api/contract/write).
       // Se null, assertSubscriberIdentified() bloccherà la firma: l'art. 8-ter c.2
       // L. 12/2019 richiede identificazione informatica delle parti prima della firma.
@@ -763,8 +763,8 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   purpose: "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash). Il dataset resta off-chain; on-chain sono registrati esclusivamente hash crittografici e URI di reperimento.",
 
   rightsAndDuties: {
-    issuer: "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Responsabile del trattamento ai sensi dell'art. 28 GDPR, operando per conto e su istruzione del Sottoscrittore sulla base del Data Processing Agreement (DPA) sottoscritto separatamente fra le parti.",
-    subscriber: "Detiene la titolarità dei Dati e ne autorizza la registrazione e la verifica mediante sottoscrizione del DPA trasmesso dal Fornitore. Quale Titolare del trattamento ai sensi del GDPR, risponde dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR ed è tenuto a effettuare la valutazione d'impatto (DPIA) nei casi previsti dall'art. 35 GDPR, valutandone preliminarmente la ricorrenza in relazione al proprio caso d'uso.",
+    issuer: "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando autonomamente le finalità e i mezzi del trattamento e rispondendo dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR.",
+    subscriber: "Conferisce i Dati e ne autorizza la registrazione e la verifica. Garantisce la liceità del conferimento e la correttezza dei Dati trasmessi, senza assumere il ruolo di titolare o responsabile del trattamento dei dati personali, che resta in capo al Fornitore quale Titolare ai sensi del GDPR.",
     dataConsumer: "Cliente finale del Sottoscrittore, auditor autorizzato o terzo verificatore: può verificare integrità e provenienza dei Dati tramite le evidenze on-chain e off-chain, senza poter modificare i Dati medesimi."
   },
 
@@ -775,8 +775,9 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
     batchFormat: "JSON",
     storage: storageMode,
     signatureFormats: {
-      systemSignature: "EIP-712 (apposta dal Fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
-      userSignature: "CAdES-BES o superiore (DER) sul PDF ricardiano; livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL"
+      systemSignature: "EIP-712 (apposta dal Fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ ex artt. 26-27 eIDAS)",
+      providerSignature: "CAdES-BES o superiore (DER) apposta dal Fornitore sul PDF ricardiano; livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL",
+      clientCountersignature: "Controfirma CAdES (DER) annidata, apposta dal Sottoscrittore sopra la firma CAdES del Fornitore (.p7m.p7m); livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL"
     }
   },
 
@@ -788,12 +789,19 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
     },
     documentSignature: {
       systemSignature: {
-        type: "type: firma elettronica semplice di sistema secondo lo standard EIP-712 e CAdES",
+        type: "firma elettronica di sistema secondo lo standard EIP-712",
         purpose: "Attesta la provenienza dell'ancoraggio dalla piattaforma del Fornitore.",
         legalQualification: "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo del Fornitore e non del Sottoscrittore."
       },
       userCountersignature: {
-        type: "CAdES (formato DER) - livello determinato a runtime",
+        type: "CAdES (formato DER), livello determinato a runtime",
+        purpose: "Costituisce sottoscrizione del PDF ricardiano da parte del Fornitore (firmatario aziendale), ulteriore rispetto alla firma di sistema EIP-712.",
+        legalQualification: "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della firma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
+        validationReportRef: null
+      },
+      clientCountersignature: {
+        type: "CAdES (formato DER), livello determinato a runtime",
+        purpose: "",
         legalQualification: "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
         validationReportRef: null
       }
@@ -811,17 +819,17 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
 
   dataGovernance: {
     gdprMeasures: {
-      lawfulBasis: "Documentata nel DPA fra Fornitore (Responsabile) e Sottoscrittore (Titolare)",
+      lawfulBasis: "Determinata dal Fornitore quale Titolare del trattamento ai sensi dell'art. 6 GDPR",
       dataMinimisation: "On-chain solo hash; mai payload di dati personali in chiaro",
       retentionPolicy: {
         onChainEvidence: "Perpetua per natura della rete (solo hash, non dati personali)",
         offChainEvidence: "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
-      personalDataHandling: "La ripartizione dei ruoli privacy fra le parti è quella già delineata agli artt. 4 e 5: il Sottoscrittore è Titolare del trattamento, mentre il Fornitore agisce quale Responsabile ai sensi dell'art. 28 GDPR sulla base del DPA fra le parti",
-      dataSubjectRights: "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Sottoscrittore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
+      personalDataHandling: "Il Fornitore agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando finalità e mezzi del trattamento dei dati personali eventualmente presenti. Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy",
+      dataSubjectRights: "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
       ipfsUsageStatement: "Limitato a payload privi di dati personali."
     },
-    dpiaStatus: "Quale Titolare del trattamento, il Sottoscrittore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Sottoscrittore compete la valutazione preliminare circa la ricorrenza di tali condizioni nel proprio caso d'uso."
+    dpiaStatus: "Quale Titolare del trattamento, il Fornitore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Fornitore compete la valutazione preliminare circa la ricorrenza di tali condizioni."
   },
 
   disclaimers: {
@@ -1542,6 +1550,7 @@ function generateRicardianPdf(ricardian, outPath) {
     const tsv = ricardian?.legal?.timeStampValidation || {};
     const sysSig = ricardian?.legal?.documentSignature?.systemSignature || {};
     const userSig = ricardian?.legal?.documentSignature?.userCountersignature || {};
+    const clientSig = ricardian?.legal?.documentSignature?.clientCountersignature || {};
     const gdpr = ricardian?.dataGovernance?.gdprMeasures || {};
     const retention = gdpr.retentionPolicy || {};
     const disc = ricardian?.disclaimers || {};
@@ -1785,7 +1794,7 @@ function generateRicardianPdf(ricardian, outPath) {
       // Parti
       const partiesY = doc.y;
       const colW = (W - 12) / 2;
-      const partiesH = 100;
+      const partiesH = 132;
 
       doc.save();
       doc.fillColor(COLORS.boxFill).strokeColor(COLORS.line);
@@ -1795,8 +1804,8 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.text("FORNITORE (ISSUER)", M + 10, partiesY + 10, { width: colW - 20, characterSpacing: 1 });
       doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.text);
       doc.text(issuerName, M + 10, partiesY + 26, { width: colW - 20 });
-      doc.font("Helvetica").fontSize(8.5).fillColor(COLORS.muted);
-      doc.text(truncate(issuer.role, 90), M + 10, partiesY + 44, { width: colW - 20, lineGap: 1 });
+      doc.font("Helvetica").fontSize(8).fillColor(COLORS.muted);
+      doc.text(safe(issuer.role), M + 10, partiesY + 44, { width: colW - 20, lineGap: 1 });
       if (issuer.identification?.method) {
         doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.faint);
         doc.text(`ID: ${issuer.identification.method} - ${issuerIdent}`,
@@ -1814,8 +1823,8 @@ function generateRicardianPdf(ricardian, outPath) {
       doc.text("SOTTOSCRITTORE (SUBSCRIBER)", colSubX + 10, partiesY + 10, { width: colW - 20, characterSpacing: 1 });
       doc.font("Helvetica-Bold").fontSize(11).fillColor(subOk ? COLORS.text : COLORS.warn);
       doc.text(subOk ? subName : "Identificazione mancante", colSubX + 10, partiesY + 26, { width: colW - 20 });
-      doc.font("Helvetica").fontSize(8.5).fillColor(COLORS.muted);
-      doc.text(truncate(subscriber.role, 90), colSubX + 10, partiesY + 44, { width: colW - 20, lineGap: 1 });
+      doc.font("Helvetica").fontSize(8).fillColor(COLORS.muted);
+      doc.text(safe(subscriber.role), colSubX + 10, partiesY + 44, { width: colW - 20, lineGap: 1 });
       if (subscriber.identification?.method) {
         doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.faint);
         doc.text(`ID: ${subMethod} - ${subIdent}`,
@@ -2082,14 +2091,20 @@ doc.y = badgeY + badgeH + 12;
       `${safe(sysSig.purpose)} ${safe(sysSig.legalQualification)}`
     );
     clause("6.2",
-      `Oltre alla firma di sistema, il Sottoscrittore ha facoltà di apporre sul presente ` +
-      `documento una propria controfirma elettronica in formato ${safe(userSig.type)}, così da ` +
-      "ricondurre l'ancoraggio alla propria volontà negoziale. Il livello effettivo di tale " +
-      "controfirma non è predeterminato, ma viene accertato di volta in volta al momento della " +
-      "verifica, attraverso la validazione DSS condotta contro la EU LOTL. " +
+      `Oltre alla firma di sistema, il Fornitore appone sul presente documento, quale firmatario ` +
+      `aziendale, una propria firma elettronica in formato ${safe(userSig.type)}. ${safe(userSig.purpose)} ` +
+      "Il livello effettivo di tale firma non è predeterminato, ma viene accertato di volta in volta " +
+      "al momento della verifica, attraverso la validazione DSS condotta contro la EU LOTL. " +
       `${safe(userSig.legalQualification)}`
     );
     clause("6.3",
+      `Successivamente, il Sottoscrittore appone una propria controfirma elettronica in formato ` +
+      `${safe(clientSig.type)}, annidata sopra la firma CAdES del Fornitore (.p7m.p7m), così da ` +
+      `ricondurre alla propria volontà negoziale il documento già firmato dal Fornitore. ` +
+      `Anche per tale controfirma il livello effettivo è accertato a runtime mediante validazione ` +
+      `DSS contro la EU LOTL. ${safe(clientSig.legalQualification)}`
+    );
+    clause("6.4",
       `Quanto alla collocazione temporale delle registrazioni, le parti danno atto che essa ` +
       `gode di una validazione di livello \u201C${safe(tsv.level)}\u201D, fondata su ` +
       `${safe(tsv.basis)}. ${safe(tsv.effects)}`
@@ -2130,9 +2145,7 @@ doc.y = badgeY + badgeH + 12;
     articleTitle(8, "Trattamento dei dati personali e sicurezza");
     clause("8.1",
       `${safe(gdpr.personalDataHandling)}. La base giuridica del trattamento è ` +
-      `${safe(gdpr.lawfulBasis).charAt(0).toLowerCase()}${safe(gdpr.lawfulBasis).slice(1)}, ` +
-      "documento al quale si rinvia per la disciplina di dettaglio dei reciproci obblighi in " +
-      "materia di protezione dei dati personali."
+      `${safe(gdpr.lawfulBasis).charAt(0).toLowerCase()}${safe(gdpr.lawfulBasis).slice(1)}.`
     );
     clause("8.2",
       `In attuazione del principio di minimizzazione, ${safe(gdpr.dataMinimisation).charAt(0).toLowerCase()}${safe(gdpr.dataMinimisation).slice(1)}. ` +
@@ -2244,7 +2257,8 @@ doc.y = badgeY + badgeH + 12;
     mappingTable([
       ["Artt. 2.3, 4.2, 7.6", "registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri)"],
       ["Artt. 7.4, 12.2", "setRicardianPdfUri(forestUnitId, pdfUri)"],
-      ["Art. 6.2", "registerUserCountersignature(...)"],
+      ["Art. 6.2", "registerUserCountersignature(...) - firma CAdES del Fornitore"],
+      ["Art. 6.3", "registerClientCountersignature(...) - controfirma CAdES del Sottoscrittore"],
       ["Artt. 7.2, 7.3", "verifyUnifiedProofWithRoot(leaf, proof, root)"]
     ]);
 

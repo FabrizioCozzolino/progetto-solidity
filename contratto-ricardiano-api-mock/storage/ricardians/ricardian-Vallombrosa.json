@@ -3,7 +3,7 @@
   "type": "RicardianForestTracking",
   "parties": {
     "issuer": {
-      "role": "Fornitore della piattaforma di tracciabilità e ancoraggio on-chain; Responsabile del trattamento ex art. 28 GDPR",
+      "role": "Fornitore della piattaforma di tracciabilità e ancoraggio on-chain; Titolare del trattamento dei dati personali ai sensi dell'art. 4 n. 7 GDPR",
       "legalEntity": "TopView Srl",
       "identification": {
         "method": "contractual",
@@ -11,7 +11,7 @@
       }
     },
     "subscriber": {
-      "role": "Utente della piattaforma; Data Owner e Titolare del trattamento dei dati forestali",
+      "role": "Utente della piattaforma; conferisce i dati forestali per la registrazione, senza assumere il ruolo di titolare o responsabile del trattamento dei dati personali",
       "legalEntity": "Azienda Forestale Test SRL",
       "identification": {
         "method": "contractual",
@@ -39,8 +39,8 @@
   },
   "purpose": "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash). Il dataset resta off-chain; on-chain sono registrati esclusivamente hash crittografici e URI di reperimento.",
   "rightsAndDuties": {
-    "issuer": "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Responsabile del trattamento ai sensi dell'art. 28 GDPR, operando per conto e su istruzione del Sottoscrittore sulla base del Data Processing Agreement (DPA) sottoscritto separatamente fra le parti.",
-    "subscriber": "Detiene la titolarità dei Dati e ne autorizza la registrazione e la verifica mediante sottoscrizione del DPA trasmesso dal Fornitore. Quale Titolare del trattamento ai sensi del GDPR, risponde dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR ed è tenuto a effettuare la valutazione d'impatto (DPIA) nei casi previsti dall'art. 35 GDPR, valutandone preliminarmente la ricorrenza in relazione al proprio caso d'uso.",
+    "issuer": "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando autonomamente le finalità e i mezzi del trattamento e rispondendo dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR.",
+    "subscriber": "Conferisce i Dati e ne autorizza la registrazione e la verifica. Garantisce la liceità del conferimento e la correttezza dei Dati trasmessi, senza assumere il ruolo di titolare o responsabile del trattamento dei dati personali, che resta in capo al Fornitore quale Titolare ai sensi del GDPR.",
     "dataConsumer": "Cliente finale del Sottoscrittore, auditor autorizzato o terzo verificatore: può verificare integrità e provenienza dei Dati tramite le evidenze on-chain e off-chain, senza poter modificare i Dati medesimi."
   },
   "technical": {
@@ -50,8 +50,9 @@
     "batchFormat": "JSON",
     "storage": "LOCAL_FILE",
     "signatureFormats": {
-      "systemSignature": "EIP-712 (apposta dal Fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ del Sottoscrittore ex artt. 26-27 eIDAS)",
-      "userSignature": "CAdES-BES o superiore (DER) sul PDF ricardiano; livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL"
+      "systemSignature": "EIP-712 (apposta dal Fornitore per attestare l'origine dell'ancoraggio dalla piattaforma; non costituisce FEA né FEQ ex artt. 26-27 eIDAS)",
+      "providerSignature": "CAdES-BES o superiore (DER) apposta dal Fornitore sul PDF ricardiano; livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL",
+      "clientCountersignature": "Controfirma CAdES (DER) annidata, apposta dal Sottoscrittore sopra la firma CAdES del Fornitore (.p7m.p7m); livello effettivo determinato a runtime dalla validazione DSS contro EU LOTL"
     }
   },
   "legal": {
@@ -62,19 +63,21 @@
     },
     "documentSignature": {
       "systemSignature": {
-        "type": "type: firma elettronica semplice di sistema secondo lo standard EIP-712 e CAdES",
+        "type": "firma elettronica di sistema secondo lo standard EIP-712",
         "purpose": "Attesta la provenienza dell'ancoraggio dalla piattaforma del Fornitore.",
         "legalQualification": "Non costituisce FEA né FEQ ex artt. 26-27 eIDAS, in quanto la chiave è sotto controllo operativo del Fornitore e non del Sottoscrittore."
       },
       "userCountersignature": {
-        "type": "CAdES (formato DER) - livello determinato a runtime",
-        "legalQualification": "QESig",
-        "validationReportRef": "validation-Vallombrosa-1782209519068.json",
-        "validationIndication": "TOTAL_PASSED",
-        "signatureFormat": "CAdES-BASELINE-B",
-        "qcCompliance": false,
-        "qcSSCD": false,
-        "hasTimestamp": false
+        "type": "CAdES (formato DER), livello determinato a runtime",
+        "purpose": "Costituisce sottoscrizione del PDF ricardiano da parte del Fornitore (firmatario aziendale), ulteriore rispetto alla firma di sistema EIP-712.",
+        "legalQualification": "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della firma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
+        "validationReportRef": null
+      },
+      "clientCountersignature": {
+        "type": "CAdES (formato DER), livello determinato a runtime",
+        "purpose": "",
+        "legalQualification": "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
+        "validationReportRef": null
       }
     },
     "statement": "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile e dal livello di firma effettivamente apposto e verificato."
@@ -88,17 +91,17 @@
   },
   "dataGovernance": {
     "gdprMeasures": {
-      "lawfulBasis": "Documentata nel DPA fra Fornitore (Responsabile) e Sottoscrittore (Titolare)",
+      "lawfulBasis": "Determinata dal Fornitore quale Titolare del trattamento ai sensi dell'art. 6 GDPR",
       "dataMinimisation": "On-chain solo hash; mai payload di dati personali in chiaro",
       "retentionPolicy": {
         "onChainEvidence": "Perpetua per natura della rete (solo hash, non dati personali)",
         "offChainEvidence": "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
-      "personalDataHandling": "La ripartizione dei ruoli privacy fra le parti è quella già delineata agli artt. 4 e 5: il Sottoscrittore è Titolare del trattamento, mentre il Fornitore agisce quale Responsabile ai sensi dell'art. 28 GDPR sulla base del DPA fra le parti",
-      "dataSubjectRights": "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Sottoscrittore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
+      "personalDataHandling": "Il Fornitore agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando finalità e mezzi del trattamento dei dati personali eventualmente presenti. Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy",
+      "dataSubjectRights": "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
       "ipfsUsageStatement": "Limitato a payload privi di dati personali."
     },
-    "dpiaStatus": "Quale Titolare del trattamento, il Sottoscrittore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Sottoscrittore compete la valutazione preliminare circa la ricorrenza di tali condizioni nel proprio caso d'uso."
+    "dpiaStatus": "Quale Titolare del trattamento, il Fornitore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Fornitore compete la valutazione preliminare circa la ricorrenza di tali condizioni."
   },
   "disclaimers": {
     "qualifiedTrustServiceStatus": "Il Fornitore non è Qualified Trust Service Provider ex eIDAS / eIDAS 2.0. Le evidenze prodotte non costituiscono servizio fiduciario qualificato.",
@@ -108,9 +111,9 @@
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-06-23T10:07:02.774Z"
+    "createdAt": "2026-06-23T10:55:33.515Z"
   },
-  "ricardianHash": "0x98427c3ff5c2a81718d7ee5b2022263ffa7089ddf8d489636ee3d88ea397d514",
+  "ricardianHash": "0x05cff28d526dac7e92cadfb65f831697a30b278c9260a67054b1a186408eba99",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -142,11 +145,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x98427c3ff5c2a81718d7ee5b2022263ffa7089ddf8d489636ee3d88ea397d514",
+        "ricardianHash": "0x05cff28d526dac7e92cadfb65f831697a30b278c9260a67054b1a186408eba99",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-06-23T10:07:02.774Z"
+        "createdAt": "2026-06-23T10:55:33.515Z"
       },
-      "signature": "0xa8832bba397e10c5d0c8f94dfffa942990f3726511adb0cb423d50c8f2ec65c30fb369ce5ee73ae2a321daa4c1698e6e2e8115ea64317ff54bd10a342f58b0571b"
+      "signature": "0x7f21d0cdf4eb903468005079ddeb9ae095bf3f7c5ff4593401f7788c32b998da4825646bafb98c7e46f7b8b2e95dc012c2bc87c612f6297cb9c4aad35ed9b7611b"
     }
   }
 }
