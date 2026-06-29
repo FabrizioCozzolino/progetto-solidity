@@ -37,7 +37,7 @@
       "sawn_timbers"
     ]
   },
-  "purpose": "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash). Il dataset resta off-chain; on-chain sono registrati esclusivamente hash crittografici e URI di reperimento.",
+  "purpose": "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash).",
   "rightsAndDuties": {
     "issuer": "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando autonomamente le finalità e i mezzi del trattamento e rispondendo dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR.",
     "subscriber": "Conferisce i Dati e ne autorizza la registrazione e la verifica. Garantisce la liceità del conferimento e la correttezza dei Dati trasmessi, senza assumere il ruolo di titolare o responsabile del trattamento dei dati personali, che resta in capo al Fornitore quale Titolare ai sensi del GDPR.",
@@ -92,12 +92,12 @@
   "dataGovernance": {
     "gdprMeasures": {
       "lawfulBasis": "Determinata dal Fornitore quale Titolare del trattamento ai sensi dell'art. 6 GDPR",
-      "dataMinimisation": "On-chain solo hash; mai payload di dati personali in chiaro",
+      "dataMinimisation": "On-chain esclusivamente hash crittografici",
       "retentionPolicy": {
         "onChainEvidence": "Perpetua per natura della rete (solo hash, non dati personali)",
         "offChainEvidence": "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
-      "personalDataHandling": "Il Fornitore agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando finalità e mezzi del trattamento dei dati personali eventualmente presenti. Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy",
+      "personalDataHandling": "Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy; le finalità e i mezzi del trattamento sono determinati dal Fornitore quale Titolare",
       "dataSubjectRights": "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
       "ipfsUsageStatement": "Limitato a payload privi di dati personali."
     },
@@ -111,9 +111,9 @@
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-06-23T10:55:33.515Z"
+    "createdAt": "2026-06-29T15:48:45.959Z"
   },
-  "ricardianHash": "0x05cff28d526dac7e92cadfb65f831697a30b278c9260a67054b1a186408eba99",
+  "ricardianHash": "0x558046ef1d6cf77d538dce42bf91d49c885cf2960e68be498f1a28b14cb4afa7",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -145,11 +145,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x05cff28d526dac7e92cadfb65f831697a30b278c9260a67054b1a186408eba99",
+        "ricardianHash": "0x558046ef1d6cf77d538dce42bf91d49c885cf2960e68be498f1a28b14cb4afa7",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-06-23T10:55:33.515Z"
+        "createdAt": "2026-06-29T15:48:45.959Z"
       },
-      "signature": "0x7f21d0cdf4eb903468005079ddeb9ae095bf3f7c5ff4593401f7788c32b998da4825646bafb98c7e46f7b8b2e95dc012c2bc87c612f6297cb9c4aad35ed9b7611b"
+      "signature": "0x03036988ef0d7e3225c3519d82572f25f1f66d54916a8f11872a787dda4e2d757db1d7a1e9d559fcb77bcb495b6d19eef4e53aef9495feb85ce51c61b6727c5d1c"
     }
   }
 }

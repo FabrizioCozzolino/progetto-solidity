@@ -760,7 +760,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
     includedData: ["trees", "wood_logs", "sawn_timbers"]
   },
 
-  purpose: "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash). Il dataset resta off-chain; on-chain sono registrati esclusivamente hash crittografici e URI di reperimento.",
+  purpose: "Servizio di prova di esistenza, integrità e riferibilità temporale di dataset forestali off-chain mediante ancoraggio crittografico on-chain (Merkle root + ricardianHash).",
 
   rightsAndDuties: {
     issuer: "Assicura la disponibilità del servizio di ancoraggio e la corretta esecuzione delle operazioni di hashing, firma EIP-712 e registrazione on-chain, oltre a mettere a disposizione la procedura di verifica documentata in verificationProcedure. Sul piano della protezione dei dati personali agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando autonomamente le finalità e i mezzi del trattamento e rispondendo dell'osservanza dei principi di cui all'art. 5 e degli obblighi di cui all'art. 24 GDPR.",
@@ -820,12 +820,12 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   dataGovernance: {
     gdprMeasures: {
       lawfulBasis: "Determinata dal Fornitore quale Titolare del trattamento ai sensi dell'art. 6 GDPR",
-      dataMinimisation: "On-chain solo hash; mai payload di dati personali in chiaro",
+      dataMinimisation: "On-chain esclusivamente hash crittografici",
       retentionPolicy: {
         onChainEvidence: "Perpetua per natura della rete (solo hash, non dati personali)",
         offChainEvidence: "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
-      personalDataHandling: "Il Fornitore agisce quale Titolare del trattamento ai sensi dell'art. 4 n. 7 GDPR, determinando finalità e mezzi del trattamento dei dati personali eventualmente presenti. Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy",
+      personalDataHandling: "Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy; le finalità e i mezzi del trattamento sono determinati dal Fornitore quale Titolare",
       dataSubjectRights: "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
       ipfsUsageStatement: "Limitato a payload privi di dati personali."
     },
@@ -2144,7 +2144,7 @@ doc.y = badgeY + badgeH + 12;
     // ==================================================================
     articleTitle(8, "Trattamento dei dati personali e sicurezza");
     clause("8.1",
-      `${safe(gdpr.personalDataHandling)}. La base giuridica del trattamento è ` +
+      `${safe(gdpr.personalDataHandling)}. Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy; le finalità e i mezzi del trattamento sono determinati dal Fornitore quale Titolare. La base giuridica... ` +
       `${safe(gdpr.lawfulBasis).charAt(0).toLowerCase()}${safe(gdpr.lawfulBasis).slice(1)}.`
     );
     clause("8.2",
@@ -2237,6 +2237,7 @@ doc.y = badgeY + badgeH + 12;
     // ==================================================================
     // ALLEGATO TECNICO B — SPECIFICHE DEGLI SMART CONTRACT
     // ==================================================================
+    doc.addPage();
     annexTitle("Allegato Tecnico B", "Specifiche degli Smart Contract");
     subTitle("B.1 Identificazione on-chain");
     kvTable([
