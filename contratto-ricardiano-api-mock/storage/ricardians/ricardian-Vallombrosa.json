@@ -70,8 +70,13 @@
       "userCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
         "purpose": "Costituisce sottoscrizione del PDF ricardiano da parte del Fornitore (firmatario aziendale), ulteriore rispetto alla firma di sistema EIP-712.",
-        "legalQualification": "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della firma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
-        "validationReportRef": null
+        "legalQualification": "QESig",
+        "validationReportRef": "validation-Vallombrosa-1782989834307.json",
+        "validationIndication": "TOTAL_PASSED",
+        "signatureFormat": "CAdES-BASELINE-B",
+        "qcCompliance": false,
+        "qcSSCD": false,
+        "hasTimestamp": false
       },
       "clientCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
@@ -111,9 +116,9 @@
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-06-29T15:48:45.959Z"
+    "createdAt": "2026-07-02T10:20:44.052Z"
   },
-  "ricardianHash": "0x558046ef1d6cf77d538dce42bf91d49c885cf2960e68be498f1a28b14cb4afa7",
+  "ricardianHash": "0x5f8abe07729b2dac29819f77d65a80fd5e80c917419825e5efb84fbd315d256a",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -145,11 +150,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x558046ef1d6cf77d538dce42bf91d49c885cf2960e68be498f1a28b14cb4afa7",
+        "ricardianHash": "0x5f8abe07729b2dac29819f77d65a80fd5e80c917419825e5efb84fbd315d256a",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-06-29T15:48:45.959Z"
+        "createdAt": "2026-07-02T10:20:44.052Z"
       },
-      "signature": "0x03036988ef0d7e3225c3519d82572f25f1f66d54916a8f11872a787dda4e2d757db1d7a1e9d559fcb77bcb495b6d19eef4e53aef9495feb85ce51c61b6727c5d1c"
+      "signature": "0x020d9e0b022a84463c7bd824729ae278b0010ba57b46fce9159ab5061c1d68856ae7ba9fb6f8b31392f59175c34cc55e204dbccd6d9d89e33cdc95a2a6f4cca41c"
     }
   }
 }

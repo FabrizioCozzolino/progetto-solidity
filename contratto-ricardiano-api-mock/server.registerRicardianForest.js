@@ -2207,6 +2207,7 @@ doc.y = badgeY + badgeH + 12;
     // ==================================================================
     // ART. 12 — DICHIARAZIONE FINALE
     // ==================================================================
+    doc.addPage();
     articleTitle(12, "Dichiarazione finale");
     clause("12.1", safe(ricardian?.legal?.statement));
     clause("12.2",
