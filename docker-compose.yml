@@ -23,7 +23,7 @@ services:
       RICARDIAN_DIR: /app/contratto-ricardiano-api-mock/storage/ricardians
       CADES_DIR: /app/contratto-ricardiano-api-mock/storage/cades
       TMP_DIR: /app/contratto-ricardiano-api-mock/storage/tmp
-      CADES_CA_FILE: /app/certs/trusted-ca.pem
+      CADES_CA_FILE: /app/certs/trusted-ca-test.pem
       # Non e' piu' localhost: dentro la rete docker-compose il container
       # Tomcat e' raggiungibile col nome del servizio ("dss")
       DSS_URL: http://dss:8080/services/rest

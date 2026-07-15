@@ -5,7 +5,24 @@ npm-debug.log
 Dockerfile
 docker-compose.yml
 
+# servizio DSS: ha il suo context separato (./dss), non serve a ricardian-api
+dss
+
+# storage runtime (dati generati a runtime, non build-time)
 contratto-ricardiano-api-mock/storage/tmp
 contratto-ricardiano-api-mock/storage/cades
 contratto-ricardiano-api-mock/storage/ricardians
 contratto-ricardiano-api-mock/file-json
+
+# Hardhat build artifacts (non servono al container Node in runtime)
+artifacts
+cache
+typechain
+typechain-types
+coverage
+coverage.json
+ignition/deployments/chain-31337
+
+# segreti — non devono mai finire in un'immagine
+.env
+environment_variables.env

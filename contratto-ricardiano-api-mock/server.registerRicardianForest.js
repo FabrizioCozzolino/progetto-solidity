@@ -304,36 +304,119 @@ function detectProviderName(issuer) {
   return "";
 }
 
-async function extractCertificateInfoFromP7m(p7mPath) {
-  const certOutPath = path.join(TMP_DIR, `cert-${Date.now()}.pem`);
-  const firstCertPath = path.join(TMP_DIR, `first-cert-${Date.now()}.pem`);
+function extractCertSection(text, sectionName) {
+  const lines = String(text || "").split("\n");
+  const out = [];
+  let capture = false;
 
-  function extractSection(text, sectionName) {
-    const lines = String(text || "").split("\n");
-    const out = [];
-    let capture = false;
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\r/g, "");
 
-    for (const rawLine of lines) {
-      const line = rawLine.replace(/\r/g, "");
-
-      if (!capture) {
-        if (line.toLowerCase().includes(sectionName.toLowerCase() + ":")) {
-          capture = true;
-        }
-        continue;
+    if (!capture) {
+      if (line.toLowerCase().includes(sectionName.toLowerCase() + ":")) {
+        capture = true;
       }
-
-      if (/^\s+/.test(line)) {
-        const cleaned = line.trim();
-        if (cleaned) out.push(cleaned);
-        continue;
-      }
-
-      break;
+      continue;
     }
 
-    return out.join(", ");
+    if (/^\s+/.test(line)) {
+      const cleaned = line.trim();
+      if (cleaned) out.push(cleaned);
+      continue;
+    }
+
+    break;
   }
+
+  return out.join(", ");
+}
+
+// Effettua il parsing testuale di un singolo certificato (output di
+// `openssl x509 -text`) in un oggetto info normalizzato. Condivisa da
+// extractCertificateInfoFromP7m (1 certificato) e da
+// extractAllCertificatesInfoFromP7m (N certificati, es. CAdES co-firmato).
+function parseCertificateInfoFromText(certText) {
+  const get = (regex) => {
+    const m = certText.match(regex);
+    return m ? m[1].trim() : "";
+  };
+
+  const subject = get(/Subject:\s*(.+)/);
+  const issuer = get(/Issuer:\s*(.+)/);
+
+  // Il numero seriale del CERTIFICATO X.509 (identifica univocamente il
+  // certificato presso la sua CA) — DIVERSO dall'attributo "serialNumber"
+  // dentro il Subject DN (usato nei certificati qualificati italiani per il
+  // codice fiscale, ma spesso assente nei certificati generici/demo).
+  const certSerialNumber = get(/Serial Number:\s*\n?\s*([0-9a-fA-Fx:]+)/);
+
+  // Fingerprint SHA-256 dell'intero certificato (byte DER): è l'UNICO modo
+  // affidabile per capire se due firme provengono dallo stesso identico
+  // certificato, indipendentemente da cosa contiene (o non contiene) il
+  // Subject DN. Va sempre preferito a CN/serialNumber-del-subject per
+  // confronti di identità "stesso firmatario sì/no".
+  const fingerprintSha256 = get(/sha256 Fingerprint=([0-9A-Fa-f:]+)/i)
+    .replace(/:/g, "")
+    .toUpperCase();
+
+  const keyUsage =
+    extractCertSection(certText, "X509v3 Key Usage") ||
+    extractCertSection(certText, "Key Usage");
+
+  const extendedKeyUsage =
+    extractCertSection(certText, "X509v3 Extended Key Usage") ||
+    extractCertSection(certText, "Extended Key Usage");
+
+  return {
+    signerCommonName: parseSubjectField(subject, "CN"),
+    signerSerialNumber: parseSubjectField(subject, "serialNumber"),
+    certSerialNumber,
+    fingerprintSha256,
+    providerName: detectProviderName(issuer),
+
+    organization:
+      parseSubjectField(subject, "O") ||
+      parseSubjectField(subject, "OU") ||
+      parseSubjectField(issuer, "O") ||
+      parseSubjectField(issuer, "OU") ||
+      "",
+
+    organizationIdentifier:
+      parseSubjectField(subject, "organizationIdentifier") ||
+      parseSubjectField(issuer, "organizationIdentifier") ||
+      "",
+
+    country:
+      parseSubjectField(subject, "C") ||
+      parseSubjectField(issuer, "C") ||
+      "",
+
+    issuer,
+
+    validFrom: get(/Not Before:\s*(.+)/),
+    validTo: get(/Not After\s*:\s*(.+)/),
+
+    signatureAlgorithm: get(/Signature Algorithm:\s*(.+)/),
+
+    keyUsage,
+    extendedKeyUsage,
+
+    policy: get(/Policy:\s*([0-9\.]+)/),
+
+    rawSubject: subject,
+    rawIssuer: issuer,
+    rawCertificate: certText
+  };
+}
+
+// Estrae TUTTI i certificati presenti in un container PKCS7/CAdES ed esegue
+// il parsing di ciascuno. Necessaria quando il file contiene più firmatari
+// (co-firma: più SignerInfo paralleli nello stesso SignedData) perché in
+// quel caso `openssl pkcs7 -print_certs` restituisce un bundle con N
+// certificati, e prendere "solo il primo" (come fa extractCertificateInfoFromP7m)
+// significherebbe attribuire in modo arbitrario la firma a uno dei due.
+async function extractAllCertificatesInfoFromP7m(p7mPath) {
+  const certOutPath = path.join(TMP_DIR, `certs-${Date.now()}-${Math.random().toString(36).slice(2)}.pem`);
 
   try {
     await execFileAsync("openssl", [
@@ -345,96 +428,55 @@ async function extractCertificateInfoFromP7m(p7mPath) {
     ]);
 
     if (!fs.existsSync(certOutPath)) {
-      throw new Error("Certificato non estratto");
+      throw new Error("Certificati non estratti");
     }
 
     const pemBundle = fs.readFileSync(certOutPath, "utf8");
+    const certMatches = pemBundle.match(
+      /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g
+    ) || [];
 
-    const firstCertMatch = pemBundle.match(
-      /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/
-    );
-
-    if (!firstCertMatch) {
+    if (certMatches.length === 0) {
       throw new Error("Nessun certificato PEM trovato nell'output OpenSSL");
     }
 
-    fs.writeFileSync(firstCertPath, firstCertMatch[0], "utf8");
+    const results = [];
+    for (const certPem of certMatches) {
+      const singleCertPath = path.join(TMP_DIR, `cert-${Date.now()}-${Math.random().toString(36).slice(2)}.pem`);
+      try {
+        fs.writeFileSync(singleCertPath, certPem, "utf8");
+        const { stdout } = await execFileAsync("openssl", [
+          "x509",
+          "-in", singleCertPath,
+          "-noout",
+          "-text",
+          "-fingerprint",
+          "-sha256"
+        ]);
+        results.push(parseCertificateInfoFromText(stdout));
+      } finally {
+        if (fs.existsSync(singleCertPath)) {
+          try { fs.unlinkSync(singleCertPath); } catch {}
+        }
+      }
+    }
 
-    const { stdout } = await execFileAsync("openssl", [
-      "x509",
-      "-in", firstCertPath,
-      "-noout",
-      "-text"
-    ]);
-
-    const certText = stdout;
-
-    const get = (regex) => {
-      const m = certText.match(regex);
-      return m ? m[1].trim() : "";
-    };
-
-    const subject = get(/Subject:\s*(.+)/);
-    const issuer = get(/Issuer:\s*(.+)/);
-
-    const keyUsage =
-      extractSection(certText, "X509v3 Key Usage") ||
-      extractSection(certText, "Key Usage");
-
-    const extendedKeyUsage =
-      extractSection(certText, "X509v3 Extended Key Usage") ||
-      extractSection(certText, "Extended Key Usage");
-
-    return {
-      signerCommonName: parseSubjectField(subject, "CN"),
-      signerSerialNumber: parseSubjectField(subject, "serialNumber"),
-      providerName: detectProviderName(issuer),
-
-      organization:
-        parseSubjectField(subject, "O") ||
-        parseSubjectField(subject, "OU") ||
-        parseSubjectField(issuer, "O") ||
-        parseSubjectField(issuer, "OU") ||
-        "",
-
-      organizationIdentifier:
-        parseSubjectField(subject, "organizationIdentifier") ||
-        parseSubjectField(issuer, "organizationIdentifier") ||
-        "",
-
-      country:
-        parseSubjectField(subject, "C") ||
-        parseSubjectField(issuer, "C") ||
-        "",
-
-      issuer,
-
-      validFrom: get(/Not Before:\s*(.+)/),
-      validTo: get(/Not After\s*:\s*(.+)/),
-
-      signatureAlgorithm: get(/Signature Algorithm:\s*(.+)/),
-
-      keyUsage,
-      extendedKeyUsage,
-
-      policy: get(/Policy:\s*([0-9\.]+)/),
-
-      rawSubject: subject,
-      rawIssuer: issuer,
-      rawCertificate: certText
-    };
+    return results;
   } catch (err) {
-    return {
-      error: err.stderr || err.message || "Errore estrazione certificato"
-    };
+    return [{ error: err.stderr || err.message || "Errore estrazione certificati" }];
   } finally {
     if (fs.existsSync(certOutPath)) {
       try { fs.unlinkSync(certOutPath); } catch {}
     }
-    if (fs.existsSync(firstCertPath)) {
-      try { fs.unlinkSync(firstCertPath); } catch {}
-    }
   }
+}
+
+// Mantiene la firma/comportamento originale (restituisce il PRIMO
+// certificato trovato): usata dove per costruzione il p7m ha un solo
+// firmatario (es. upload iniziale del firmatario in /cades/upload).
+async function extractCertificateInfoFromP7m(p7mPath) {
+  const all = await extractAllCertificatesInfoFromP7m(p7mPath);
+  return all[0] || { error: "Nessun certificato trovato" };
 }
 
 async function verifyAndExtractCadesAttachedPdf(p7mPath, extractedPdfPath) {
@@ -1207,8 +1249,41 @@ async function registerCountersignatureOnChainInternal({
   };
 }
 
+// Conta quanti SignerInfo (firme) sono presenti in un container CAdES/PKCS7.
+// Serve a distinguere le due topologie possibili per una "controfirma cliente":
+//  - 1 SignerInfo  -> probabile controfirma NIDIFICATA (.p7m.p7m: un SignedData
+//    dentro un altro SignedData, ciascuno con il proprio, singolo, firmatario)
+//  - 2+ SignerInfo -> CO-FIRMA PARALLELA: un unico SignedData con più firmatari
+//    che firmano tutti direttamente lo stesso contenuto (il PDF), tipica di
+//    software di firma come Aruba Sign / Dike GoSign quando si "aggiunge una
+//    firma" invece di "controfirmare" il pacchetto. In questo caso NON esiste
+//    un p7m interno da estrarre: il contenuto firmato è già il PDF.
+// Nota: contiamo le occorrenze di "d.issuerAndSerialNumber:" nell'output di
+// `openssl cms -cmsout -print`, che compare esattamente una volta per ogni
+// SignerInfo (a differenza del numero di certificati, che può includere
+// anche certificati intermedi non legati 1:1 a un SignerInfo).
+async function countCadesSignerInfos(p7mPath) {
+  try {
+    const { stdout } = await execFileAsync("openssl", [
+      "cms", "-cmsout", "-print",
+      "-inform", "DER",
+      "-in", p7mPath,
+      "-noout"
+    ]);
+    const matches = stdout.match(/^\s{8}d\.issuerAndSerialNumber:/gm);
+    return matches ? matches.length : 1;
+  } catch (err) {
+    // Se openssl cms non riesce a fare il parsing, ripieghiamo sull'assunzione
+    // storica (1 firmatario / topologia nidificata) per non rompere il flusso
+    // esistente; il resto della validazione (DSS + hash) resta comunque attivo.
+    console.warn("[CADES] countCadesSignerInfos fallito, assumo 1 firmatario:", err.message);
+    return 1;
+  }
+}
+
 // ----------------------------------------------------------------
-// CLIENT COUNTERSIGNATURE (firma annidata .p7m.p7m)
+// CLIENT COUNTERSIGNATURE (controfirma cliente: nidificata .p7m.p7m
+// OPPURE co-firma parallela nello stesso .p7m — vedi countCadesSignerInfos)
 // ----------------------------------------------------------------
 
 // Estrae il payload firmato da un container CAdES/PKCS7 (DER) senza
@@ -1232,36 +1307,61 @@ async function unwrapCadesPayload(inputP7mPath, outPath) {
   return { ok: false, error: lastErr?.message || "Unwrap CAdES fallito" };
 }
 
-// Verifica un .p7m.p7m: sbuccia il livello esterno (firma cliente) -> ottiene
-// il .p7m del firmatario, poi sbuccia di nuovo -> ottiene il PDF. Valida via
-// DSS la firma esterna e controlla che il PDF finale combaci con la baseline.
+// Controlla se un file inizia con la magic string "%PDF-": distingue un PDF
+// vero da un ulteriore livello CMS/PKCS7 (che inizia sempre con un tag ASN.1
+// SEQUENCE, mai con testo leggibile). Usato per capire, DOPO aver sbucciato
+// un livello di firma, se siamo già arrivati al contenuto finale o se c'è
+// un altro p7m da sbucciare.
+function isPdfFile(filePath) {
+  try {
+    const fd = fs.openSync(filePath, "r");
+    const buf = Buffer.alloc(5);
+    const bytesRead = fs.readSync(fd, buf, 0, 5, 0);
+    fs.closeSync(fd);
+    return bytesRead === 5 && buf.toString("latin1") === "%PDF-";
+  } catch {
+    return false;
+  }
+}
+
+// Verifica la controfirma cliente, riconoscendo automaticamente la topologia
+// reale del file caricato ispezionando il CONTENUTO dopo il primo unwrap
+// (non ci si affida più né all'estensione .p7m.p7m né, da sola, al numero
+// di SignerInfo — un solo firmatario può comunque risultare in un contenuto
+// già "piatto" se il cliente ha firmato direttamente il PDF invece di
+// impilare la firma sopra il .p7m del firmatario):
+//
+//  - topology "nested": il contenuto sbucciato al livello 1 NON è un PDF
+//    (è un altro CMS) -> si sbuccia un secondo livello per arrivare al PDF.
+//  - topology "co-signed": il contenuto sbucciato al livello 1 è già il PDF
+//    e ci sono 2+ SignerInfo nello stesso SignedData -> identifica quale dei
+//    firmatari è quello già registrato e quale è il cliente.
+//  - topology "flat": il contenuto sbucciato al livello 1 è già il PDF ma
+//    c'è UN SOLO SignerInfo -> firma singola apposta direttamente sul PDF,
+//    non impilata sopra il .p7m del firmatario. Si accetta come controfirma
+//    solo se il firmatario di questa firma è DIVERSO da quello già
+//    registrato (altrimenti sarebbe solo una ri-firma dello stesso p7m).
+//
+// In tutti i casi valida via DSS il container esterno così com'è caricato.
 async function verifyAndExtractClientCountersignature(
   clientP7mPath,
   innerP7mOutPath,
-  extractedPdfOutPath
+  extractedPdfOutPath,
+  expectedSignerInfo = null // { commonName, serialNumber, fingerprintSha256 } del firmatario già registrato (state.cades[...])
 ) {
-  // 1) Validazione DSS della firma esterna (del cliente)
+  // 1) Validazione DSS del container così com'è caricato
   const dssResult = await validateCades(clientP7mPath);
 
-  // 2) Livello 1: sbuccia firma cliente -> .p7m del firmatario
-  const lvl1 = await unwrapCadesPayload(clientP7mPath, innerP7mOutPath);
-  if (!lvl1.ok) {
-    return { ok: false, error: "Estrazione p7m interno fallita", details: lvl1.error, dssResult };
-  }
-
-  // 3) Livello 2: sbuccia firma firmatario -> PDF
-  const lvl2 = await unwrapCadesPayload(innerP7mOutPath, extractedPdfOutPath);
-  if (!lvl2.ok) {
-    return { ok: false, error: "Estrazione PDF dal p7m interno fallita", details: lvl2.error, dssResult };
-  }
+  // 2) Numero di SignerInfo (serve solo a disambiguare firmatario/cliente
+  //    quando il contenuto risulta già "piatto", vedi sotto)
+  const signerCount = await countCadesSignerInfos(clientP7mPath);
 
   const validOffchain =
     dssResult.ok &&
     dssResult.indication === "TOTAL_PASSED" &&
     ["QESig", "AdESig-QC"].includes(dssResult.signatureLevel);
 
-  return {
-    ok: true,
+  const baseResult = {
     validOffchain,
     signatureLevel: dssResult.signatureLevel,
     indication: dssResult.indication,
@@ -1270,9 +1370,149 @@ async function verifyAndExtractClientCountersignature(
     qcCompliance: dssResult.qcCompliance,
     qcSSCD: dssResult.qcSSCD,
     hasTimestamp: dssResult.hasTimestamp,
-    rawReport: dssResult.rawReport
+    rawReport: dssResult.rawReport,
+    signerCount
+  };
+
+  const norm = (s) => String(s || "").trim().toLowerCase();
+
+  // Confronto di identità tra un certificato trovato nel file e il
+  // firmatario già registrato. Il fingerprint SHA-256 del certificato è
+  // SEMPRE presente e identifica univocamente un certificato — va preferito
+  // a CN/serialNumber del Subject DN, che nei certificati non qualificati
+  // (es. self-signed demo) spesso non includono affatto il campo
+  // "serialNumber" e quindi non permetterebbero di distinguere due firme
+  // fatte con lo STESSO certificato (bug osservato con i file DSS demo:
+  // stesso certificato usato due volte, ma serialNumber vuoto su entrambi
+  // avrebbe fatto risultare "matchesExpected" sempre falso).
+  const matchesExpected = (cert) => {
+    if (!expectedSignerInfo || !cert) return false;
+
+    if (expectedSignerInfo.fingerprintSha256 && cert.fingerprintSha256) {
+      return norm(cert.fingerprintSha256) === norm(expectedSignerInfo.fingerprintSha256);
+    }
+
+    // Fallback (solo se per qualche motivo il fingerprint non è disponibile
+    // su uno dei due lati, es. dati storici salvati prima di questa fix)
+    return (
+      !!cert.signerCommonName &&
+      norm(cert.signerCommonName) === norm(expectedSignerInfo.commonName) &&
+      !!cert.signerSerialNumber &&
+      norm(cert.signerSerialNumber) === norm(expectedSignerInfo.serialNumber)
+    );
+  };
+
+  // 3) Sbuccia SEMPRE un primo livello, poi decidi in base al contenuto
+  const lvl1 = await unwrapCadesPayload(clientP7mPath, innerP7mOutPath);
+  if (!lvl1.ok) {
+    return {
+      ok: false,
+      error: "Estrazione del livello esterno fallita",
+      details: lvl1.error,
+      dssResult,
+      topology: "unknown",
+      ...baseResult
+    };
+  }
+
+  if (isPdfFile(innerP7mOutPath)) {
+    // Il contenuto incapsulato è GIA' il PDF: non c'è nesting.
+    fs.renameSync(innerP7mOutPath, extractedPdfOutPath);
+
+    const certificates = await extractAllCertificatesInfoFromP7m(clientP7mPath);
+
+    if (signerCount >= 2) {
+      // ---- CO-FIRMA: un unico SignedData, più SignerInfo paralleli ----
+      const firmatarioCert = certificates.find(matchesExpected) || null;
+
+      if (!firmatarioCert) {
+        return {
+          ok: false,
+          error: "Nessuna delle firme presenti nel file corrisponde al firmatario già registrato",
+          details: {
+            expectedSignerInfo,
+            foundCertificates: certificates.map(c => ({
+              commonName: c.signerCommonName,
+              serialNumber: c.signerSerialNumber
+            }))
+          },
+          dssResult,
+          topology: "co-signed",
+          ...baseResult
+        };
+      }
+
+      const clientCert = certificates.find(c => c !== firmatarioCert) || null;
+
+      return {
+        ok: true,
+        topology: "co-signed",
+        firmatarioCert,
+        clientCert,
+        allCertificates: certificates,
+        dssResult,
+        ...baseResult
+      };
+    }
+
+    // ---- FLAT: un solo SignerInfo, firma diretta sul PDF (non impilata) ----
+    const soleCert = certificates[0] || null;
+
+    if (soleCert && matchesExpected(soleCert)) {
+      return {
+        ok: false,
+        error: "Il file caricato è firmato dallo stesso firmatario già registrato: non è una controfirma di un secondo soggetto (cliente)",
+        details: {
+          expectedSignerInfo,
+          found: { commonName: soleCert.signerCommonName, serialNumber: soleCert.signerSerialNumber }
+        },
+        dssResult,
+        topology: "flat",
+        ...baseResult
+      };
+    }
+
+    return {
+      ok: true,
+      topology: "flat",
+      clientCert: soleCert,
+      allCertificates: certificates,
+      dssResult,
+      ...baseResult
+    };
+  }
+
+  // ---- NIDIFICATA: il livello 1 NON è un PDF -> deve essere un altro CMS ----
+  const lvl2 = await unwrapCadesPayload(innerP7mOutPath, extractedPdfOutPath);
+  if (!lvl2.ok) {
+    return {
+      ok: false,
+      error: "Estrazione PDF dal p7m interno fallita",
+      details: lvl2.error,
+      dssResult,
+      topology: "nested",
+      ...baseResult
+    };
+  }
+
+  if (!isPdfFile(extractedPdfOutPath)) {
+    return {
+      ok: false,
+      error: "Il contenuto estratto dopo due livelli di sbucciatura non è un PDF valido (nesting più profondo di quanto supportato)",
+      dssResult,
+      topology: "nested",
+      ...baseResult
+    };
+  }
+
+  return {
+    ok: true,
+    topology: "nested",
+    dssResult,
+    ...baseResult
   };
 }
+
 
 async function estimateRegisterClientCountersignatureInternal({
   forestUnitId,
@@ -3484,6 +3724,7 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
       cadesUri,
       signerCommonName: certInfo.signerCommonName || "",
       signerSerialNumber: certInfo.signerSerialNumber || "",
+      signerFingerprintSha256: certInfo.fingerprintSha256 || "",
       signerSubject: certInfo.rawSubject || "",
       signerOrganization: certInfo.organization || "",
       signerCountry: certInfo.country || "",
@@ -3620,7 +3861,11 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
 });
 
 // ----------------------------------------------------------------
-// UPLOAD CONTROFIRMA CLIENTE (.p7m.p7m — firma annidata sopra il p7m)
+// UPLOAD CONTROFIRMA CLIENTE — accetta sia la topologia NIDIFICATA
+// (.p7m.p7m: SignedData dentro SignedData) sia la CO-FIRMA PARALLELA
+// (un unico SignedData con 2+ SignerInfo sullo stesso PDF). La topologia
+// reale viene rilevata ispezionando il contenuto del file (vedi
+// countCadesSignerInfos), non dedotta dal nome/estensione del file caricato.
 // ----------------------------------------------------------------
 app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req, res) => {
   let uploadedTempPath = req.file?.path || null;
@@ -3635,11 +3880,12 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
     }
 
     if (!req.file) {
-      return res.status(400).json({ error: "File .p7m.p7m richiesto nel campo form-data 'file'" });
+      return res.status(400).json({ error: "File .p7m della controfirma cliente richiesto nel campo form-data 'file'" });
     }
 
     // Prerequisito: la firma del firmatario deve esistere off-chain (caricata
-    // con /api/ricardian/cades/upload) per poter verificare l'annidamento.
+    // con /api/ricardian/cades/upload) per poter verificare la controfirma,
+    // sia essa nidificata o co-firmata.
     const inner = state.cades?.[forestUnitId];
     if (!inner) {
       if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
@@ -3652,7 +3898,9 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
     const registeredPdfHash = baseline.registeredPdfHash;
 
     const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
-    const finalClientP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.pdf.p7m.p7m`);
+    // Nome neutro: non presuppone più la topologia (prima era .pdf.p7m.p7m,
+    // valido solo per il caso nidificato).
+    const finalClientP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.client-countersignature.p7m`);
     const innerP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.client-inner.pdf.p7m`);
     const extractedPdfPath = path.join(CADES_DIR, `ricardian-${safeName}.client-extracted.pdf`);
 
@@ -3671,11 +3919,16 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
       }
     };
 
-    // Doppia estrazione + validazione DSS della firma esterna (cliente)
+    // Rilevamento topologia + estrazione + validazione DSS del container caricato
     const verifyResult = await verifyAndExtractClientCountersignature(
       finalClientP7mPath,
       innerP7mPath,
-      extractedPdfPath
+      extractedPdfPath,
+      {
+        commonName: inner.signerCommonName,
+        serialNumber: inner.signerSerialNumber,
+        fingerprintSha256: inner.signerFingerprintSha256
+      }
     );
 
     if (!verifyResult.ok) {
@@ -3684,34 +3937,87 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
         ok: false,
         error: "Verifica controfirma cliente fallita",
         details: verifyResult.error,
-        sub: verifyResult.details || null
+        sub: verifyResult.details || null,
+        topology: verifyResult.topology || null,
+        signerCount: verifyResult.signerCount ?? null
       });
     }
 
     if (!fs.existsSync(extractedPdfPath)) {
       cleanup();
-      return res.status(400).json({ ok: false, error: "PDF non estratto dal .p7m.p7m" });
+      return res.status(400).json({ ok: false, error: "PDF non estratto dal file caricato" });
     }
 
-    // 1) Il p7m interno estratto deve coincidere con il p7m del firmatario gia' registrato
-    const extractedInnerHash = sha256FileBytes32(innerP7mPath);
-    const innerMatches =
-      extractedInnerHash.toLowerCase() === String(inner.cadesHash).toLowerCase();
+    const topology = verifyResult.topology; // "nested" | "co-signed" | "flat"
 
-    if (!innerMatches) {
-      cleanup();
-      return res.status(409).json({
-        ok: false,
-        error: "Il p7m interno non coincide con la firma del firmatario registrata",
-        forestUnitId,
-        hashes: {
-          expectedInnerCadesHash: inner.cadesHash,
-          extractedInnerCadesHash: extractedInnerHash
-        }
-      });
+    // 1) Coerenza con la firma del firmatario già registrata.
+    //    - nested: il p7m interno estratto deve coincidere byte-per-byte con
+    //      quello già registrato (cadesHash).
+    //    - co-signed: non esiste un p7m interno separato da confrontare (il
+    //      contenuto firmato è direttamente il PDF); la coerenza è già stata
+    //      accertata da verifyAndExtractClientCountersignature confrontando i
+    //      certificati dei firmatari con quello registrato (firmatarioCert),
+    //      tramite fingerprint SHA-256 del certificato.
+    //    - flat: firma singola diretta sul PDF (non impilata sul p7m del
+    //      firmatario); verifyAndExtractClientCountersignature ha già
+    //      rifiutato il caso in cui l'unico firmatario coincidesse (per
+    //      fingerprint) con quello registrato, quindi qui non c'è altro da
+    //      incrociare.
+    let extractedInnerHash = null;
+    if (topology === "nested") {
+      extractedInnerHash = sha256FileBytes32(innerP7mPath);
+      const innerMatches =
+        extractedInnerHash.toLowerCase() === String(inner.cadesHash).toLowerCase();
+
+      if (!innerMatches) {
+        cleanup();
+        return res.status(409).json({
+          ok: false,
+          error: "Il p7m interno non coincide con la firma del firmatario registrata",
+          forestUnitId,
+          topology,
+          hashes: {
+            expectedInnerCadesHash: inner.cadesHash,
+            extractedInnerCadesHash: extractedInnerHash
+          }
+        });
+      }
+    } else if (topology === "co-signed") {
+      // verifica di coerenza esplicita (ridondante ma utile per audit):
+      // confronto primario per fingerprint del certificato, fallback su
+      // CN+serialNumber solo se il fingerprint non è disponibile su un lato.
+      const fc = verifyResult.firmatarioCert;
+      const fpMatches =
+        inner.signerFingerprintSha256 && fc?.fingerprintSha256
+          ? String(fc.fingerprintSha256).toLowerCase() === String(inner.signerFingerprintSha256).toLowerCase()
+          : null;
+      const cnMatches = String(fc?.signerCommonName || "").toLowerCase() === String(inner.signerCommonName || "").toLowerCase();
+      const snMatches = String(fc?.signerSerialNumber || "").toLowerCase() === String(inner.signerSerialNumber || "").toLowerCase();
+      const identityMatches = fpMatches !== null ? fpMatches : (cnMatches && snMatches);
+
+      if (!identityMatches) {
+        cleanup();
+        return res.status(409).json({
+          ok: false,
+          error: "Il firmatario individuato nella co-firma non coincide con quello registrato",
+          forestUnitId,
+          topology,
+          expected: {
+            commonName: inner.signerCommonName,
+            serialNumber: inner.signerSerialNumber,
+            fingerprintSha256: inner.signerFingerprintSha256
+          },
+          found: {
+            commonName: fc?.signerCommonName,
+            serialNumber: fc?.signerSerialNumber,
+            fingerprintSha256: fc?.fingerprintSha256
+          }
+        });
+      }
     }
+    // topology === "flat": nessun controllo aggiuntivo, già fatto a monte.
 
-    // 2) Il PDF finale deve coincidere con la baseline
+    // 2) Il PDF finale (estratto, con qualunque topologia) deve coincidere con la baseline
     const extractedPdfHash = sha256FileBytes32(extractedPdfPath);
     const pdfMatches =
       extractedPdfHash.toLowerCase() === String(registeredPdfHash).toLowerCase();
@@ -3720,16 +4026,21 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
       cleanup();
       return res.status(409).json({
         ok: false,
-        error: "Il PDF annidato non coincide con la baseline registrata",
+        error: "Il PDF firmato non coincide con la baseline registrata",
         forestUnitId,
+        topology,
         hashes: { registeredPdfHash, extractedPdfHash }
       });
     }
 
     const clientCadesHash = sha256FileBytes32(finalClientP7mPath);
 
-    // Info certificato della firma esterna (cliente)
-    const certInfo = await extractCertificateInfoFromP7m(finalClientP7mPath);
+    // Info certificato del CLIENTE: in caso di co-firma o firma "flat" NON si
+    // può prendere "il primo certificato del file" alla cieca — usiamo invece
+    // il certInfo già disambiguato da verifyAndExtractClientCountersignature.
+    const certInfo = (topology === "co-signed" || topology === "flat")
+      ? (verifyResult.clientCert || {})
+      : await extractCertificateInfoFromP7m(finalClientP7mPath);
 
     const caFilePath =
       process.env.CADES_CA_FILE ||
@@ -3751,18 +4062,27 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
     let clientCadesUri = toFileUri(finalClientP7mPath);
     let ipfs = null;
     if (useIPFS) {
-      ipfs = await uploadFileToIpfs(finalClientP7mPath, `ricardian-${safeName}.pdf.p7m.p7m`);
+      ipfs = await uploadFileToIpfs(finalClientP7mPath, path.basename(finalClientP7mPath));
       clientCadesUri = ipfs.ipfsUri;
     }
 
     const signedAt = Math.floor(Date.now() / 1000);
 
+    // innerCadesHash: per nested è l'hash effettivamente estratto e verificato;
+    // per co-signed non esiste un artefatto "interno" fisico, quindi si
+    // riusa il cadesHash del firmatario già registrato (il collegamento
+    // crittografico è comunque garantito: lo stesso certificato compare
+    // come co-firmatario nel file appena caricato).
+    const linkedInnerCadesHash = topology === "nested" ? extractedInnerHash : inner.cadesHash;
+
     state.clientCades[forestUnitId] = {
       forestUnitId,
+      topology,
+      signerCount: verifyResult.signerCount,
       clientP7mPath: finalClientP7mPath,
-      innerP7mPath,
+      innerP7mPath: topology === "nested" ? innerP7mPath : null,
       extractedPdfPath,
-      innerCadesHash: inner.cadesHash,
+      innerCadesHash: linkedInnerCadesHash,
       clientCadesHash,
       clientCadesUri,
       pdfHash: registeredPdfHash,
@@ -3794,18 +4114,20 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
     return res.json({
       ok: true,
       forestUnitId,
+      topology,
+      signerCount: verifyResult.signerCount,
       validOffchain: verifyResult.validOffchain,
       trustedSignature: trustResult.trusted,
       trustProvider: trustResult.provider || null,
       files: {
         clientP7mPath: finalClientP7mPath,
-        innerP7mPath,
+        innerP7mPath: topology === "nested" ? innerP7mPath : null,
         extractedPdfPath
       },
       hashes: {
         registeredPdfHash,
         extractedPdfHash,
-        innerCadesHash: inner.cadesHash,
+        innerCadesHash: linkedInnerCadesHash,
         extractedInnerCadesHash: extractedInnerHash,
         clientCadesHash
       },
@@ -3831,7 +4153,12 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
         hasTimestamp: verifyResult.hasTimestamp,
         reportFileName: dssReportPath ? path.basename(dssReportPath) : null
       },
-      note: "Controfirma cliente verificata: p7m interno e PDF annidato coincidono con i record registrati."
+      note:
+        topology === "co-signed"
+          ? "Controfirma cliente verificata come CO-FIRMA PARALLELA (un unico SignedData con più firmatari): certificato del firmatario riconosciuto tra i co-firmatari e PDF coincidente con la baseline registrata."
+          : topology === "flat"
+          ? "Controfirma cliente verificata come firma FLAT (un solo firmatario, applicata direttamente sul PDF senza impilarla sul .p7m del firmatario): certificato del cliente diverso da quello già registrato e PDF coincidente con la baseline."
+          : "Controfirma cliente verificata come firma NIDIFICATA (.p7m.p7m): p7m interno e PDF annidato coincidono con i record registrati."
     });
   } catch (err) {
     if (uploadedTempPath && fs.existsSync(uploadedTempPath)) {

@@ -70,13 +70,13 @@
       "userCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
         "purpose": "Costituisce sottoscrizione del PDF ricardiano da parte del Fornitore (firmatario aziendale), ulteriore rispetto alla firma di sistema EIP-712.",
-        "legalQualification": "QESig",
-        "validationReportRef": "validation-Vallombrosa-1782989834307.json",
-        "validationIndication": "TOTAL_PASSED",
+        "legalQualification": "N/A",
+        "validationReportRef": "validation-Vallombrosa-1784103789908.json",
+        "validationIndication": "INDETERMINATE",
         "signatureFormat": "CAdES-BASELINE-B",
         "qcCompliance": false,
         "qcSSCD": false,
-        "hasTimestamp": false
+        "hasTimestamp": true
       },
       "clientCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
@@ -116,9 +116,9 @@
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-07-02T10:20:44.052Z"
+    "createdAt": "2026-07-15T08:22:07.368Z"
   },
-  "ricardianHash": "0x5f8abe07729b2dac29819f77d65a80fd5e80c917419825e5efb84fbd315d256a",
+  "ricardianHash": "0x30e4add161211d7f1bd3574f4bd7ce3f12b8e9a25d4a394ddd9e6f2fcf48d37e",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -150,11 +150,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x5f8abe07729b2dac29819f77d65a80fd5e80c917419825e5efb84fbd315d256a",
+        "ricardianHash": "0x30e4add161211d7f1bd3574f4bd7ce3f12b8e9a25d4a394ddd9e6f2fcf48d37e",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-07-02T10:20:44.052Z"
+        "createdAt": "2026-07-15T08:22:07.368Z"
       },
-      "signature": "0x020d9e0b022a84463c7bd824729ae278b0010ba57b46fce9159ab5061c1d68856ae7ba9fb6f8b31392f59175c34cc55e204dbccd6d9d89e33cdc95a2a6f4cca41c"
+      "signature": "0x7767eaf4b2d8930bdbb8e7c14676cdedb38f7b67a985ccaa6d7b2e050410cad701cccdb2572477cead1e480b8a4186cb51bb7f0d28c51e408719817ecb9ccad61c"
     }
   }
 }
