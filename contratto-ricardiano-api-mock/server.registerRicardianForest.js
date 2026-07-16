@@ -1,4 +1,4 @@
-﻿const path = require("path");
+const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../environment_variables.env") });
 
 const express = require("express");
@@ -18,7 +18,6 @@ const PDFDocument = require("pdfkit");
 const QRCode = require("qrcode");
 const multer = require("multer");
 
-const { create } = require("ipfs-http-client");
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
@@ -48,6 +47,13 @@ cron.schedule("0 3 * * *", () => {
 // CONFIG
 // --------------------
 const PORT = Number(process.env.PORT || 3000);
+
+// Se true, permette la registrazione on-chain della (contro)firma anche quando
+// DSS non riesce a validare la catena di fiducia del certificato (es. certificati
+// PKI-TEST dell'European Commission usati in dev/test, non presenti nella LOTL).
+// In questo caso rimane comunque obbligatorio che trustedSignature (verifica
+// OpenSSL CMS) sia true. NON impostare a "true" in produzione.
+const ALLOW_UNTRUSTED_DSS = process.env.RICARDIAN_ALLOW_UNTRUSTED_DSS === "true";
 
 // TopView endpoints
 const TOPVIEW_TOKEN_URL = process.env.TOPVIEW_TOKEN_URL || "https://digimedfor.topview.it/api/get-token/";
@@ -88,9 +94,6 @@ if (PRIVATE_KEY === "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf
   process.exit(1);
 }
 
-// IPFS daemon locale
-const IPFS_URL = process.env.IPFS_URL || "http://127.0.0.1:5004/api/v0";
-
 // --------------------
 // APP
 // --------------------
@@ -105,11 +108,6 @@ const upload = multer({
   dest: TMP_DIR,
   limits: { fileSize: 50 * 1024 * 1024 }
 });
-
-// --------------------
-// IPFS CLIENT
-// --------------------
-const ipfs = create({ url: IPFS_URL });
 
 // --------------------
 // ETHERS SETUP
@@ -262,7 +260,6 @@ function safeJsonClone(x) {
 function stripRicardianToBase(ricardianJson) {
   const base = safeJsonClone(ricardianJson);
   delete base.signature;
-  delete base.ipfsUri;
   delete base.ricardianHash;
   return base;
 }
@@ -479,12 +476,14 @@ async function extractCertificateInfoFromP7m(p7mPath) {
   return all[0] || { error: "Nessun certificato trovato" };
 }
 
-async function verifyAndExtractCadesAttachedPdf(p7mPath, extractedPdfPath) {
-  // 1) Validazione DSS contro EU LOTL
-  const dssResult = await validateCades(p7mPath);
-
-  // 2) Estrazione del PDF originale (per verifica integrità)
-  // OpenSSL serve ancora per estrarre il payload, ma NON per validare la firma
+// Estrae SOLO il PDF incapsulato in un CAdES "attached" (un singolo
+// SignerInfo, firma diretta sul PDF): stessa logica di sbucciatura di
+// unwrapCadesPayload/verifyAndExtractClientCountersignature, ma qui la
+// validazione DSS (validateCades) NON viene eseguita qui — viene fatta
+// una sola volta dal chiamante (route /cades/upload), esattamente come
+// fa /cades/client-upload con verifyAndExtractClientCountersignature.
+// Questo evita la doppia chiamata a validateCades che c'era in precedenza.
+async function extractPdfFromCades(p7mPath, extractedPdfPath) {
   const extractAttempts = [
     ["cms", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", p7mPath, "-out", extractedPdfPath],
     ["smime", "-verify", "-inform", "DER", "-binary", "-noverify", "-in", p7mPath, "-out", extractedPdfPath]
@@ -503,46 +502,22 @@ async function verifyAndExtractCadesAttachedPdf(p7mPath, extractedPdfPath) {
   }
 
   if (!extractOk) {
-    return {
-      ok: false,
-      error: "Estrazione PDF dal CAdES fallita",
-      extractError: extractError?.message,
-      dssResult
-    };
+    return { ok: false, error: "Estrazione PDF dal CAdES fallita", extractError: extractError?.message };
   }
 
-  // 3) Determina validOffchain in base al risultato DSS
-  const validOffchain =
-    dssResult.ok &&
-    dssResult.indication === "TOTAL_PASSED" &&
-    ["QESig", "AdESig-QC"].includes(dssResult.signatureLevel);
-
-  return {
-    ok: true,
-    extractOk: true,
-    validOffchain,
-    signatureLevel: dssResult.signatureLevel,
-    indication: dssResult.indication,
-    qcCompliance: dssResult.qcCompliance,
-    qcSSCD: dssResult.qcSSCD,
-    certificateChain: dssResult.certificateChain,
-    revocationStatus: dssResult.revocationStatus,
-    timestampPresent: dssResult.timestampPresent,
-    dssReport: dssResult.rawReport
-  };
+  return { ok: true };
 }
 
-async function uploadFileToIpfs(filePath, fileName) {
-  const content = fs.readFileSync(filePath);
-  const added = [];
-  for await (const entry of ipfs.addAll([{ path: fileName, content }], { wrapWithDirectory: true })) {
-    added.push(entry);
-  }
-  const dir = added.find(x => x.path === "") || added[added.length - 1];
-  const cid = dir.cid.toString();
-  const ipfsUri = `ipfs://${cid}/${fileName}`;
-  try { await ipfs.pin.add(cid); } catch {}
-  return { cid, ipfsUri };
+// Determina, a partire da un dssResult già calcolato (validateCades chiamato
+// UNA SOLA VOLTA dal chiamante), se la firma è legalmente valida offchain.
+// Stessa regola usata in verifyAndExtractClientCountersignature per la
+// controfirma cliente: TOTAL_PASSED + livello QESig/AdESig-QC.
+function isDssSignatureValid(dssResult) {
+  return !!(
+    dssResult?.ok &&
+    dssResult.indication === "TOTAL_PASSED" &&
+    ["QESig", "AdESig-QC"].includes(dssResult.signatureLevel)
+  );
 }
 
 // --------------------
@@ -868,8 +843,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
         offChainEvidence: "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
       personalDataHandling: "Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy; le finalità e i mezzi del trattamento sono determinati dal Fornitore quale Titolare",
-      dataSubjectRights: "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
-      ipfsUsageStatement: "Limitato a payload privi di dati personali."
+      dataSubjectRights: "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati."
     },
     dpiaStatus: "Quale Titolare del trattamento, il Fornitore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Fornitore compete la valutazione preliminare circa la ricorrenza di tali condizioni."
   },
@@ -953,8 +927,6 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
   jsonPath: ricardianJson,
   pdfPath: ricardianPdf,
   pdfHash,
-  ipfsUri: null,
-  cid: null,
   storageUri: null,
   pdfUri: null
 };
@@ -979,32 +951,6 @@ async function persistRicardianLocalInternal(forestUnitId, baseUrl) {
     pdfUri: r.pdfUri,
     jsonPath: outPath
   };
-}
-
-async function uploadRicardianToIpfsInternal(forestUnitId) {
-  const r = state.ricardians?.[forestUnitId];
-  if (!r?.ricardianForest) throw new Error("Ricardian non trovato (buildAndSign non eseguito)");
-
-  const fileName = "ricardian-forest.json";
-  const content = Buffer.from(JSON.stringify(r.ricardianForest, null, 2), "utf-8");
-
-  const added = [];
-  for await (const entry of ipfs.addAll([{ path: fileName, content }], { wrapWithDirectory: true })) {
-    added.push(entry);
-  }
-
-  const dir = added.find(x => x.path === "") || added[added.length - 1];
-  const cid = dir.cid.toString();
-  const ipfsUri = `ipfs://${cid}/${fileName}`;
-
-  try { await ipfs.pin.add(cid); } catch {}
-
-  r.cid = cid;
-  r.ipfsUri = ipfsUri;
-  r.storageUri = ipfsUri;
-  r.ricardianForest.ipfsUri = ipfsUri;
-
-  return { cid, ipfsUri, storageUri: ipfsUri };
 }
 
 async function estimateRegisterInternal({ forestUnitId, ricardianHash, merkleRoot, storageUri }) {
@@ -1356,10 +1302,7 @@ async function verifyAndExtractClientCountersignature(
   //    quando il contenuto risulta già "piatto", vedi sotto)
   const signerCount = await countCadesSignerInfos(clientP7mPath);
 
-  const validOffchain =
-    dssResult.ok &&
-    dssResult.indication === "TOTAL_PASSED" &&
-    ["QESig", "AdESig-QC"].includes(dssResult.signatureLevel);
+  const validOffchain = isDssSignatureValid(dssResult);
 
   const baseResult = {
     validOffchain,
@@ -1614,30 +1557,6 @@ async function registerClientCountersignatureOnChainInternal({
     txHash: receipt.transactionHash || tx.hash,
     blockNumber: receipt.blockNumber,
     signerAddress
-  };
-}
-
-async function verifyIpfsHashInternal(forestUnitId, expectedRicardianHash) {
-  const r = state.ricardians?.[forestUnitId];
-  if (!r?.ipfsUri || !r?.cid) {
-    return { skipped: true, reason: "ipfsUri/cid non presenti" };
-  }
-
-  const fileName = "ricardian-forest.json";
-  const chunks = [];
-  for await (const chunk of ipfs.cat(`${r.cid}/${fileName}`)) chunks.push(chunk);
-  const content = Buffer.concat(chunks).toString("utf-8");
-
-  const json = JSON.parse(content);
-  const base = stripRicardianToBase(json);
-  const fetchedHash = toKeccak256Json(base);
-
-  return {
-    skipped: false,
-    ok: fetchedHash.toLowerCase() === expectedRicardianHash.toLowerCase(),
-    fetchedHash,
-    expectedRicardianHash,
-    ipfsUri: r.ipfsUri
   };
 }
 
@@ -2390,8 +2309,7 @@ doc.y = badgeY + badgeH + 12;
     clause("8.2",
       `In attuazione del principio di minimizzazione, ${safe(gdpr.dataMinimisation).charAt(0).toLowerCase()}${safe(gdpr.dataMinimisation).slice(1)}. ` +
       "Il contenuto sostanziale dei Dati è conservato off-chain secondo misure tecniche e " +
-      `organizzative adeguate ai sensi dell'art. 32 GDPR. L'eventuale utilizzo di storage distribuito IPFS è ` +
-      `${safe(gdpr.ipfsUsageStatement).charAt(0).toLowerCase()}${safe(gdpr.ipfsUsageStatement).slice(1)}`
+      "organizzative adeguate ai sensi dell'art. 32 GDPR."
     );
     clause("8.3",
       `I diritti degli interessati sono ${safe(gdpr.dataSubjectRights).charAt(0).toLowerCase()}${safe(gdpr.dataSubjectRights).slice(1)}`
@@ -2718,533 +2636,6 @@ app.get("/api/ricardian/json/:forestUnitId", (req, res) => {
   res.sendFile(filePath);
 });
 
-app.get("/api/ricardian/pdf/:forestUnitId/view", (req, res) => {
-  const forestUnitId = req.params.forestUnitId;
-  const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
-  const filePath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: "PDF non trovato" });
-  }
-
-  res.sendFile(filePath);
-});
-
-app.get("/api/ricardian/pdf/:forestUnitId/download", (req, res) => {
-  const forestUnitId = req.params.forestUnitId;
-  const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
-  const filePath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: "PDF non trovato" });
-  }
-
-  res.download(filePath);
-});
-
-// --------------------
-// 1) TopView login
-// --------------------
-app.post("/api/topview/login", async (req, res) => {
-  try {
-    const username = req.body?.username || TOPVIEW_USERNAME;
-    const password = req.body?.password || TOPVIEW_PASSWORD;
-
-    const httpsAgent = new https.Agent({ rejectUnauthorized: !TOPVIEW_HTTPS_INSECURE });
-    const r = await axios.post(TOPVIEW_TOKEN_URL, { username, password }, { httpsAgent });
-
-    state.topview.token = r.data.access;
-    state.topview.lastLoginAt = new Date().toISOString();
-
-    res.json({ token: state.topview.token, lastLoginAt: state.topview.lastLoginAt });
-  } catch (err) {
-    res.status(500).json({ error: "TopView login failed", details: err.message });
-  }
-});
-
-// --------------------
-// 2) Import latest forest unit
-// --------------------
-app.post("/api/topview/import-latest", async (req, res) => {
-  try {
-    const token = state.topview.token;
-    if (!token) return res.status(400).json({ error: "Token mancante: chiama /api/topview/login prima" });
-
-    const httpsAgent = new https.Agent({ rejectUnauthorized: !TOPVIEW_HTTPS_INSECURE });
-    const r = await axios.get(TOPVIEW_FOREST_UNITS_URL, {
-      headers: { Authorization: `Bearer ${token}` },
-      httpsAgent
-    });
-
-    const forestUnits = r.data.forestUnits || {};
-    const keys = Object.keys(forestUnits);
-    if (!keys.length) return res.status(404).json({ error: "Nessuna forest unit disponibile su TopView" });
-
-    const selectedForestKey = keys[keys.length - 2];
-    const unit = forestUnits[selectedForestKey];
-
-    state.forestUnitsRemote = forestUnits;
-    state.lastImportedForestUnitKey = selectedForestKey;
-    state._importedUnit = unit;
-
-    res.json({
-      forestUnitKey: selectedForestKey,
-      name: unit?.name || selectedForestKey,
-      totalKeys: keys.length
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Import latest forest unit failed", details: err.message });
-  }
-});
-
-// --------------------
-// 3) Build unified batch + merkle root
-// --------------------
-app.post("/api/forest-units/buildUnifiedBatch", async (req, res) => {
-  const forestUnitId = req.body?.forestUnitId;
-  if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
-
-  try {
-    const unit = state._importedUnit;
-    if (!unit) return res.status(400).json({ error: "Nessuna forest unit importata: chiama /api/topview/import-latest prima" });
-
-    const leaves = [];
-    const batchWithProof = [];
-    const seenEpcs = new Set();
-
-    const formatDate = (d) => (d ? new Date(d).toISOString() : "");
-
-    function addToBatch(obj) {
-      const leafHash = hashUnified(obj);
-      leaves.push(leafHash);
-      batchWithProof.push({ ...obj });
-      if (obj?.epc) seenEpcs.add(obj.epc);
-    }
-
-    const trees = unit.trees || {};
-    for (const treeId of Object.keys(trees)) {
-      const t = trees[treeId];
-      const treeEpc = t.EPC || t.epc || t.domainUUID || treeId;
-
-      const treeObj = {
-        type: "Tree",
-        epc: treeEpc,
-        firstReading: formatDate(t.firstReadingTime),
-        treeType: t.treeType?.specie || t.treeTypeId || t.specie || "Unknown",
-        coordinates: t.coordinates
-          ? `${t.coordinates.latitude ?? t.coordinates.lat ?? ""},${t.coordinates.longitude ?? t.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
-          : "",
-        notes: Array.isArray(t.notes) ? t.notes.map(n => n.description || n).join("; ") : (t.notes || ""),
-        observations: getObservations(t),
-        forestUnitId,
-        domainUUID: t.domainUUID || t.domainUuid,
-        deleted: !!t.deleted,
-        lastModification: t.lastModification || t.lastModfication || ""
-      };
-
-      addToBatch(treeObj);
-    }
-
-    const unitWoodLogs = unit.woodLogs || {};
-    for (const logId of Object.keys(unitWoodLogs)) {
-      const log = unitWoodLogs[logId] || {};
-      const logEpc = normalizeEpc(log.EPC || log.epc || log.domainUUID || logId);
-
-      if (seenEpcs.has(logEpc)) continue;
-
-      const parentTree = log.treeID || log.treeId || log.parentTree || "";
-
-      const logObj = {
-        type: "WoodLog",
-        epc: logEpc,
-        firstReading: formatDate(log.firstReadingTime),
-        treeType: log.treeType?.specie || log.treeTypeId || "Unknown",
-        logSectionNumber: log.logSectionNumber || 1,
-        parentTree: parentTree,
-        coordinates: log.coordinates
-          ? `${log.coordinates.latitude ?? log.coordinates.lat ?? ""},${log.coordinates.longitude ?? log.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
-          : "",
-        notes: Array.isArray(log.notes) ? log.notes.map(n => n.description || n).join("; ") : (log.notes || ""),
-        observations: getObservations(log),
-        forestUnitId,
-        domainUUID: log.domainUUID || log.domainUuid,
-        deleted: !!log.deleted,
-        lastModification: log.lastModification || log.lastModfication || ""
-      };
-
-      addToBatch(logObj);
-    }
-
-    const unitSawnTimbers = unit.sawnTimbers || {};
-    for (const stId of Object.keys(unitSawnTimbers)) {
-      const st = unitSawnTimbers[stId] || {};
-      const stEpc = normalizeEpc(st.EPC || st.epc || st.domainUUID || stId);
-
-      if (seenEpcs.has(stEpc)) continue;
-
-      const stObj = {
-        type: "SawnTimber",
-        epc: stEpc,
-        firstReading: formatDate(st.firstReadingTime),
-        treeType: st.treeType?.specie || st.treeTypeId || "Unknown",
-        parentTreeEpc: st.parentTreeEpc || st.treeID || st.treeId || "",
-        parentWoodLog: st.parentWoodLog || st.woodLogID || st.woodLogId || "",
-        coordinates: st.coordinates
-          ? `${st.coordinates.latitude ?? st.coordinates.lat ?? ""},${st.coordinates.longitude ?? st.coordinates.lon ?? ""}`.replace(/(^,|,$)/g, "")
-          : "",
-        notes: Array.isArray(st.notes) ? st.notes.map(n => n.description || n).join("; ") : (st.notes || ""),
-        observations: getObservations(st),
-        forestUnitId,
-        domainUUID: st.domainUUID || st.domainUuid,
-        deleted: !!st.deleted,
-        lastModification: st.lastModification || st.lastModfication || ""
-      };
-
-      addToBatch(stObj);
-    }
-
-    const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
-    const root = merkleTree.getHexRoot();
-
-    const outputDir = path.join(__dirname, "file-json");
-    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-
-    const batchFile = path.join(outputDir, "forest-unified-batch.json");
-    fs.writeFileSync(batchFile, JSON.stringify(batchWithProof, null, 2));
-
-    state.batches[forestUnitId] = { batch: batchWithProof, leaves, merkleTree, root, batchFilePath: batchFile };
-
-    const counts = {
-      trees: Object.keys(unit.trees || {}).length,
-      woodLogs: Object.keys(unit.woodLogs || {}).length,
-      sawnTimbers: Object.keys(unit.sawnTimbers || {}).length,
-      batchSize: batchWithProof.length
-    };
-
-    res.json({
-      forestUnitId,
-      merkleRoot: root,
-      batchFile,
-      ...counts
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Build unified batch failed", details: err.message });
-  }
-});
-
-// --------------------
-// 4) Build + sign Ricardian (JSON+PDF)
-// --------------------
-app.post("/api/ricardian/buildAndSign", async (req, res) => {
-  const forestUnitId = req.body?.forestUnitId;
-  const merkleRoot = req.body?.merkleRoot;
-  const useIPFS = !!req.body?.useIPFS;
-
-  if (!forestUnitId || !merkleRoot) return res.status(400).json({ error: "forestUnitId e merkleRoot richiesti" });
-
-  try {
-    const network = await provider.getNetwork();
-    const chainId = Number(network.chainId);
-    const verifyingContract = deployed.ForestTracking;
-
-    const ricardianBase = {
-  version: "2.0",
-  type: "RicardianForestTracking",
-
-  jurisdiction: {
-    courts: "Foro competente italiano",
-    regulatoryFramework: ["IT", "EU"]
-  },
-
-  governingLaw: "Diritto della Repubblica Italiana e normativa dell'Unione Europea applicabile",
-
-  actors: {
-    dataOwner: "TopView Srl",
-    dataProducer: "Operatore drone",
-    dataConsumer: "Cliente finale"
-  },
-
-  purpose: "Tracciabilità, prova di integrità e auditabilità dei dati forestali",
-
-  scope: {
-    forestUnitKey: forestUnitId,
-    includedData: ["trees", "wood_logs", "sawn_timbers"]
-  },
-
-  humanReadableAgreement: {
-    language: "it",
-    text: `
-Il presente accordo disciplina la raccolta, la registrazione, la conservazione
-e la verifica dell’integrità dei dati forestali relativi all’unità forestale
-"${forestUnitId}".
-
-Le parti riconoscono che il dataset è memorizzato off-chain e che l’hash
-crittografico registrato su blockchain costituisce prova di esistenza,
-integrità, riferibilità temporale e auditabilità del dataset alla data di registrazione.
-
-Il presente documento è strutturato come contratto ricardiano, essendo
-interpretabile sia da esseri umani sia da sistemi automatici, e integra
-elementi di governance dei dati, interoperabilità e verificabilità tecnica.
-`.trim()
-  },
-
-  rightsAndDuties: {
-    dataOwner: "Detiene la titolarità dei dati e autorizza la loro registrazione, conservazione e verifica",
-    dataProducer: "Garantisce la correttezza della raccolta, la provenienza dei dati e la coerenza del processo di generazione",
-    dataConsumer: "Può verificare l’integrità e la provenienza dei dati ma non modificarli"
-  },
-
-  technical: {
-    merkleRootUnified: merkleRoot,
-    batchFormat: "JSON",
-    storage: storageMode, // oppure useIPFS ? "IPFS" : "LOCAL_FILE" nella route
-    hashAlgorithm: "keccak256"
-  },
-
-  legal: {
-    legalValue: "Valore probatorio ai sensi della normativa vigente e come evidenza tecnica di integrità",
-    statement: "L'hash registrato on-chain costituisce prova di esistenza e integrità del dataset alla data di registrazione."
-  },
-
-  hashBinding: {
-    bindsHumanReadableText: true,
-    bindsDatasetMerkleRoot: true
-  },
-
-  canonicalization: {
-    format: "UTF-8",
-    ordering: "lexicographic",
-    whitespace: "normalized"
-  },
-
-  dataGovernance: {
-    gdprCompliance: true,
-    dataMinimisation: true,
-    accessControl: "Role-based access control",
-    retentionPolicy: "Conservazione delle evidenze tecniche e documentali secondo obblighi legali e finalità di audit",
-    personalDataHandling: "I dati personali, se presenti, sono minimizzati e trattati con misure di accesso controllato"
-  },
-
-  dataLineage: {
-    source: "TopView API, rilievi di campo e dati associati all'unità forestale",
-    processing: "Normalizzazione dei dati, costruzione batch unificato, Merkle tree generation, hashing Ricardiano e firma EIP-712",
-    output: "Ricardian JSON, Ricardian PDF, Merkle root e registrazione on-chain",
-    versioning: true
-  },
-
-  interoperability: {
-    standard: "INSPIRE-aligned interoperability",
-    metadata: "ISO 19115 compliant metadata profile",
-    formats: ["JSON", "GeoJSON", "GPKG"]
-  },
-
-  evidencePack: {
-    exportable: true,
-    auditReady: true,
-    includes: [
-      "Merkle root",
-      "Ricardian hash",
-      "Dataset snapshot",
-      "Timestamps",
-      "Geolocation references",
-      "EIP-712 signature",
-      "On-chain reference"
-    ]
-  },
-
-  standards: [
-    "ISO 19115",
-    "ISO 19157",
-    "ISO/IEC 27001",
-    "ISO 38200"
-  ],
-
-  regulatoryReferences: [
-    "eIDAS Regulation",
-    "GDPR",
-    "INSPIRE Directive",
-    "EUDR",
-    "EU Forest Monitoring framework"
-  ],
-
-  ebsiCompliance: {
-    anchoring: "Blockchain anchoring on Ethereum-compatible infrastructure",
-    verifiableCredentials: false,
-    trustFramework: "eIDAS / EBSI-aligned trust model",
-    issuer: "TopView Srl",
-    verifier: "Authorized auditor or third-party verifier"
-  },
-
-  timestamps: {
-    createdAt: new Date().toISOString()
-  }
-};
-
-    const ricardianHash = toKeccak256Json(ricardianBase);
-
-    const domain = { name: "RicardianForestTracking", version: "1", chainId, verifyingContract };
-    const types = {
-      RicardianForest: [
-        { name: "forestUnitKey", type: "string" },
-        { name: "ricardianHash", type: "bytes32" },
-        { name: "merkleRoot", type: "bytes32" },
-        { name: "createdAt", type: "string" }
-      ]
-    };
-    const message = {
-      forestUnitKey: forestUnitId,
-      ricardianHash,
-      merkleRoot,
-      createdAt: ricardianBase.timestamps.createdAt
-    };
-
-    const eip712Signature = await signer.signTypedData(domain, types, message);
-    const recovered = ethers.verifyTypedData(domain, types, message, eip712Signature);
-    const signerAddress = (await signer.getAddress()).toLowerCase();
-
-    if (recovered.toLowerCase() !== signerAddress) {
-      return res.status(500).json({
-        error: "Firma EIP-712 non valida (recovered != signer)",
-        recovered,
-        signerAddress
-      });
-    }
-
-    const ricardianForest = {
-      ...ricardianBase,
-      ricardianHash,
-      signature: {
-        eip712: {
-          signer: signerAddress,
-          domain,
-          types,
-          message,
-          signature: eip712Signature
-        }
-      }
-    };
-
-    const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
-    const ricardianJson = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
-    fs.writeFileSync(ricardianJson, JSON.stringify(ricardianForest, null, 2));
-
-    const ricardianPdf = path.join(RICARDIAN_DIR, `ricardian-${safeName}.pdf`);
-    await generateRicardianPdf(ricardianForest, ricardianPdf);
-    const pdfHash = sha256FileBytes32(ricardianPdf);
-
-    state.ricardians[forestUnitId] = {
-  ricardianBase,
-  ricardianForest,
-  ricardianHash,
-  jsonPath: ricardianJson,
-  pdfPath: ricardianPdf,
-  pdfHash,
-  ipfsUri: null,
-  cid: null
-};
-
-    res.json({
-      forestUnitId,
-      ricardianHash,
-      files: {
-        ricardianJsonPath: ricardianJson,
-        ricardianPdfPath: ricardianPdf
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Build/sign Ricardian failed", details: err.message });
-  }
-});
-
-// --------------------
-// 5) Persist Ricardian JSON locally
-// --------------------
-app.post("/api/storage/persistRicardian", async (req, res) => {
-  try {
-    const forestUnitId = req.body?.forestUnitId;
-    if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
-
-    const r = state.ricardians?.[forestUnitId];
-    if (!r?.ricardianForest) {
-      return res.status(404).json({ error: "Ricardian non trovato: chiama /api/ricardian/buildAndSign prima" });
-    }
-
-    const safeName = String(forestUnitId).replace(/[^a-zA-Z0-9_-]/g, "_");
-    const outPath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
-
-    fs.writeFileSync(outPath, JSON.stringify(r.ricardianForest, null, 2));
-
-    r.jsonPath = outPath;
-    function buildServerUri(req, path) {
-      const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
-      return `${proto}://${req.get("host")}${path}`;
-    }
-
-    r.storageUri = `/api/ricardian/json/${forestUnitId}`;
-
-    return res.json({
-      forestUnitId,
-      ricardianJsonPath: outPath,
-      storageUri: r.storageUri
-    });
-  } catch (err) {
-    return res.status(500).json({ error: "Persist Ricardian failed", details: err.message });
-  }
-});
-
-// --------------------
-// 6) Estimate gas + EUR
-// --------------------
-app.post("/api/chain/estimateRegisterRicardianForest", async (req, res) => {
-  const { forestUnitId, ricardianHash, merkleRoot, storageUri } = req.body || {};
-  if (!forestUnitId || !ricardianHash || !merkleRoot || !storageUri) {
-    return res.status(400).json({ error: "forestUnitId, ricardianHash, merkleRoot, storageUri richiesti" });
-  }
-
-  try {
-    const contractAddress = deployed.ForestTracking;
-    const from = await signer.getAddress();
-
-    const data = contract.interface.encodeFunctionData("registerRicardianForest", [
-      forestUnitId,
-      ricardianHash,
-      merkleRoot,
-      storageUri || "file://ricardian-forest.json"
-    ]);
-
-    const gasEstimate = await provider.estimateGas({
-      to: contractAddress,
-      data,
-      from
-    });
-
-    const feeData = await provider.getFeeData();
-    const gasPrice = feeData.gasPrice ?? ethers.parseUnits("20", "gwei");
-
-    const gasCostWei = gasEstimate * gasPrice;
-    const gasCostEth = Number(ethers.formatEther(gasCostWei));
-    const ethPrice = await getEthPriceInEuro();
-
-    return res.json({
-      to: contractAddress,
-      from,
-      gasEstimate: gasEstimate.toString(),
-      gasPriceWei: gasPrice.toString(),
-      gasCostWei: gasCostWei.toString(),
-      gasCostEth,
-      ethEur: ethPrice,
-      eur: Number((gasCostEth * ethPrice).toFixed(2))
-    });
-  } catch (err) {
-    return res.status(500).json({
-      error: "Estimate gas failed",
-      details: err.message,
-      short: err.shortMessage,
-      code: err.code
-    });
-  }
-});
-
 // --------------------
 // 6.5) Estimate user countersignature
 // --------------------
@@ -3276,56 +2667,6 @@ app.post("/api/chain/estimateRegisterUserCountersignature", async (req, res) => 
     return res.status(500).json({
       error: "Estimate countersignature gas failed",
       details: err.message
-    });
-  }
-});
-
-// --------------------
-// 7) Register on-chain
-// --------------------
-app.post("/api/chain/registerRicardianForest", async (req, res) => {
-  const { forestUnitId, ricardianHash, merkleRoot, storageUri } = req.body || {};
-  if (!forestUnitId || !ricardianHash || !merkleRoot || !storageUri) {
-    return res.status(400).json({ error: "forestUnitId, ricardianHash, merkleRoot, storageUri richiesti" });
-  }
-
-  try {
-    const signer = await contract.runner;
-    const signerAddress = await signer.getAddress();
-    const balance = await signer.provider.getBalance(signerAddress);
-
-    const gas = await contract.registerRicardianForest.estimateGas(
-      forestUnitId, ricardianHash, merkleRoot, storageUri
-    );
-    const feeData = await signer.provider.getFeeData();
-
-    const price = feeData.maxFeePerGas ?? feeData.gasPrice;
-    const estimatedCost = gas * price;
-
-    if (balance < estimatedCost) {
-      return res.status(400).json({
-        error: "Insufficient funds",
-        signerAddress,
-        balanceWei: balance.toString(),
-        estimatedCostWei: estimatedCost.toString(),
-        note: "Ricarica ETH su questa rete (es. Sepolia) oppure usa un signer con fondi."
-      });
-    }
-
-    const tx = await contract.registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri);
-    const receipt = await tx.wait();
-
-    res.json({
-      txHash: receipt.transactionHash || tx.hash,
-      blockNumber: receipt.blockNumber,
-      signerAddress
-    });
-  } catch (err) {
-    res.status(500).json({
-      error: "Register on-chain failed",
-      details: err.message,
-      short: err.shortMessage,
-      code: err.code
     });
   }
 });
@@ -3422,7 +2763,6 @@ app.post("/api/ricardian/verifyLocalHashByForestUnit", async (req, res) => {
 
     const base = JSON.parse(JSON.stringify(json));
     delete base.signature;
-    delete base.ipfsUri;
     delete base.ricardianHash;
 
     const fetchedBaseHash = toKeccak256Json(base);
@@ -3431,56 +2771,6 @@ app.post("/api/ricardian/verifyLocalHashByForestUnit", async (req, res) => {
     return res.json({ ok, fetchedBaseHash, expectedRicardianHash, forestUnitId, ricardianJsonPath });
   } catch (err) {
     return res.status(500).json({ error: "Verify LOCAL hash failed", details: err.message });
-  }
-});
-
-// --------------------
-// 9) Verify Merkle proofs
-// --------------------
-app.post("/api/forest-units/verifyMerkleProofs", async (req, res) => {
-  const { forestUnitId } = req.body || {};
-  if (!forestUnitId) return res.status(400).json({ error: "forestUnitId richiesto" });
-
-  try {
-    const cached = state.batches[forestUnitId];
-    if (!cached) {
-      return res.status(404).json({ error: "Batch non trovato: chiama buildUnifiedBatch prima" });
-    }
-
-    const { leaves, merkleTree } = cached;
-
-    const onchainRic = await contract.forestRicardians(forestUnitId);
-    const onchainRoot = onchainRic.merkleRoot;
-
-    const localRoot = merkleTree.getHexRoot();
-    const rootMatches = localRoot.toLowerCase() === onchainRoot.toLowerCase();
-
-    let validCount = 0;
-    let invalidCount = 0;
-
-    for (let i = 0; i < leaves.length; i++) {
-      const leaf = leaves[i];
-      const proof = merkleTree.getProof(leaf).map(x => "0x" + x.data.toString("hex"));
-      const leafHex = "0x" + leaf.toString("hex");
-
-      const isValid = await contract.verifyUnifiedProofWithRoot(leafHex, proof, onchainRoot);
-
-      if (isValid) validCount++;
-      else invalidCount++;
-    }
-
-    return res.json({
-      forestUnitId,
-      total: leaves.length,
-      valid: validCount,
-      invalid: invalidCount,
-      onchainRoot,
-      localRoot,
-      rootMatches,
-      note: "Verifica eseguita via eth_call su verifyUnifiedProofWithRoot usando la root letta dal contratto (forestRicardians[forestUnitId].merkleRoot)."
-    });
-  } catch (err) {
-    return res.status(500).json({ error: "Verify proofs failed", details: err.message });
   }
 });
 
@@ -3543,15 +2833,12 @@ app.get("/api/ricardian/pdf/:forestUnitId/download", (req, res) => {
 // form-data:
 // - forestUnitId
 // - file => .p7m
-// - useIPFS => true/false (optional)
 // --------------------
 app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) => {
   let uploadedTempPath = req.file?.path || null;
 
   try {
     const forestUnitId = req.body?.forestUnitId;
-    const useIPFS = String(req.body?.useIPFS || "false").toLowerCase() === "true";
-
     if (!forestUnitId) {
       if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
       return res.status(400).json({ error: "forestUnitId richiesto" });
@@ -3569,147 +2856,102 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
     const finalP7mPath = path.join(CADES_DIR, `ricardian-${safeName}.pdf.p7m`);
     const extractedPdfPath = path.join(CADES_DIR, `ricardian-${safeName}.extracted-from-p7m.pdf`);
 
-    console.log("[CADES] pre-rename uploadedTempPath:", uploadedTempPath);
-    console.log("[CADES] pre-rename finalP7mPath:", finalP7mPath);
-    console.log("[CADES] pre-rename CADES_DIR:", CADES_DIR);
-    console.log("[CADES] pre-rename TMP_DIR:", TMP_DIR);
-
     try {
       fs.copyFileSync(uploadedTempPath, finalP7mPath);
       try { fs.unlinkSync(uploadedTempPath); } catch {}
     } catch (e) {
-      console.error("[CADES] copy FAILED:", e.code, e.message, "src=", uploadedTempPath, "srcExists=", fs.existsSync(uploadedTempPath), "dstDir=", CADES_DIR, "dstDirExists=", fs.existsSync(CADES_DIR));
+      console.error("[CADES] copy FAILED:", e.code, e.message);
       throw e;
     }
     uploadedTempPath = null;
 
-    const probe = (label) => {
-      const exists = fs.existsSync(finalP7mPath);
-      const size = exists ? fs.statSync(finalP7mPath).size : -1;
-      console.log(`[CADES PROBE ${label}] exists=${exists} size=${size} path=${finalP7mPath}`);
-      if (!exists) {
-        try {
-          console.log(`[CADES PROBE ${label}] CADES_DIR contents:`, fs.readdirSync(CADES_DIR));
-        } catch (e) {
-          console.log(`[CADES PROBE ${label}] cannot read CADES_DIR: ${e.message}`);
-        }
+    const cleanup = () => {
+      for (const p of [finalP7mPath, extractedPdfPath]) {
+        try { if (fs.existsSync(p)) fs.unlinkSync(p); } catch {}
       }
     };
 
-    probe("post-rename");
+    // 1) Validazione DSS del container così com'è caricato — UNA SOLA VOLTA,
+    // esattamente come in /cades/client-upload (verifyAndExtractClientCountersignature).
+    let dssResult;
+    try {
+      dssResult = await validateCades(finalP7mPath);
+    } catch (e) {
+      dssResult = { ok: false, error: e.message };
+    }
 
-    const verifyResult = await verifyAndExtractCadesAttachedPdf(finalP7mPath, extractedPdfPath);
-    probe("post-verifyAndExtract");
+    // 2) Estrazione del PDF incapsulato (stessa logica di sbucciatura usata
+    // per la controfirma cliente, qui applicata a un singolo livello CAdES).
+    const extractResult = await extractPdfFromCades(finalP7mPath, extractedPdfPath);
 
-    if (!verifyResult.ok) {
-      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
-      try { if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath); } catch {}
-
+    if (!extractResult.ok || !fs.existsSync(extractedPdfPath)) {
+      cleanup();
       return res.status(400).json({
         ok: false,
         error: "Verifica CAdES fallita",
-        details: verifyResult.error
-      });
-    }
-
-    if (!fs.existsSync(extractedPdfPath)) {
-      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
-
-      return res.status(400).json({
-        ok: false,
-        error: "OpenSSL non ha estratto il PDF dal .p7m"
+        details: extractResult.error || "OpenSSL non ha estratto il PDF dal .p7m"
       });
     }
 
     const currentLocalPdfHash = sha256FileBytes32(originalPdfPath);
-    probe("post-sha-originalPdf");
-
     const extractedPdfHash = sha256FileBytes32(extractedPdfPath);
-    probe("post-sha-extractedPdf");
-
     const cadesHash = sha256FileBytes32(finalP7mPath);
-    probe("post-sha-cades");
 
     const localPdfStillMatchesBaseline =
       currentLocalPdfHash.toLowerCase() === String(registeredPdfHash).toLowerCase();
 
     if (!localPdfStillMatchesBaseline) {
-      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
-      try { if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath); } catch {}
-
+      cleanup();
       return res.status(409).json({
         ok: false,
         error: "Il PDF locale è stato alterato rispetto alla baseline registrata",
         forestUnitId,
-        hashes: {
-          registeredPdfHash,
-          currentLocalPdfHash,
-          extractedPdfHash,
-          cadesHash
-        }
+        hashes: { registeredPdfHash, currentLocalPdfHash, extractedPdfHash, cadesHash }
       });
     }
 
-    const validOffchain =
+    // 3) Il PDF estratto dal .p7m deve coincidere con la baseline registrata
+    // (stesso controllo di contenuto fatto per la controfirma cliente).
+    const pdfContentMatches =
       extractedPdfHash.toLowerCase() === String(registeredPdfHash).toLowerCase();
 
-    if (!validOffchain) {
-      try { if (fs.existsSync(finalP7mPath)) fs.unlinkSync(finalP7mPath); } catch {}
-      try { if (fs.existsSync(extractedPdfPath)) fs.unlinkSync(extractedPdfPath); } catch {}
-
+    if (!pdfContentMatches) {
+      cleanup();
       return res.status(400).json({
         ok: false,
         error: "Il PDF estratto dal .p7m non coincide con il PDF registrato",
         forestUnitId,
-        hashes: {
-          registeredPdfHash,
-          currentLocalPdfHash,
-          extractedPdfHash,
-          cadesHash
-        }
+        hashes: { registeredPdfHash, currentLocalPdfHash, extractedPdfHash, cadesHash }
       });
     }
 
     const certInfo = await extractCertificateInfoFromP7m(finalP7mPath);
 
     const caFilePath =
-    process.env.CADES_CA_FILE ||
-    path.resolve(__dirname, "../certs/trusted-ca.pem");
+      process.env.CADES_CA_FILE ||
+      path.resolve(__dirname, "../certs/trusted-ca.pem");
 
     const trustResult = await verifyCadesSignatureTrustHybrid(finalP7mPath, caFilePath);
 
-    // ----------------------------------------------------------------
-    // VALIDAZIONE DSS (EU LOTL) — sostituisce/integra il check OpenSSL
-    // ----------------------------------------------------------------
-    let dssResult = null;
+    // 4) validOffchain = validità legale della firma secondo DSS (TOTAL_PASSED
+    // + livello QESig/AdESig-QC) — stesso significato usato in state.clientCades.
+    // Il controllo di CONTENUTO (pdfContentMatches) è già stato applicato sopra
+    // e blocca l'upload in caso di mismatch, quindi qui riflette solo il livello
+    // legale della firma, non più una ridondanza del confronto hash.
+    const validOffchain = isDssSignatureValid(dssResult);
+
     let dssReportPath = null;
-
-    try {
-      dssResult = await validateCades(finalP7mPath);
-
-      if (dssResult.ok) {
-        // Persisti il report DSS come evidenza (Blocco 5.4)
+    if (dssResult?.ok) {
+      try {
         const reportFileName = `validation-${safeName}-${Date.now()}.json`;
         dssReportPath = path.join(CADES_DIR, reportFileName);
         fs.writeFileSync(dssReportPath, JSON.stringify(dssResult.rawReport, null, 2));
-        console.log(`[DSS] Validation report salvato: ${reportFileName}`);
-        console.log(`[DSS] Indication: ${dssResult.indication}, Level: ${dssResult.signatureLevel}`);
-      } else {
-        console.warn(`[DSS] Validazione fallita: ${dssResult.error}`);
+      } catch (e) {
+        console.warn(`[DSS] Impossibile salvare report: ${e.message}`);
       }
-    } catch (e) {
-      console.warn(`[DSS] Eccezione nella validazione: ${e.message}`);
-      dssResult = { ok: false, error: e.message };
     }
 
-    let cadesUri = toFileUri(finalP7mPath);
-    let ipfs = null;
-
-    if (useIPFS) {
-      ipfs = await uploadFileToIpfs(finalP7mPath, `ricardian-${safeName}.pdf.p7m`);
-      cadesUri = ipfs.ipfsUri;
-    }
-
+    const cadesUri = toFileUri(finalP7mPath);
     const signedAt = Math.floor(Date.now() / 1000);
 
     state.cades[forestUnitId] = {
@@ -3737,33 +2979,27 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
       policy: certInfo.policy || "",
       signedAt,
       validOffchain,
-      ipfsUri: ipfs?.ipfsUri || null,
-      cid: ipfs?.cid || null,
       uploadedAt: new Date().toISOString(),
       trustedSignature: trustResult.trusted,
       trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
       caFilePath,
       trustProvider: trustResult.provider || null,
-      // DSS — validazione EU LOTL
+      // DSS — validazione EU LOTL (stessi campi salvati per la controfirma cliente)
       dssOk: dssResult?.ok || false,
       dssIndication: dssResult?.indication || null,           // TOTAL_PASSED | TOTAL_FAILED | INDETERMINATE
       dssSubIndication: dssResult?.subIndication || null,
       dssSignatureLevel: dssResult?.signatureLevel || null,   // QESig | AdESig-QC | AdESig | NA
       dssSignatureFormat: dssResult?.signatureFormat || null, // CAdES-BASELINE-B/T/LT/LTA
-      dssIsQualified: dssResult?.isQualified || false,
-      dssIsAdvancedWithQc: dssResult?.isAdvancedWithQc || false,
       dssQcCompliance: dssResult?.qcCompliance || false,
       dssQcSSCD: dssResult?.qcSSCD || false,
       dssHasTimestamp: dssResult?.hasTimestamp || false,
-      dssReportPath: dssReportPath,
-      dssReportFileName: dssReportPath ? path.basename(dssReportPath) : null,
+      dssReportPath,
+      dssReportFileName: dssReportPath ? path.basename(dssReportPath) : null
     };
 
-    // ----------------------------------------------------------------
-    // Aggiorna il ricardiano runtime con il livello di firma DSS (Blocco 5.5)
-    // Soddisfa il campo legal.documentSignature.userCountersignature.legalQualification
-    // del Ricardian v3.0
-    // ----------------------------------------------------------------
+    // Aggiorna il ricardiano runtime con il livello di firma DSS, così che
+    // legal.documentSignature.userCountersignature.legalQualification nel
+    // PDF/JSON riflettano l'esito reale della validazione.
     const r = state.ricardians?.[forestUnitId];
     if (r?.ricardianForest?.legal?.documentSignature?.userCountersignature) {
       const userSig = r.ricardianForest.legal.documentSignature.userCountersignature;
@@ -3781,7 +3017,6 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
         userSig.validationError = dssResult?.error || "Validazione DSS non disponibile";
       }
 
-      // Riscrivi il ricardiano JSON aggiornato (utile per audit successivi)
       try {
         const ricardianJsonPath = path.join(RICARDIAN_DIR, `ricardian-${safeName}.json`);
         fs.writeFileSync(ricardianJsonPath, JSON.stringify(r.ricardianForest, null, 2));
@@ -3798,17 +3033,8 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
       trustedSignature: trustResult.trusted,
       trustDetails: trustResult.ok ? trustResult.details : trustResult.error,
       signerExtractionError: certInfo.error || null,
-      files: {
-        originalPdfPath,
-        p7mPath: finalP7mPath,
-        extractedPdfPath
-      },
-      hashes: {
-        registeredPdfHash,
-        currentLocalPdfHash,
-        extractedPdfHash,
-        cadesHash
-      },
+      files: { originalPdfPath, p7mPath: finalP7mPath, extractedPdfPath },
+      hashes: { registeredPdfHash, currentLocalPdfHash, extractedPdfHash, cadesHash },
       signer: {
         commonName: certInfo.signerCommonName,
         serialNumber: certInfo.signerSerialNumber,
@@ -3824,18 +3050,12 @@ app.post("/api/ricardian/cades/upload", upload.single("file"), async (req, res) 
         policy: certInfo.policy,
         subject: certInfo.rawSubject
       },
-      storage: {
-        cadesUri,
-        ipfsUri: ipfs?.ipfsUri || null,
-        cid: ipfs?.cid || null
-      },
-      // DSS validation (Blocco 5.4 / 5.5)
+      storage: { cadesUri },
       dss: dssResult?.ok ? {
         indication: dssResult.indication,
         subIndication: dssResult.subIndication,
         signatureLevel: dssResult.signatureLevel,
         signatureFormat: dssResult.signatureFormat,
-        isQualified: dssResult.isQualified,
         qcCompliance: dssResult.qcCompliance,
         qcSSCD: dssResult.qcSSCD,
         hasTimestamp: dssResult.hasTimestamp,
@@ -3872,7 +3092,6 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
 
   try {
     const forestUnitId = req.body?.forestUnitId;
-    const useIPFS = String(req.body?.useIPFS || "false").toLowerCase() === "true";
 
     if (!forestUnitId) {
       if (uploadedTempPath && fs.existsSync(uploadedTempPath)) fs.unlinkSync(uploadedTempPath);
@@ -4042,6 +3261,50 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
       ? (verifyResult.clientCert || {})
       : await extractCertificateInfoFromP7m(finalClientP7mPath);
 
+    // Anti-riuso firmatario anche per la topologia NIDIFICATA: il controllo
+    // "p7m interno coincide con quello registrato" (sopra) garantisce che il
+    // documento sotto la controfirma sia autentico, ma da solo NON impedisce
+    // che il firmatario ESTERNO sia lo stesso del firmatario già registrato
+    // (bug osservato: un secondo .p7m.p7m firmato di nuovo dallo stesso
+    // certificato dell'issuer veniva accettato). Stesso confronto per
+    // fingerprint SHA-256 già usato nel ramo "flat" di
+    // verifyAndExtractClientCountersignature.
+    if (topology === "nested") {
+      const norm = (s) => String(s || "").trim().toLowerCase();
+      const outerFingerprint = norm(certInfo.fingerprintSha256);
+      const expectedFingerprint = norm(inner.signerFingerprintSha256);
+      const sameSigner = outerFingerprint && expectedFingerprint
+        ? outerFingerprint === expectedFingerprint
+        : (
+          !!certInfo.signerCommonName &&
+          norm(certInfo.signerCommonName) === norm(inner.signerCommonName) &&
+          !!certInfo.signerSerialNumber &&
+          norm(certInfo.signerSerialNumber) === norm(inner.signerSerialNumber)
+        );
+
+      if (sameSigner) {
+        cleanup();
+        return res.status(400).json({
+          ok: false,
+          error: "Il file caricato è firmato dallo stesso firmatario già registrato: non è una controfirma di un secondo soggetto (cliente)",
+          forestUnitId,
+          topology,
+          details: {
+            expectedSignerInfo: {
+              commonName: inner.signerCommonName,
+              serialNumber: inner.signerSerialNumber,
+              fingerprintSha256: inner.signerFingerprintSha256
+            },
+            found: {
+              commonName: certInfo.signerCommonName,
+              serialNumber: certInfo.signerSerialNumber,
+              fingerprintSha256: certInfo.fingerprintSha256
+            }
+          }
+        });
+      }
+    }
+
     const caFilePath =
       process.env.CADES_CA_FILE ||
       path.resolve(__dirname, "../certs/trusted-ca.pem");
@@ -4059,12 +3322,7 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
       }
     }
 
-    let clientCadesUri = toFileUri(finalClientP7mPath);
-    let ipfs = null;
-    if (useIPFS) {
-      ipfs = await uploadFileToIpfs(finalClientP7mPath, path.basename(finalClientP7mPath));
-      clientCadesUri = ipfs.ipfsUri;
-    }
+    const clientCadesUri = toFileUri(finalClientP7mPath);
 
     const signedAt = Math.floor(Date.now() / 1000);
 
@@ -4098,8 +3356,6 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
       validOffchain: verifyResult.validOffchain,
       trustedSignature: trustResult.trusted,
       trustProvider: trustResult.provider || null,
-      ipfsUri: ipfs?.ipfsUri || null,
-      cid: ipfs?.cid || null,
       uploadedAt: new Date().toISOString(),
       dssOk: verifyResult.indication === "TOTAL_PASSED",
       dssIndication: verifyResult.indication || null,
@@ -4141,9 +3397,7 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
         validTo: certInfo.validTo
       },
       storage: {
-        clientCadesUri,
-        ipfsUri: ipfs?.ipfsUri || null,
-        cid: ipfs?.cid || null
+        clientCadesUri
       },
       dss: {
         indication: verifyResult.indication,
@@ -4178,8 +3432,6 @@ app.post("/api/ricardian/cades/client-upload", upload.single("file"), async (req
 // --------------------
 app.post("/api/contract/write", async (req, res) => {
   try {
-    const useIPFS = !!req.body?.useIPFS;
-
     // ----------------------------------------------------------------
     // Validazione subscriber (art. 8-ter c.2 L. 12/2019)
     // ----------------------------------------------------------------
@@ -4188,15 +3440,14 @@ app.post("/api/contract/write", async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: "subscriber mancante (art. 8-ter c.2 L. 12/2019)",
-        hint: "Inviare nel body: { forestUnitId, subscriber: { legalEntity, identifier, method }, useIPFS }",
+        hint: "Inviare nel body: { forestUnitId, subscriber: { legalEntity, identifier, method } }",
         example: {
           forestUnitId: "FU-2024-001",
           subscriber: {
             legalEntity: "Azienda Forestale Verdi SRL",
             identifier: "IT12345678901",
             method: "contractual"
-          },
-          useIPFS: false
+          }
         }
       });
     }
@@ -4247,17 +3498,12 @@ app.post("/api/contract/write", async (req, res) => {
     const ric = await buildAndSignRicardianInternal(
       forestUnitId,
       batch.merkleRoot,
-      useIPFS ? "IPFS" : "LOCAL_FILE",
+      "LOCAL_FILE",
       subscriber
     );
 
-    let storage;
-    if (useIPFS) {
-      storage = await uploadRicardianToIpfsInternal(forestUnitId);
-    } else {
-      const baseUrl = getBaseUrl(req);
-      storage = await persistRicardianLocalInternal(forestUnitId, baseUrl);
-    }
+    const baseUrl = getBaseUrl(req);
+    const storage = await persistRicardianLocalInternal(forestUnitId, baseUrl);
 
     const rawEstimate = await estimateRegisterInternal({
       forestUnitId,
@@ -4282,8 +3528,6 @@ app.post("/api/contract/write", async (req, res) => {
       ricardianUri: storage.storageUri,
       pdfHash: state.ricardians?.[forestUnitId]?.pdfHash || null,
       pdfUri: storage.pdfUri || null,
-      ipfsUri: storage.ipfsUri || null,
-      cid: storage.cid || null,
       txHash: onchain.txHash,
       blockNumber: onchain.blockNumber,
       createdAt: new Date().toISOString(),
@@ -4299,8 +3543,6 @@ app.post("/api/contract/write", async (req, res) => {
       ricardianHash: ric.ricardianHash,
       ricardianUri: storage.storageUri,
       pdfUri: storage.pdfUri || null,
-      ipfsUri: storage.ipfsUri || null,
-      cid: storage.cid || null,
       estimate,
       onchain
     });
@@ -4494,17 +3736,18 @@ app.post("/api/contract/write-2-cades", async (req, res) => {
         error: "Controfirma CAdES non trovata. Carica prima il .p7m con /api/ricardian/cades/upload"
       });
     }
-    if (c.validOffchain !== true) {
-      return res.status(400).json({
-        ok: false,
-        error: "Registrazione controfirma rifiutata: il contenuto del .p7m non coincide con il PDF registrato"
-      });
-    }
-
     if (c.trustedSignature !== true) {
       return res.status(400).json({
         ok: false,
         error: "Registrazione controfirma rifiutata: firma non trusted"
+      });
+    }
+
+    const dssBypassed = c.validOffchain !== true && ALLOW_UNTRUSTED_DSS;
+    if (c.validOffchain !== true && !dssBypassed) {
+      return res.status(400).json({
+        ok: false,
+        error: "Registrazione controfirma rifiutata: la firma non e' valida off-chain (DSS)"
       });
     }
 
@@ -4541,6 +3784,7 @@ app.post("/api/contract/write-2-cades", async (req, res) => {
       signerSerialNumber: c.signerSerialNumber,
       signedAt: c.signedAt,
       validOffchain: c.validOffchain,
+      dssBypassed,
       cadesTxHash: onchain.txHash,
       cadesBlockNumber: onchain.blockNumber
     };
@@ -4556,7 +3800,8 @@ app.post("/api/contract/write-2-cades", async (req, res) => {
         signerCommonName: c.signerCommonName,
         signerSerialNumber: c.signerSerialNumber,
         signedAt: c.signedAt,
-        validOffchain: c.validOffchain
+        validOffchain: c.validOffchain,
+        dssBypassed
       },
       estimate,
       onchain
@@ -4598,16 +3843,18 @@ app.post("/api/contract/write-3-client-countersign", async (req, res) => {
       });
     }
 
-    if (cc.validOffchain !== true) {
-      return res.status(400).json({
-        ok: false,
-        error: "Registrazione rifiutata: la controfirma cliente non e' valida off-chain (DSS)"
-      });
-    }
     if (cc.trustedSignature !== true) {
       return res.status(400).json({
         ok: false,
         error: "Registrazione rifiutata: firma cliente non trusted"
+      });
+    }
+
+    const dssBypassed = cc.validOffchain !== true && ALLOW_UNTRUSTED_DSS;
+    if (cc.validOffchain !== true && !dssBypassed) {
+      return res.status(400).json({
+        ok: false,
+        error: "Registrazione rifiutata: la controfirma cliente non e' valida off-chain (DSS)"
       });
     }
 
@@ -4643,6 +3890,7 @@ app.post("/api/contract/write-3-client-countersign", async (req, res) => {
       clientSignerSerialNumber: cc.signerSerialNumber,
       clientSignedAt: cc.signedAt,
       clientValidOffchain: cc.validOffchain,
+      clientDssBypassed: dssBypassed,
       clientCadesTxHash: onchain.txHash,
       clientCadesBlockNumber: onchain.blockNumber
     };
@@ -4658,7 +3906,8 @@ app.post("/api/contract/write-3-client-countersign", async (req, res) => {
         signerCommonName: cc.signerCommonName,
         signerSerialNumber: cc.signerSerialNumber,
         signedAt: cc.signedAt,
-        validOffchain: cc.validOffchain
+        validOffchain: cc.validOffchain,
+        dssBypassed
       },
       estimate,
       onchain
@@ -4734,11 +3983,6 @@ app.post("/api/contract/verify", async (req, res) => {
       : null;  
 
     const existsOnChain = !!onchainRoot && String(onchainRoot) !== "0x0000000000000000000000000000000000000000000000000000000000000000";
-
-    const isIpfsMode = !!w.ipfsUri || !!r?.ipfsUri;
-    const ipfsVerify = isIpfsMode
-      ? await verifyIpfsHashInternal(forestUnitId, expectedRicardianHash)
-      : { skipped: true, reason: "storage non IPFS" };
 
     const proofs = await verifyMerkleProofsInternal(forestUnitId);
 
@@ -4912,7 +4156,6 @@ app.post("/api/contract/verify", async (req, res) => {
         pdfUriMatches,
         pdfHashMatches
       },
-      ipfsVerify,
       proofs,
       countersignature,
       clientCountersignature

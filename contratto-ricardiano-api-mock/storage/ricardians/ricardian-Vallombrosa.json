@@ -70,13 +70,13 @@
       "userCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
         "purpose": "Costituisce sottoscrizione del PDF ricardiano da parte del Fornitore (firmatario aziendale), ulteriore rispetto alla firma di sistema EIP-712.",
-        "legalQualification": "N/A",
-        "validationReportRef": "validation-Vallombrosa-1784103789908.json",
-        "validationIndication": "INDETERMINATE",
+        "legalQualification": "QESig",
+        "validationReportRef": "validation-Vallombrosa-1784198149490.json",
+        "validationIndication": "TOTAL_PASSED",
         "signatureFormat": "CAdES-BASELINE-B",
         "qcCompliance": false,
         "qcSSCD": false,
-        "hasTimestamp": true
+        "hasTimestamp": false
       },
       "clientCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
@@ -103,8 +103,7 @@
         "offChainEvidence": "10 anni in coerenza con art. 2946 c.c.; prorogabile per contenzioso o richiesta dell'autorità. Enforcement automatico via job di scadenza."
       },
       "personalDataHandling": "Il Sottoscrittore conferisce i Dati senza assumere ruoli privacy; le finalità e i mezzi del trattamento sono determinati dal Fornitore quale Titolare",
-      "dataSubjectRights": "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati.",
-      "ipfsUsageStatement": "Limitato a payload privi di dati personali."
+      "dataSubjectRights": "esercitabili dagli interessati, ai sensi del Capo III (artt. 12-22) GDPR, presso il Fornitore quale Titolare. Le evidenze on-chain non consentono identificazione diretta degli interessati."
     },
     "dpiaStatus": "Quale Titolare del trattamento, il Fornitore è tenuto a effettuare la valutazione d'impatto (DPIA) prima del trattamento nei casi previsti dall'art. 35 GDPR, segnatamente in presenza di rischio elevato per i diritti e le libertà degli interessati, anche in ragione dell'uso di nuove tecnologie e di rilievi georeferenziati da drone; al Fornitore compete la valutazione preliminare circa la ricorrenza di tali condizioni."
   },
@@ -116,9 +115,9 @@
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-07-15T08:22:07.368Z"
+    "createdAt": "2026-07-16T10:15:34.196Z"
   },
-  "ricardianHash": "0x30e4add161211d7f1bd3574f4bd7ce3f12b8e9a25d4a394ddd9e6f2fcf48d37e",
+  "ricardianHash": "0xafcdf1419c1b86f01413429deef5c7fa5632b7cee0f8fac652e0eb07490ea037",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -150,11 +149,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0x30e4add161211d7f1bd3574f4bd7ce3f12b8e9a25d4a394ddd9e6f2fcf48d37e",
+        "ricardianHash": "0xafcdf1419c1b86f01413429deef5c7fa5632b7cee0f8fac652e0eb07490ea037",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-07-15T08:22:07.368Z"
+        "createdAt": "2026-07-16T10:15:34.196Z"
       },
-      "signature": "0x7767eaf4b2d8930bdbb8e7c14676cdedb38f7b67a985ccaa6d7b2e050410cad701cccdb2572477cead1e480b8a4186cb51bb7f0d28c51e408719817ecb9ccad61c"
+      "signature": "0x29aaa1e4a07db5b1c70c696810cc2f8e960e1a16821de753d7709a118b0975f0342c2c927faf819578d3456387999f20d0b521d6308d06287fa1a363582c217c1b"
     }
   }
 }
