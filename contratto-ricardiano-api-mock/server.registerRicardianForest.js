@@ -735,7 +735,7 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
 
 
  const ricardianBase = {
-  version: "4.1",
+  version: "4.2",
   type: "RicardianForestTracking",
 
   parties: {
@@ -822,6 +822,12 @@ async function buildAndSignRicardianInternal(forestUnitId, merkleRoot, storageMo
         legalQualification: "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
         validationReportRef: null
       }
+    },
+    rectificationProcedure: {
+      principle: "In caso di errore materiale nei Dati registrati, la registrazione originaria resta immutabile per natura della Blockchain e non viene mai eliminata né alterata.",
+      mechanism: "Il Fornitore, su richiesta del Sottoscrittore o d'ufficio in caso di errore accertato, provvede a una nuova registrazione (\"registrazione sostitutiva\") relativa alla medesima Forest Unit, effettuata mediante una nuova esecuzione della funzione registerRicardianForest con nuovo ricardianHash e nuova merkleRoot.",
+      linkage: "La registrazione sostitutiva richiama esplicitamente, nel campo storageUri o in apposito metadato del Contratto Ricardiano, il ricardianHash della registrazione superata, cosi da rendere ricostruibile la sequenza storica delle registrazioni relative alla medesima Forest Unit.",
+      effects: "La registrazione sostitutiva prevale, ai fini operativi e contrattuali, sulla registrazione superata a decorrere dalla data della nuova registrazione. La registrazione superata resta comunque consultabile on-chain per finalità di trasparenza storica e non costituisce più, da tale data, prova dello stato attuale del Dataset Forestale."
     },
     statement: "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile e dal livello di firma effettivamente apposto e verificato."
   },
@@ -2297,6 +2303,17 @@ doc.y = badgeY + badgeH + 12;
       "riferimenti on-chain (txHash e blockNumber); ove presenti, vi sono inclusi anche la " +
       "controfirma CAdES e il relativo report di validazione DSS."
     );
+    // ==================================================================
+    // ART. 7-BIS — RETTIFICA E SUPERAMENTO DI UNA REGISTRAZIONE
+    // ==================================================================
+    const rect = ricardian?.legal?.rectificationProcedure;
+    if (rect) {
+      articleTitle("7-bis", "Rettifica e superamento di una registrazione");
+      clause("7-bis.1", safe(rect.principle));
+      clause("7-bis.2", safe(rect.mechanism));
+      clause("7-bis.3", safe(rect.linkage));
+      clause("7-bis.4", safe(rect.effects));
+    }
 
     // ==================================================================
     // ART. 8 — TRATTAMENTO DEI DATI PERSONALI
@@ -2416,6 +2433,7 @@ doc.y = badgeY + badgeH + 12;
     );
     mappingTable([
       ["Artt. 2.3, 4.2, 7.6", "registerRicardianForest(forestUnitId, ricardianHash, merkleRoot, storageUri)"],
+      ["Art. 7-bis", "registerRicardianForest(...) riutilizzata per la registrazione sostitutiva, con nuovo ricardianHash che richiama quello superato"],
       ["Artt. 7.4, 12.2", "setRicardianPdfUri(forestUnitId, pdfUri)"],
       ["Art. 6.2", "registerUserCountersignature(...) - firma CAdES del Fornitore"],
       ["Art. 6.3", "registerClientCountersignature(...) - controfirma CAdES del Sottoscrittore"],

@@ -1,5 +1,5 @@
 {
-  "version": "4.1",
+  "version": "4.2",
   "type": "RicardianForestTracking",
   "parties": {
     "issuer": {
@@ -70,13 +70,8 @@
       "userCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
         "purpose": "Costituisce sottoscrizione del PDF ricardiano da parte del Fornitore (firmatario aziendale), ulteriore rispetto alla firma di sistema EIP-712.",
-        "legalQualification": "QESig",
-        "validationReportRef": "validation-Vallombrosa-1784198149490.json",
-        "validationIndication": "TOTAL_PASSED",
-        "signatureFormat": "CAdES-BASELINE-B",
-        "qcCompliance": false,
-        "qcSSCD": false,
-        "hasTimestamp": false
+        "legalQualification": "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della firma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
+        "validationReportRef": null
       },
       "clientCountersignature": {
         "type": "CAdES (formato DER), livello determinato a runtime",
@@ -84,6 +79,12 @@
         "legalQualification": "Il livello e gli effetti giuridici sono determinati dalla validazione DSS al momento della controfirma. Effetti pieni ex artt. 20-23 CAD e art. 2702 c.c. solo se attestata FEQ con certificato qualificato di QTSP listato in EU LOTL e marca temporale qualificata.",
         "validationReportRef": null
       }
+    },
+    "rectificationProcedure": {
+      "principle": "In caso di errore materiale nei Dati registrati, la registrazione originaria resta immutabile per natura della Blockchain e non viene mai eliminata né alterata.",
+      "mechanism": "Il Fornitore, su richiesta del Sottoscrittore o d'ufficio in caso di errore accertato, provvede a una nuova registrazione (\"registrazione sostitutiva\") relativa alla medesima Forest Unit, effettuata mediante una nuova esecuzione della funzione registerRicardianForest con nuovo ricardianHash e nuova merkleRoot.",
+      "linkage": "La registrazione sostitutiva richiama esplicitamente, nel campo storageUri o in apposito metadato del Contratto Ricardiano, il ricardianHash della registrazione superata, cosi da rendere ricostruibile la sequenza storica delle registrazioni relative alla medesima Forest Unit.",
+      "effects": "La registrazione sostitutiva prevale, ai fini operativi e contrattuali, sulla registrazione superata a decorrere dalla data della nuova registrazione. La registrazione superata resta comunque consultabile on-chain per finalità di trasparenza storica e non costituisce più, da tale data, prova dello stato attuale del Dataset Forestale."
     },
     "statement": "L'hash registrato on-chain costituisce prova tecnica di esistenza, integrità e riferibilità temporale del dataset alla data di registrazione, opponibile a terzi nei limiti consentiti dalla normativa applicabile e dal livello di firma effettivamente apposto e verificato."
   },
@@ -115,9 +116,9 @@
     "legalAdvice": "Il presente documento descrive l'architettura tecnica e i suoi effetti giuridici tipici; non sostituisce parere legale specifico al caso concreto."
   },
   "timestamps": {
-    "createdAt": "2026-07-16T10:15:34.196Z"
+    "createdAt": "2026-07-21T09:00:51.492Z"
   },
-  "ricardianHash": "0xafcdf1419c1b86f01413429deef5c7fa5632b7cee0f8fac652e0eb07490ea037",
+  "ricardianHash": "0x39a87e8b8168a0c43a2f192015b5fd1d73d89888fde2d27980301f8b46afaa5d",
   "signature": {
     "eip712": {
       "signer": "0x01f9a2dd10abcb6824c3dd75c89995db6aec5c79",
@@ -149,11 +150,11 @@
       },
       "message": {
         "forestUnitKey": "Vallombrosa",
-        "ricardianHash": "0xafcdf1419c1b86f01413429deef5c7fa5632b7cee0f8fac652e0eb07490ea037",
+        "ricardianHash": "0x39a87e8b8168a0c43a2f192015b5fd1d73d89888fde2d27980301f8b46afaa5d",
         "merkleRoot": "0x88d084d78400a3f21173930a0b607853f1f4ceec6278027e9025441bfafc644d",
-        "createdAt": "2026-07-16T10:15:34.196Z"
+        "createdAt": "2026-07-21T09:00:51.492Z"
       },
-      "signature": "0x29aaa1e4a07db5b1c70c696810cc2f8e960e1a16821de753d7709a118b0975f0342c2c927faf819578d3456387999f20d0b521d6308d06287fa1a363582c217c1b"
+      "signature": "0x06085651785c3780e5c392cdff1648c7f062bb7d8b948ce7fef6b5dc598954e24cb9f20d135701a6e2c324a0db757dd36648d5caff2a85e0914af17194be8d281b"
     }
   }
 }
